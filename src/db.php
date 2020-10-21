@@ -1,9 +1,7 @@
 <?php
 namespace webrium\foxql;
 
-use webrium\foxql\query;
-
-class DB{
+class DB extends query{
 
   private static $db_configs = [];
 
@@ -25,7 +23,7 @@ class DB{
 
   public static function table($name){
     $query = new query();
-    $query->setConfig(self::firstConfig());
+    $query->setConfig(self::firstConfig(),$name);
     return $query;
   }
 
