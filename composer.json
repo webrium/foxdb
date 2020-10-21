@@ -1,0 +1,13 @@
+{
+    "name": "webrium/foxql",
+    "description": "SQL Query Builer",
+    "type": "library",
+    "license": "Apache2",
+    "minimum-stability": "dev",
+    "require": {},
+    "autoload": {
+      "psr-4": {
+        "webrium\\foxql\\": "src/"
+      }
+    }
+}
