@@ -4,6 +4,7 @@ namespace webrium\foxql;
 
 class builder {
 
+
   public function makeValueString($args,$table=false)
   {
 
@@ -22,6 +23,7 @@ class builder {
     return $str;
   }
 
+
   public function addToWhereQuery($op,$str)
   {
     $index = $this->SqlStractur("WHERE");
@@ -35,6 +37,55 @@ class builder {
     }
 
     $this->query_array[$index][] = $str;
+  }
+
+  public function addToSelectFields($fields)
+  {
+    $index = $this->SqlStractur("FIELDS");
+
+    if (! isset($this->query_array[$index])) {
+      $this->query_array[$index]='';
+    }
+
+    $this->query_array[$index]=$fields;
+  }
+
+  public function makeQueryStr($type='select')
+  {
+    $str = '';
+    if ($type=='select') {
+      $this->getSelectQuery();
+    }
+    return $this->query_array;
+  }
+
+  public function getSelectQuery()
+  {
+    $fields = $this->query_array[$this->SqlStractur('FIELDS')]??false;
+    if ($fields==false) {
+      $fields = '*';
+    }
+
+    $str = "select $fields from $this->table";
+  }
+
+  public function explodeFieldName($name)
+  {
+    $table = $this->table;
+
+    if (strpos($name,'.')>0) {
+      $arr   = explode('.',$name);
+      $table = "`".$arr[0]."`";
+      $name  =  $arr[1];
+    }
+
+    return['table'=>$table,'field'=>$name];
+  }
+
+  public function getFieldStr($name)
+  {
+    $arr = $this->explodeFieldName($name);
+    return $arr['table'].".`".$arr['field']."`";
   }
 
 

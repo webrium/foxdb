@@ -22,6 +22,24 @@ class query extends builder{
   }
 
 
+  public function select($args)
+  {
+    $select = new \webrium\foxql\selectFields();
+    $select->table = $this->table;
+
+    if (is_callable($args)) {
+      $args($select);
+    }
+    elseif(is_array($args)){
+      $select->autoSet($args);
+    }
+
+    $this->addToSelectFields($select->get());
+
+    return $this;
+  }
+
+
   public function makeWhere($op,$args)
   {
     $str= $this->makeValueString($args);
@@ -104,6 +122,11 @@ class query extends builder{
   }
 
   public function get()
+  {
+    return json_encode($this->makeQueryStr());
+  }
+
+  public function first()
   {
     return $this->table;
   }
