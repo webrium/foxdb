@@ -42,8 +42,13 @@ class query extends builder{
 
   public function makeWhere($op,$args)
   {
-    $str= $this->makeValueString($args);
-    $this->addToWhereQuery($op,$str);
+
+    $str= $this->makeValueString($args,$op);
+
+    if ($str!=false) {
+      $this->addToWhereQuery($op,$str);
+    }
+
     return $this;
   }
 

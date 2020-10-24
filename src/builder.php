@@ -5,21 +5,35 @@ namespace webrium\foxql;
 class builder {
 
 
-  public function makeValueString($args,$table=false)
-  {
+  public $skipFirstOp=false,$index_var=1;
 
+
+  public function makeValueString($args,$op)
+  {
     if (count($args)==3) {
+      $value_name = ":".$args[0]."_$this->index_var";
+
       if (strpos($args[1],'()')===false) {
-        $str = "$this->table.`".$args[0]."` ".$args[1]." :".$args[0];
+        $str = "$this->table.`".$args[0]."` ".$args[1]." $value_name";
       }
       else {
-        $args[1] = str_replace('()',"(:".$args[0].")",$args[1]);
+        $args[1] = str_replace('()',"($value_name)",$args[1]);
         $str = "$this->table.`".$args[0]."` ".$args[1];
       }
     }
     elseif (count($args)==2) {
-      $str = "$this->table.`".$args[0]."` = :".$args[0];
+      $value_name = ":".$args[0]."_$this->index_var";
+      $str = "$this->table.`".$args[0]."` = $value_name";
     }
+    elseif (count($args)==1 && is_callable($args[0])) {
+      $this->addToWhereQuery($op,'(');
+      $this->skipFirstOp=true;
+      $str = "( ".$args[0]($this)." )";
+      $this->addToWhereQuery('',')');
+      return false;
+    }
+
+    $this->index_var++;
     return $str;
   }
 
@@ -33,7 +47,12 @@ class builder {
       $this->query_array[$index].= 'where ';
     }
     else {
-      $this->query_array[$index] .= " $op ";
+      if ($this->skipFirstOp) {
+        $this->skipFirstOp = false;
+      }
+      else {
+        $this->query_array[$index] .= " $op ";
+      }
     }
 
     $this->query_array[$index] .= $str;
