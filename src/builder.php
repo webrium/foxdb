@@ -29,14 +29,14 @@ class builder {
     $index = $this->SqlStractur("WHERE");
 
     if (! isset($this->query_array[$index])) {
-      $this->query_array[$index]=[];
-      $this->query_array[$index][] = 'where';
+      $this->query_array[$index]='';
+      $this->query_array[$index].= 'where ';
     }
     else {
-      $this->query_array[$index][] = $op;
+      $this->query_array[$index] .= " $op ";
     }
 
-    $this->query_array[$index][] = $str;
+    $this->query_array[$index] .= $str;
   }
 
   public function addToSelectFields($fields)
@@ -52,21 +52,27 @@ class builder {
 
   public function makeQueryStr($type='select')
   {
-    $str = '';
     if ($type=='select') {
-      $this->getSelectQuery();
+      return $this->getSelectQuery();
     }
-    return $this->query_array;
+    // return $str;
+    // return $this->query_array;
   }
 
   public function getSelectQuery()
   {
     $fields = $this->query_array[$this->SqlStractur('FIELDS')]??false;
+
     if ($fields==false) {
       $fields = '*';
     }
 
-    $str = "select $fields from $this->table";
+    $str = "select $fields from $this->table ";
+
+    foreach ($this->query_array??[] as $key => $value) {
+      $str.=$value;
+    }
+    return $str;
   }
 
   public function explodeFieldName($name)

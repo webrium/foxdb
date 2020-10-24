@@ -123,12 +123,27 @@ class query extends builder{
 
   public function get()
   {
-    return json_encode($this->makeQueryStr());
+    return $this->makeQueryStr();
   }
 
   public function first()
   {
     return $this->table;
+  }
+
+  public function execute($query,$params=null,$return=false){
+
+    if ($params==null) {
+      $stmt = $this->pdo->query($query);
+    }
+    else {
+      $stmt=$this->pdo->prepare($query);
+      $stmt->execute($params);
+    }
+
+    if($return){
+      return $stmt->fetchAll($this->getType);
+    }
   }
 
 
