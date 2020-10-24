@@ -121,6 +121,48 @@ class query extends builder{
     return $this->makeWhere('or',[$field,'is not','null']);
   }
 
+
+  public function makeJoinQuery($args)
+  {
+
+    if (count($args)==4) {
+
+      $join_table_name                  = "`".$args[0]."`";
+      $join_table_and_field_name        = $this->getFieldStr($arg[1]);
+
+      $join_table_name       = $args[0];
+      $join_table_field_name = $args[1];
+      $join_op               = $args[2];
+      $main_field_key        = $this->getFieldStr($args[3]);
+    }
+    elseif (count($args)==3) {
+      $join_table_and_field_name_object = $this->explodeFieldName($args[0]);
+      $join_table_name       = $join_table_and_field_name_object['table'];
+      $join_table_and_field_name = $this->getFieldStr($join_table_and_field_name_object);
+
+      $join_op               = $args[1];
+      $main_field_key        = $this->getFieldStr($args[2]);
+    }
+    elseif (count($args)==2) {
+
+      $join_table_and_field_name_object = $this->explodeFieldName($args[0]);
+      $join_table_name       = $join_table_and_field_name_object['table'];
+      $join_table_and_field_name = $this->getFieldStr($join_table_and_field_name_object);
+
+      $join_op               = '=';
+      $main_field_key        = $this->getFieldStr($args[1]);
+    }
+    $this->addToQuery("INNER JOIN $join_table_name ON $main_field_key $join_op $join_table_and_field_name","JOIN");
+  }
+
+  public function join(...$args)
+  {
+    //INNER JOIN Customers ON Orders.CustomerID=Customers.CustomerID;
+    // $this->addToQuery('INNER JOIN',"JOIN");
+    $this->makeJoinQuery($args);
+    return $this;
+  }
+
   public function query()
   {
     return $this->query_array;

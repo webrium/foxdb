@@ -43,8 +43,7 @@ class builder {
     $index = $this->SqlStractur("WHERE");
 
     if (! isset($this->query_array[$index])) {
-      $this->query_array[$index]='';
-      $this->query_array[$index].= 'where ';
+      $this->query_array[$index]= 'where ';
     }
     else {
       if ($this->skipFirstOp) {
@@ -53,6 +52,17 @@ class builder {
       else {
         $this->query_array[$index] .= " $op ";
       }
+    }
+
+    $this->query_array[$index] .= $str;
+  }
+
+  public function addToQuery($str,$index)
+  {
+    $index = $this->SqlStractur($index);
+
+    if (! isset($this->query_array[$index])) {
+      $this->query_array[$index]=' ';
     }
 
     $this->query_array[$index] .= $str;
@@ -74,8 +84,6 @@ class builder {
     if ($type=='select') {
       return $this->getSelectQuery();
     }
-    // return $str;
-    // return $this->query_array;
   }
 
   public function getSelectQuery()
@@ -91,6 +99,7 @@ class builder {
     foreach ($this->query_array??[] as $key => $value) {
       $str.=$value;
     }
+    
     return $str;
   }
 
@@ -109,8 +118,10 @@ class builder {
 
   public function getFieldStr($name)
   {
-    $arr = $this->explodeFieldName($name);
-    return $arr['table'].".`".$arr['field']."`";
+    if (is_string($name)) {
+      $name = $this->explodeFieldName($name);
+    }
+    return $name['table'].".`".$name['field']."`";
   }
 
 
