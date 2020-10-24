@@ -161,9 +161,15 @@ class query extends builder{
     return $this;
   }
 
-  public function rightJoin(...$args)
+  public function leftJoin(...$args)
   {
     $this->makeJoinQuery('LEFT JOIN',$args);
+    return $this;
+  }
+
+  public function rightJoin(...$args)
+  {
+    $this->makeJoinQuery('RIGHT JOIN',$args);
     return $this;
   }
 
