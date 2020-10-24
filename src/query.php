@@ -122,7 +122,7 @@ class query extends builder{
   }
 
 
-  public function makeJoinQuery($args)
+  public function makeJoinQuery($type,$args)
   {
 
     if (count($args)==4) {
@@ -152,14 +152,18 @@ class query extends builder{
       $join_op               = '=';
       $main_field_key        = $this->getFieldStr($args[1]);
     }
-    $this->addToQuery("INNER JOIN $join_table_name ON $main_field_key $join_op $join_table_and_field_name","JOIN");
+    $this->addToQuery("$type $join_table_name ON $main_field_key $join_op $join_table_and_field_name","JOIN");
   }
 
   public function join(...$args)
   {
-    //INNER JOIN Customers ON Orders.CustomerID=Customers.CustomerID;
-    // $this->addToQuery('INNER JOIN',"JOIN");
-    $this->makeJoinQuery($args);
+    $this->makeJoinQuery('INNER JOIN',$args);
+    return $this;
+  }
+
+  public function rightJoin(...$args)
+  {
+    $this->makeJoinQuery('LEFT JOIN',$args);
     return $this;
   }
 
