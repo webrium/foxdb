@@ -128,6 +128,11 @@ class query extends builder{
     return $this;
   }
 
+  public function groupBy($field)
+  {
+    $this->addToQuery('group by '.$this->getFieldStr($field),'GROUP_BY');
+    return $this;
+  }
 
   public function makeJoinQuery($type,$args)
   {
