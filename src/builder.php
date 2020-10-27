@@ -37,6 +37,12 @@ class builder {
     return $str;
   }
 
+  public function addToQuery($str,$_index)
+  {
+    $index = $this->SqlStractur($_index);
+    $this->query_array[$index] = " $str";
+  }
+
 
   public function addToWhereQuery($op,$str)
   {
@@ -52,17 +58,6 @@ class builder {
       else {
         $this->query_array[$index] .= " $op ";
       }
-    }
-
-    $this->query_array[$index] .= $str;
-  }
-
-  public function addToQuery($str,$index)
-  {
-    $index = $this->SqlStractur($index);
-
-    if (! isset($this->query_array[$index])) {
-      $this->query_array[$index]=' ';
     }
 
     $this->query_array[$index] .= $str;
@@ -99,7 +94,7 @@ class builder {
     foreach ($this->query_array??[] as $key => $value) {
       $str.=$value;
     }
-    
+
     return $str;
   }
 

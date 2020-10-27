@@ -122,6 +122,13 @@ class query extends builder{
   }
 
 
+  public function orderBy($field,$order)
+  {
+    $this->addToQuery('order by '.$this->getFieldStr($field)." $order",'ORDER_BY');
+    return $this;
+  }
+
+
   public function makeJoinQuery($type,$args)
   {
 
@@ -157,19 +164,19 @@ class query extends builder{
 
   public function join(...$args)
   {
-    $this->makeJoinQuery('INNER JOIN',$args);
+    $this->makeJoinQuery(' INNER JOIN',$args);
     return $this;
   }
 
   public function leftJoin(...$args)
   {
-    $this->makeJoinQuery('LEFT JOIN',$args);
+    $this->makeJoinQuery(' LEFT JOIN',$args);
     return $this;
   }
 
   public function rightJoin(...$args)
   {
-    $this->makeJoinQuery('RIGHT JOIN',$args);
+    $this->makeJoinQuery(' RIGHT JOIN',$args);
     return $this;
   }
 
