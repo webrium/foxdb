@@ -5,13 +5,14 @@ namespace webrium\foxql;
 class builder {
 
 
-  public $skipFirstOp=false,$index_var=1;
+  public $skipFirstOp=false,$index_var=1,$params=null;
 
 
   public function makeValueString($args,$op)
   {
     if (count($args)==3) {
       $value_name = ":".$args[0]."_$this->index_var";
+      $this->params[$value_name] = $args[2];
 
       if (strpos($args[1],'()')===false) {
         $str = "$this->table.`".$args[0]."` ".$args[1]." $value_name";
@@ -23,6 +24,8 @@ class builder {
     }
     elseif (count($args)==2) {
       $value_name = ":".$args[0]."_$this->index_var";
+      $this->params[$value_name] = $args[1];
+
       $str = "$this->table.`".$args[0]."` = $value_name";
     }
     elseif (count($args)==1 && is_callable($args[0])) {
@@ -122,7 +125,7 @@ class builder {
         $name = $this->explodeFieldName($name);
       }
     }
-    
+
     return $name['table'].".`".$name['field']."`";
   }
 
