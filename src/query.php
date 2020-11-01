@@ -154,6 +154,16 @@ class query extends builder{
     return $this;
   }
 
+  public function avg($field='*',$as='avg'){
+    $res = $this->select(function ($query) use($field,$as)
+    {
+      $query->avg($field,$as);
+    })->first();
+
+    // return $res->$as;
+    return $this;
+  }
+
   public function makeJoinQuery($type,$args)
   {
 

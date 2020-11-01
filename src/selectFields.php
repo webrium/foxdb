@@ -48,13 +48,24 @@ class selectFields extends builder{
     if ($as) {
       $this->as($as);
     }
-    
+
     return $this;
   }
 
   public function sum($field,$as=false)
   {
     $this->addToFields("sum(".$this->getFieldStr($field).")");
+
+    if ($as) {
+      $this->as($as);
+    }
+
+    return $this;
+  }
+
+  public function avg($field,$as=false)
+  {
+    $this->addToFields("avg(".$this->getFieldStr($field).")");
 
     if ($as) {
       $this->as($as);
