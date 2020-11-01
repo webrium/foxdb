@@ -50,19 +50,15 @@ class selectFields extends builder{
     return $this;
   }
 
-  // public function autoSet($fields)
-  // {
-  //   foreach ($fields as $key => $field) {
-  //     $arr_1 = explode('.');
-  //
-  //     if (count($arr_1)==2) {
-  //
-  //     }
-  //     else {
-  //
-  //     }
-  //   }
-  // }
+  public function sum($field,$as=false)
+  {
+    $this->addToFields("sum(".$this->getFieldStr($field).")");
+
+    if ($as) {
+      $this->as($as);
+    }
+    return $this;
+  }
 
   public function get()
   {
