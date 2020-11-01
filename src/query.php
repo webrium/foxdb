@@ -18,9 +18,20 @@ class query extends builder{
   {
     $this->pdo = new \PDO($this->config['driver'].":host=".$this->config['db_host'].':'.$this->config['db_host_port'].";dbname=".$this->config['db_name'].";charset=".$this->config['charset'],$this->config['username'],$this->config['password']);
     $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_WARNING);
-    $this->$connected = true;
+    $this->connected = true;
+    $this->setSelectResultType($this->config['result_stdClass']);
   }
 
+
+  public function setSelectResultType($getArray)
+  {
+    if ($getArray) {
+      $this->getType=\PDO::FETCH_ASSOC;
+    }
+    else {
+      $this->getType=\PDO::FETCH_CLASS;
+    }
+  }
 
   public function select($args)
   {
@@ -89,6 +100,28 @@ class query extends builder{
   {
     return $this->makeWhere('or',[$field,'not in()',$array]);
   }
+
+
+
+  // public function between($field,$array)
+  // {
+  //   return $this->makeWhere('and',[$field,'not in()',$array]);
+  // }
+  //
+  // public function orBetween($field,$array)
+  // {
+  //   return $this->makeWhere('or',[$field,'not in()',$array]);
+  // }
+  //
+  // public function notBetween($field,$array)
+  // {
+  //   return $this->makeWhere('or',[$field,'not in()',$array]);
+  // }
+  //
+  // public function orNotBetween($field,$array)
+  // {
+  //   return $this->makeWhere('or',[$field,'not in()',$array]);
+  // }
 
 
   public function like($field,$array)
@@ -222,7 +255,7 @@ class query extends builder{
 
   public function get()
   {
-    return $this->makeQueryStr();
+    return $this->execute($this->makeQueryStr(),true);
   }
 
   public function first()
@@ -230,14 +263,18 @@ class query extends builder{
     return $this->makeQueryStr();
   }
 
-  public function execute($query,$params=null,$return=false){
+  public function execute($query,$return=false){
+    if (! $this->connected) {
+      $this->connect();
+    }
 
-    if ($params==null) {
+    if ($this->params==null) {
       $stmt = $this->pdo->query($query);
     }
     else {
+      echo json_encode($this->params)."<br>$query<br>";
       $stmt=$this->pdo->prepare($query);
-      $stmt->execute($params);
+      $stmt->execute($this->params);
     }
 
     if($return){
