@@ -134,6 +134,26 @@ class query extends builder{
     return $this;
   }
 
+  public function count($field='*',$as='count'){
+    $res = $this->select(function ($query) use($field,$as)
+    {
+      $query->count($field,$as);
+    })->first();
+
+    // return $res->$as;
+    return $this;
+  }
+
+  public function sum($field='*',$as='sum'){
+    $res = $this->select(function ($query) use($field,$as)
+    {
+      $query->sum($field,$as);
+    })->first();
+
+    // return $res->$as;
+    return $this;
+  }
+
   public function makeJoinQuery($type,$args)
   {
 
@@ -197,7 +217,7 @@ class query extends builder{
 
   public function first()
   {
-    return $this->table;
+    return $this->makeQueryStr();
   }
 
   public function execute($query,$params=null,$return=false){

@@ -113,9 +113,16 @@ class builder {
 
   public function getFieldStr($name)
   {
+
     if (is_string($name)) {
-      $name = $this->explodeFieldName($name);
+      if ( trim($name) =='*') {
+        return $name;
+      }
+      else {
+        $name = $this->explodeFieldName($name);
+      }
     }
+    
     return $name['table'].".`".$name['field']."`";
   }
 
