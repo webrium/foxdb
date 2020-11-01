@@ -12,7 +12,7 @@ class builder {
   {
     if (count($args)==3) {
       $value_name = ":".$args[0]."_$this->index_var";
-      $this->params[$value_name] = $args[2];
+      $this->addToParams($value_name,$args[2]);
 
       if (strpos($args[1],'()')===false) {
         $str = "$this->table.`".$args[0]."` ".$args[1]." $value_name";
@@ -24,7 +24,7 @@ class builder {
     }
     elseif (count($args)==2) {
       $value_name = ":".$args[0]."_$this->index_var";
-      $this->params[$value_name] = $args[1];
+      $this->addToParams($value_name,$args[1]);
 
       $str = "$this->table.`".$args[0]."` = $value_name";
     }
@@ -36,8 +36,13 @@ class builder {
       return false;
     }
 
-    $this->index_var++;
     return $str;
+  }
+
+  protected function addToParams($name,$value)
+  {
+    $this->params[$name] = $value;
+    $this->index_var++;
   }
 
   public function addToQuery($str,$_index)

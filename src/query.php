@@ -161,6 +161,15 @@ class query extends builder{
     return $this;
   }
 
+  public function limit($number)
+  {
+    if (is_numeric($number)){
+      $this->addToQuery("limit $number",'LIMIT');
+    }
+    
+    return $this;
+  }
+
   public function groupBy($field)
   {
     $this->addToQuery('group by '.$this->getFieldStr($field),'GROUP_BY');
@@ -260,7 +269,8 @@ class query extends builder{
 
   public function first()
   {
-    return $this->makeQueryStr();
+    $this->limit(1);
+    return $this->execute($this->makeQueryStr(),true)[0]??false;
   }
 
   public function execute($query,$return=false){
