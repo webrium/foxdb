@@ -69,6 +69,18 @@ class query extends builder{
     return $this;
   }
 
+  public function is($field,$value=true){
+    return $this->where($field,$value);
+  }
+
+  public function true($field){
+    return $this->is($field,true);
+  }
+
+  public function false($field){
+    return $this->is($field,false);
+  }
+
   public function and(...$args)
   {
     $this->makeWhere('and',$args);
