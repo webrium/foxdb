@@ -166,8 +166,17 @@ class query extends builder{
     if (is_numeric($number)){
       $this->addToQuery("limit $number",'LIMIT');
     }
-    
+
     return $this;
+  }
+
+
+  public function latest($field='id'){
+    return $this->orderBy($field,'DESC');
+  }
+
+  public function oldest($field='id'){
+    return $this->orderBy($field,'ASC');
   }
 
   public function groupBy($field)
@@ -256,6 +265,7 @@ class query extends builder{
     $this->makeJoinQuery(' RIGHT JOIN',$args);
     return $this;
   }
+
 
   public function query()
   {
