@@ -202,6 +202,18 @@ class query extends builder{
     return $this;
   }
 
+  public function having(...$args){
+    $str = $this->makeValueString($args,false);
+    $this->addToQuery('having '.$str,'HAVING');
+    return $this;
+  }
+
+  public function havingCount($field,$op,$value){
+    $this->addToParams(':having_count',$value);
+    $this->addToQuery('having '."count($field) $op :having_count",'HAVING');
+    return $this;
+  }
+
   public function count($field='*',$as='count'){
     $res = $this->select(function ($query) use($field,$as)
     {
