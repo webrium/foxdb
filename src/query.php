@@ -173,6 +173,11 @@ class query extends builder{
     return $this;
   }
 
+  public function inRandomOrder(){
+    $this->addToQuery('order by RAND()','ORDER_BY');
+    return $this;
+  }
+
   public function limit($number)
   {
     if (is_numeric($number)){
