@@ -331,5 +331,21 @@ class query extends builder{
     }
   }
 
+  public function cache($name,$func=false)
+  {
+    $res = false;
+
+    $cache_name = "$this->table.$name";
+
+    if (isset(db::$cache[$name]) == false && $func !=false && is_callable($func) ) {
+      $res = $func($this);
+      db::$cache[$name] = $res;
+    }
+    else if(isset(db::$cache[$name])){
+      $res = db::$cache[$name];
+    }
+    return $res;
+  }
+
 
 }
