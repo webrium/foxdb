@@ -1,9 +1,11 @@
 <?php
 namespace webrium\foxql;
 
-class DB extends query{
+class db extends query{
 
   private static $db_configs = [];
+  protected static $cache = [];
+
 
   public static function addConfig($name,$params)
   {
