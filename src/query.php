@@ -157,6 +157,15 @@ class query extends builder{
     return $this->day($field,$value,'or');
   }
 
+  public function year($field,$value,$op='and')
+  {
+    return $this->makeDate('year',$field,$value,$op);
+  }
+
+  public function orYear($field,$value,$op='and'){
+    return $this->year($field,$value,'or');
+  }
+
 
 
 
