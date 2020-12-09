@@ -166,7 +166,23 @@ class query extends builder{
     return $this->year($field,$value,'or');
   }
 
+  public function time($field,$ac,$value=false,$op='and')
+  {
 
+    if ($value==false) {
+      $value = $ac;
+      $ac = '=';
+    }
+
+    $date_name = ":value_$this->index_var";
+    $this->addToParams($date_name,$value);
+    $this->addToWhereQuery($op,"time(".$this->getFieldStr($field).") $ac $date_name");
+    return $this;
+  }
+
+  public function orTime($field,$ac,$value=false,$op='and'){
+    return $this->time($field,$ac,$value,'or');
+  }
 
 
   public function between($field,$array,$op='and')
