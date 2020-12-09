@@ -93,6 +93,12 @@ class query extends builder{
     return $this;
   }
 
+  public function orWhere(...$args)
+  {
+    $this->makeWhere('or',$args);
+    return $this;
+  }
+
   public function in($field,$array)
   {
     return $this->makeWhere('and',[$field,'in()',$array]);
