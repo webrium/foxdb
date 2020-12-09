@@ -137,6 +137,18 @@ class query extends builder{
   }
 
 
+  public function month($field,$value,$op='and')
+  {
+    return $this->makeDate('month',$field,$value,$op);
+
+  }
+
+  public function orMonth($field,$value,$op='and'){
+    return $this->month($field,$value,'or');
+  }
+
+
+
 
 
   public function between($field,$array,$op='and')
