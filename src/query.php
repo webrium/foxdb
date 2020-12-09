@@ -148,6 +148,15 @@ class query extends builder{
   }
 
 
+  public function day($field,$value,$op='and')
+  {
+    return $this->makeDate('day',$field,$value,$op);
+  }
+
+  public function orDay($field,$value,$op='and'){
+    return $this->day($field,$value,'or');
+  }
+
 
 
 
