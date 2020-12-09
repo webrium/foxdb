@@ -120,6 +120,24 @@ class query extends builder{
   }
 
 
+  public function makeDate($action,$field,$value,$op='and'){
+    $date_name = ":value_$this->index_var";
+    $this->addToParams($date_name,$value);
+    $this->addToWhereQuery($op,"$action(".$this->getFieldStr($field).") = $date_name");
+    return $this;
+  }
+
+  public function date($field,$value,$op='and')
+  {
+    return $this->makeDate('date',$field,$value,$op);
+  }
+
+  public function orDate($field,$value,$op='and'){
+    return $this->date($field,$value,'or');
+  }
+
+
+
 
   public function between($field,$array,$op='and')
   {
