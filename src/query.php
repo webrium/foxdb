@@ -115,25 +115,34 @@ class query extends builder{
 
 
 
-  // public function between($field,$array)
-  // {
-  //   return $this->makeWhere('and',[$field,'not in()',$array]);
-  // }
-  //
-  // public function orBetween($field,$array)
-  // {
-  //   return $this->makeWhere('or',[$field,'not in()',$array]);
-  // }
-  //
-  // public function notBetween($field,$array)
-  // {
-  //   return $this->makeWhere('or',[$field,'not in()',$array]);
-  // }
-  //
-  // public function orNotBetween($field,$array)
-  // {
-  //   return $this->makeWhere('or',[$field,'not in()',$array]);
-  // }
+  public function between($field,$array,$op='and')
+  {
+    $b_1 = ":between_$this->index_var";
+    $this->addToParams($b_1,$array[0]);
+
+    $b_2 = ":between_$this->index_var";
+    $this->addToParams($b_2,$array[1]);
+
+
+    $this->addToWhereQuery($op,"(".$this->getFieldStr($field)." between $b_1 and $b_2)");
+
+    return $this;
+  }
+
+  public function orBetween($field,$array)
+  {
+    return $this->between($field,$array,'or');
+  }
+
+  public function notBetween($field,$array)
+  {
+      return $this->between($field,$array,'and not');
+  }
+
+  public function orNotBetween($field,$array)
+  {
+    return $this->between($field,$array,'or not');
+  }
 
 
   public function like($field,$array)
