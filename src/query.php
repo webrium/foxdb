@@ -257,12 +257,33 @@ class query extends builder{
     return $this;
   }
 
-  public function limit($number)
+  public function limit(int $number)
   {
     if (is_numeric($number)){
       $this->addToQuery("limit $number",'LIMIT');
     }
 
+    return $this;
+  }
+
+  public function take($take)
+  {
+    $this->limit($take);
+    return $this;
+  }
+
+
+  public function offset(int $offset)
+  {
+    if (is_numeric($offset)){
+      $this->addToQuery("offset $offset",'OFFSET');
+    }
+    return $this;
+  }
+
+  public function skip($skip)
+  {
+    $this->offset($skip);
     return $this;
   }
 
@@ -273,7 +294,7 @@ class query extends builder{
       $field_2 = $ac;
       $ac = '=';
     }
-    
+
     $this->addToWhereQuery($op,$this->getFieldStr($field_1).$ac.$this->getFieldStr($field_2));
     return $this;
   }
