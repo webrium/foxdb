@@ -267,6 +267,32 @@ class query extends builder{
   }
 
 
+  public function column($field_1,$ac,$field_2=false,$op='and')
+  {
+    if ($field_2==false) {
+      $field_2 = $ac;
+      $ac = '=';
+    }
+    
+    $this->addToWhereQuery($op,$this->getFieldStr($field_1).$ac.$this->getFieldStr($field_2));
+    return $this;
+  }
+
+  public function whereColumn($field_1,$ac,$field_2=false){
+    return $this->column($field_1,$ac,$field_2);
+  }
+
+  public function orColumn($field_1,$ac,$field_2=false){
+    return $this->column($field_1,$ac,$field_2,'or');
+  }
+
+  public function orWhereColumn($field_1,$ac,$field_2=false){
+    return $this->column($field_1,$ac,$field_2,'or');
+  }
+
+
+
+
   public function latest($field='id'){
     return $this->orderBy($field,'DESC');
   }
