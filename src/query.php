@@ -440,6 +440,20 @@ class query extends builder{
     return $this->execute($this->getUpdateQuery($params),false);
   }
 
+  public function increment($field,$value=1){
+    if (is_numeric($value)) {
+      $field = $this->getFieldStr($field);
+      return $this->execute($this->getCustomUpdateQuery("$field = $field + $value"),false);
+    }
+  }
+
+  public function decrement($field,$value=1){
+    if (is_numeric($value)) {
+      $field = $this->getFieldStr($field);
+      return $this->execute($this->getCustomUpdateQuery("$field = $field - $value"),false);
+    }
+  }
+
   public function insert($params){
     return $this->execute($this->getInsertQuery($params),false);
   }

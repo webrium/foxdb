@@ -82,7 +82,15 @@ class builder {
     $this->query_array[$index]=$fields;
   }
 
+  public function getCustomUpdateQuery($str){
+    $str = "update $this->table set $str ";
 
+    foreach ($this->query_array??[] as $key => $value) {
+      $str.=$value;
+    }
+
+    return $str;
+  }
   public function getUpdateQuery($params){
     $update_fields = [];
 
@@ -94,13 +102,7 @@ class builder {
 
     $update_fields = implode(',',$update_fields);
 
-    $str = "update $this->table set $update_fields ";
-
-    foreach ($this->query_array??[] as $key => $value) {
-      $str.=$value;
-    }
-
-    return $str;
+    return $this->getCustomUpdateQuery($update_fields);
   }
 
   public function getInsertQuery($params)
@@ -131,7 +133,7 @@ class builder {
     foreach ($this->query_array??[] as $key => $value) {
       $str.=$value;
     }
-    
+
     return $str;
   }
 
