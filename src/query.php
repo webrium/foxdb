@@ -8,6 +8,11 @@ class query extends builder{
   private $config,$pdo,$connected=false;
   protected $table = false,$query_array;
 
+  public function getPdo(){
+    $this->connect();
+    return $this->pdo;
+  }
+
   protected function setConfig($config,$table)
   {
     $this->config = $config;
@@ -16,10 +21,12 @@ class query extends builder{
 
   private function connect()
   {
-    $this->pdo = new \PDO($this->config['driver'].":host=".$this->config['db_host'].':'.$this->config['db_host_port'].";dbname=".$this->config['db_name'].";charset=".$this->config['charset'],$this->config['username'],$this->config['password']);
-    $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_WARNING);
-    $this->connected = true;
-    $this->setSelectResultType($this->config['result_stdClass']);
+    if (! $this->connected) {
+      $this->pdo = new \PDO($this->config['driver'].":host=".$this->config['db_host'].':'.$this->config['db_host_port'].";dbname=".$this->config['db_name'].";charset=".$this->config['charset'],$this->config['username'],$this->config['password']);
+      $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_WARNING);
+      $this->connected = true;
+      $this->setSelectResultType($this->config['result_stdClass']);
+    }
   }
 
 
@@ -458,14 +465,17 @@ class query extends builder{
     return $this->execute($this->getInsertQuery($params),false);
   }
 
+  public function insertGetId($params){
+    $this->execute($this->getInsertQuery($params),false);
+    return $this->getPdo()->lastInsertId();
+  }
+
   public function delete(){
     return $this->execute($this->getDeleteQuery(),false);
   }
 
   public function execute($query,$return=false){
-    if (! $this->connected) {
-      $this->connect();
-    }
+    $this->connect();
 
     if ($this->params==null) {
       $stmt = $this->pdo->query($query);
