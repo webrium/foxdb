@@ -223,27 +223,25 @@ class query extends builder{
     return $this->makeWhere('or',[$field,'like()',$array]);
   }
 
-  public function null($field)
+  public function null($field,$op='and',$str=' is null')
   {
-    $this->addToWhereQuery('and',$this->getFieldStr($field)." is null");
-
+    $this->addToWhereQuery($op,$this->getFieldStr($field).$str);
     return $this;
-    // return $this->makeWhere('and',[$field,'is ','null']);
   }
 
   public function orNull($field)
   {
-    return $this->makeWhere('or',[$field,'is','null']);
+    return $this->null($field,'or');
   }
 
   public function notNull($field)
   {
-    return $this->makeWhere('and',[$field,'is not','null']);
+    return $this->null($field,'and',' not null');
   }
 
   public function orNotNull($field)
   {
-    return $this->makeWhere('or',[$field,'is not','null']);
+    return $this->null($field,'or',' not null');
   }
 
 
