@@ -125,6 +125,16 @@ class builder {
     return $str;
   }
 
+  public function getDeleteQuery(){
+    $str = "delete from $this->table ";
+
+    foreach ($this->query_array??[] as $key => $value) {
+      $str.=$value;
+    }
+    
+    return $str;
+  }
+
   public function getSelectQuery()
   {
     $fields = $this->query_array[$this->SqlStractur('FIELDS')]??false;
