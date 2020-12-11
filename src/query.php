@@ -193,9 +193,7 @@ class query extends builder{
     $b_2 = ":between_$this->index_var";
     $this->addToParams($b_2,$array[1]);
 
-
     $this->addToWhereQuery($op,"(".$this->getFieldStr($field)." between $b_1 and $b_2)");
-
     return $this;
   }
 
@@ -227,7 +225,10 @@ class query extends builder{
 
   public function null($field)
   {
-    return $this->makeWhere('and',[$field,'is','null']);
+    $this->addToWhereQuery('and',$this->getFieldStr($field)." is null");
+
+    return $this;
+    // return $this->makeWhere('and',[$field,'is ','null']);
   }
 
   public function orNull($field)
@@ -310,8 +311,6 @@ class query extends builder{
   public function orWhereColumn($field_1,$ac,$field_2=false){
     return $this->column($field_1,$ac,$field_2,'or');
   }
-
-
 
 
   public function latest($field='id'){
@@ -429,13 +428,18 @@ class query extends builder{
 
   public function get()
   {
-    return $this->execute($this->makeQueryStr(),true);
+    return $this->execute($this->getSelectQuery(),true);
   }
 
   public function first()
   {
     $this->limit(1);
-    return $this->execute($this->makeQueryStr(),true)[0]??false;
+    return $this->execute($this->getSelectQuery(),true)[0]??false;
+  }
+
+
+  public function update($params){
+    return $this->execute($this->getUpdateQuery($params),false);
   }
 
   public function execute($query,$return=false){
@@ -449,11 +453,14 @@ class query extends builder{
     else {
       echo json_encode($this->params)."<br>$query<br>";
       $stmt=$this->pdo->prepare($query);
-      $stmt->execute($this->params);
+      $res = $stmt->execute($this->params);
     }
 
     if($return){
       return $stmt->fetchAll($this->getType);
+    }
+    else {
+      return $stmt->rowCount();
     }
   }
 

@@ -82,11 +82,25 @@ class builder {
     $this->query_array[$index]=$fields;
   }
 
-  public function makeQueryStr($type='select')
-  {
-    if ($type=='select') {
-      return $this->getSelectQuery();
+
+  public function getUpdateQuery($params){
+    $update_fields = [];
+
+    foreach ($params as $key => $value) {
+      $key_name = ":$key".'_'.$this->index_var;
+      $this->addToParams($key_name,$value);
+      $update_fields[]="$key=$key_name";
     }
+
+    $update_fields = implode(',',$update_fields);
+
+    $str = "update $this->table set $update_fields ";
+
+    foreach ($this->query_array??[] as $key => $value) {
+      $str.=$value;
+    }
+
+    return $str;
   }
 
   public function getSelectQuery()
