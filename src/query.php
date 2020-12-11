@@ -236,12 +236,12 @@ class query extends builder{
 
   public function notNull($field)
   {
-    return $this->null($field,'and',' not null');
+    return $this->null($field,'and',' is not null');
   }
 
   public function orNotNull($field)
   {
-    return $this->null($field,'or',' not null');
+    return $this->null($field,'or',' is not null');
   }
 
 
