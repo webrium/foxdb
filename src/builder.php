@@ -103,6 +103,28 @@ class builder {
     return $str;
   }
 
+  public function getInsertQuery($params)
+  {
+
+    $fields = [];
+    $values = [];
+
+    foreach ($params as $key => $value) {
+      $key_name = ":$key".'_'.$this->index_var;
+      $this->addToParams($key_name,$value);
+
+      $fields[] = $key;
+      $values[] = $key_name;
+    }
+
+    $fields = implode(',',$fields);
+    $values = implode(',',$values);
+
+    $str = "insert into $this->table ($fields) values ($values) ";
+
+    return $str;
+  }
+
   public function getSelectQuery()
   {
     $fields = $this->query_array[$this->SqlStractur('FIELDS')]??false;

@@ -440,6 +440,10 @@ class query extends builder{
     return $this->execute($this->getUpdateQuery($params),false);
   }
 
+  public function insert($params){
+    return $this->execute($this->getInsertQuery($params),false);
+  }
+
   public function execute($query,$return=false){
     if (! $this->connected) {
       $this->connect();
