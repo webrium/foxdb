@@ -13,13 +13,19 @@ class query extends builder{
     return $this->pdo;
   }
 
-  protected function setConfig($config,$table)
+  protected function setConfig($config)
   {
     $this->config = $config;
-    $this->table = "`$table`";
   }
 
-  private function connect()
+  protected function setTable($table)
+  {
+    $this->table = "`$table`";
+    $this->params=null;
+    $this->query_array=null;
+  }
+
+  protected function connect()
   {
     if (! $this->connected) {
       $this->pdo = new \PDO($this->config['driver'].":host=".$this->config['db_host'].':'.$this->config['db_host_port'].";dbname=".$this->config['db_name'].";charset=".$this->config['charset'],$this->config['username'],$this->config['password']);

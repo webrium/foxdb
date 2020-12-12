@@ -3,7 +3,7 @@ namespace webrium\foxql;
 
 class db extends query{
 
-  private static $db_configs = [];
+  private static $db_configs = [],$query=false;
   protected static $cache = [];
 
 
@@ -23,11 +23,37 @@ class db extends query{
   }
 
 
-  public static function table($name){
-    $query = new query();
-    $query->setConfig(self::firstConfig(),$name);
-    return $query;
+  public static function initConfig(){
+    if (self::$query==false) {
+      self::$query = new query();
+      self::$query->setConfig(self::firstConfig());
+    }
   }
 
+
+  public static function table($name){
+    self::initConfig();
+    self::$query->setTable($name);
+    return self::$query;
+  }
+
+
+  public static function beginTransaction()
+  {
+    self::initConfig();
+
+    self::$query->connect();
+    self::$query->getPdo()->beginTransaction();
+  }
+
+  public static function rollBack()
+  {
+    self::$query->getPdo()->rollBack();
+  }
+
+  public static function commit()
+  {
+    self::$query->getPdo()->commit();
+  }
 
 }
