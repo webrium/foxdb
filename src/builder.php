@@ -1,6 +1,5 @@
 <?php
 namespace webrium\foxql;
-// use webrium\foxql\query;
 
 class builder {
 
@@ -145,7 +144,11 @@ class builder {
       $fields = '*';
     }
 
+    $this->query_array[$this->SqlStractur('FIELDS')] = '';
+
     $str = "select $fields from $this->table ";
+
+
 
     foreach ($this->query_array??[] as $key => $value) {
       $str.=$value;

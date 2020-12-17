@@ -6,7 +6,7 @@ use webrium\foxql\biuld;
 class query extends builder{
 
   private $config,$pdo,$connected=false;
-  protected $table = false,$query_array;
+  protected $table = false,$query_array,$getType;
 
   public function getPdo(){
     $this->connect();
@@ -39,10 +39,10 @@ class query extends builder{
   public function setSelectResultType($getArray)
   {
     if ($getArray) {
-      $this->getType=\PDO::FETCH_ASSOC;
+      $this->getType=\PDO::FETCH_CLASS;
     }
     else {
-      $this->getType=\PDO::FETCH_CLASS;
+      $this->getType=\PDO::FETCH_ASSOC;
     }
   }
 
@@ -356,8 +356,7 @@ class query extends builder{
       $query->count($field,$as);
     })->first();
 
-    // return $res->$as;
-    return $this;
+    return $res->$as;
   }
 
   public function sum($field='*',$as='sum'){
@@ -366,8 +365,7 @@ class query extends builder{
       $query->sum($field,$as);
     })->first();
 
-    // return $res->$as;
-    return $this;
+    return $res->$as;
   }
 
   public function avg($field='*',$as='avg'){
@@ -376,8 +374,7 @@ class query extends builder{
       $query->avg($field,$as);
     })->first();
 
-    // return $res->$as;
-    return $this;
+    return $res->$as;
   }
 
   public function makeJoinQuery($type,$args)
@@ -483,11 +480,11 @@ class query extends builder{
   public function execute($query,$return=false){
     $this->connect();
 
+
     if ($this->params==null) {
       $stmt = $this->pdo->query($query);
     }
     else {
-      echo json_encode($this->params)."<br>$query<br>";
       $stmt=$this->pdo->prepare($query);
       $res = $stmt->execute($this->params);
     }

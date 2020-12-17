@@ -42,9 +42,8 @@ class selectFields extends builder{
 
   public function count($field,$as=false)
   {
-
     $this->addToFields("count(".$this->getFieldStr($field).")");
-
+    
     if ($as) {
       $this->as($as);
     }
