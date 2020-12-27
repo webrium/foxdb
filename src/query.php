@@ -383,7 +383,7 @@ class query extends builder{
     if (count($args)==4) {
 
       $join_table_name                  = "`".$args[0]."`";
-      $join_table_and_field_name        = $this->getFieldStr($arg[1]);
+      $join_table_and_field_name        = $this->getFieldStr($args[1]);
 
       $join_table_name       = $args[0];
       $join_table_field_name = $args[1];
