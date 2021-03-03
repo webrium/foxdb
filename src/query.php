@@ -444,6 +444,10 @@ class query extends builder{
     $this->limit(1);
     return $this->execute($this->getSelectQuery(),true)[0]??false;
   }
+  
+  public function find($id){
+    return $this->where('id',$id)->first();
+  }
 
 
   public function update($params){
