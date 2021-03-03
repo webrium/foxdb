@@ -1,8 +1,5 @@
-# PHP Database Library
+# MySQL PHP Library
 ![](https://repository-images.githubusercontent.com/305963460/3f37a400-7c49-11eb-9bd8-2b04e15fdf19)
-
-
-
 
 ### Instal Foxql 
 ```
