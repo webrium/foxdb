@@ -1,5 +1,4 @@
 # PHP Database Library
-[![Latest Stable Version](https://poser.pugx.org/botfire/botfire/v)](//packagist.org/packages/botfire/botfire)  [![Total Downloads](https://poser.pugx.org/botfire/botfire/downloads)](//packagist.org/packages/botfire/botfire)
 
 
 ### Instal Foxql 
