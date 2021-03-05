@@ -53,7 +53,7 @@ DB::table('uses')
 ```
 
 #### ( where , or )
-```
+```PHP
 DB::table('uses')
 ->where('age','>',18)
 ->or('score','>',200)
