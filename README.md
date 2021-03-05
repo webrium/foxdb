@@ -28,5 +28,46 @@ DB::addConfig('main',[
 
 ```PHP
 $user = DB::table('users')->find($user_id);
+```
 
+|Method|Alias|
+|--|--|
+|where|and|
+|orWhere|or|
+|is||
+|true||
+|false||
+
+### where
+
+```PHP
+..->where('name','jan')->..
+```
+
+#### ( where , and )
+```PHP
+DB::table('uses')
+->where('age','>',18)
+->and('score','>',200)
+->get();
+```
+
+#### ( where , or )
+```
+DB::table('uses')
+->where('age','>',18)
+->or('score','>',200)
+->get();
+```
+### ( is , true , false )
+The "**is**" method is true by default ,You can set the second parameter to **false**
+```PHP
+$list = DB::table('users')->is('confirm')->get();       //.. `confirm` = true
+$list = DB::table('users')->is('confirm',false)->get(); //.. `confirm` = false
+
+
+// You can use true or false method
+
+DB::table('users')->true('confirm')->get();
+DB::table('users')->false('confirm')->get();
 ```
