@@ -59,7 +59,7 @@ DB::table('uses')
 ->or('score','>',200)
 ->get();
 ```
-### ( is , true , false )
+#### ( is , true , false )
 The "**is**" method is true by default ,You can set the second parameter to **false**
 ```PHP
 $list = DB::table('users')->is('confirm')->get();       //.. `confirm` = true
