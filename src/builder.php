@@ -148,9 +148,9 @@ class builder {
 
     $str = "select $fields from $this->table ";
 
+    ksort($this->query_array);
 
-
-    foreach ($this->query_array??[] as $key => $value) {
+    foreach ($this->query_array as $key => $value) {
       $str.=$value;
     }
 
