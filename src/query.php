@@ -51,7 +51,7 @@ class query extends builder{
     $select = new \webrium\foxql\selectFields();
     $select->table = $this->table;
 
-    if (is_callable($args)) {
+    if (! is_array($args) && is_callable($args)) {
       $args($select);
     }
     elseif(is_array($args)){
