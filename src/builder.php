@@ -43,13 +43,26 @@ class builder {
     $this->params[$name] = $value;
     $this->index_var++;
   }
+  
 
   public function addToQuery($str,$_index)
   {
     $index = $this->SqlStractur($_index);
     $this->query_array[$index] = " $str";
   }
+  
+  public function joinToQuery($str,$_index)
+  {
+    $index = $this->SqlStractur($_index);
 
+    if ( isset($this->query_array[$index]) && ! empty($this->query_array[$index])) {
+      $this->addToQuery($this->query_array[$index] . " $str",$_index);
+    }
+    else {
+      $this->addToQuery($str,$_index);
+    }
+  }
+  
 
   public function addToWhereQuery($op,$str)
   {
