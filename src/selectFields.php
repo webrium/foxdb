@@ -72,6 +72,12 @@ class selectFields extends builder{
 
     return $this;
   }
+  
+  public function autoSet($array){
+    foreach ($array as $key => $field) {
+      $this->addToFields($field);
+    }
+  }
 
   public function get()
   {
