@@ -407,7 +407,7 @@ class query extends builder{
       $join_op               = '=';
       $main_field_key        = $this->getFieldStr($args[1]);
     }
-    $this->addToQuery("$type $join_table_name ON $main_field_key $join_op $join_table_and_field_name","JOIN");
+    $this->joinToQuery("$type $join_table_name ON $main_field_key $join_op $join_table_and_field_name","JOIN");
   }
 
   public function join(...$args)
