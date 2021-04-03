@@ -28,7 +28,12 @@ class query extends builder{
   protected function connect()
   {
     if (! $this->connected) {
-      $this->pdo = new \PDO($this->config['driver'].":host=".$this->config['db_host'].':'.$this->config['db_host_port'].";dbname=".$this->config['db_name'].";charset=".$this->config['charset'],$this->config['username'],$this->config['password']);
+      $host = $this->config['driver'].":host=".$this->config['db_host'];
+      if ( isset($this->config['db_host_port']) && $this->config['db_host_port'] !=false ) {
+        $host .= ':'.$this->config['db_host_port'];
+      }
+
+      $this->pdo = new \PDO("$host;dbname=".$this->config['db_name'].";charset=".$this->config['charset'],$this->config['username'],$this->config['password']);
       $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_WARNING);
       $this->connected = true;
       $this->setSelectResultType($this->config['result_stdClass']);
@@ -444,7 +449,7 @@ class query extends builder{
     $this->limit(1);
     return $this->execute($this->getSelectQuery(),true)[0]??false;
   }
-  
+
   public function find($id){
     return $this->where('id',$id)->first();
   }
