@@ -10,22 +10,21 @@ class builder {
   public function makeValueString($args,$op)
   {
     if (count($args)==3) {
-      $value_name = ":".$args[0]."_$this->index_var";
+      $value_name = ":_$this->index_var";
       $this->addToParams($value_name,$args[2]);
 
       if (strpos($args[1],'()')===false) {
-        $str = "$this->table.`".$args[0]."` ".$args[1]." $value_name";
+        $str = $this->getFieldStr($args[0])." ".$args[1]." $value_name";
       }
       else {
         $args[1] = str_replace('()',"($value_name)",$args[1]);
-        $str = "$this->table.`".$args[0]."` ".$args[1];
+        $str = $this->getFieldStr($args[0])." ".$args[1];
       }
     }
     elseif (count($args)==2) {
-      $value_name = ":".$args[0]."_$this->index_var";
+      $value_name = ":_$this->index_var";
       $this->addToParams($value_name,$args[1]);
-
-      $str = "$this->table.`".$args[0]."` = $value_name";
+      $str = $this->getFieldStr($args[0]). " = $value_name";
     }
     elseif (count($args)==1 && is_callable($args[0])) {
       $this->addToWhereQuery($op,'(');
@@ -43,14 +42,14 @@ class builder {
     $this->params[$name] = $value;
     $this->index_var++;
   }
-  
+
 
   public function addToQuery($str,$_index)
   {
     $index = $this->SqlStractur($_index);
     $this->query_array[$index] = " $str";
   }
-  
+
   public function joinToQuery($str,$_index)
   {
     $index = $this->SqlStractur($_index);
@@ -62,14 +61,14 @@ class builder {
       $this->addToQuery($str,$_index);
     }
   }
-  
+
 
   public function addToWhereQuery($op,$str)
   {
     $index = $this->SqlStractur("WHERE");
 
     if (! isset($this->query_array[$index])) {
-      $this->query_array[$index]= 'where ';
+      $this->query_array[$index]= ' where ';
     }
     else {
       if ($this->skipFirstOp) {
