@@ -5,50 +5,18 @@ use webrium\foxql\biuld;
 
 class query extends builder{
 
-  private $config,$pdo,$connected=false;
   protected $table = false,$query_array,$getType;
-
-  public function getPdo(){
-    $this->connect();
-    return $this->pdo;
-  }
-
-  protected function setConfig($config)
-  {
-    $this->config = $config;
-  }
 
   protected function setTable($table)
   {
+    // Init Table Name
     $this->table = "`$table`";
+
+    // Used in the builder
+    // Array of values
     $this->params=null;
+
     $this->query_array=null;
-  }
-
-  protected function connect()
-  {
-    if (! $this->connected) {
-      $host = $this->config['driver'].":host=".$this->config['db_host'];
-      if ( isset($this->config['db_host_port']) && $this->config['db_host_port'] !=false ) {
-        $host .= ':'.$this->config['db_host_port'];
-      }
-
-      $this->pdo = new \PDO("$host;dbname=".$this->config['db_name'].";charset=".$this->config['charset'],$this->config['username'],$this->config['password']);
-      $this->pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_WARNING);
-      $this->connected = true;
-      $this->setSelectResultType($this->config['result_stdClass']);
-    }
-  }
-
-
-  public function setSelectResultType($getArray)
-  {
-    if ($getArray) {
-      $this->getType=\PDO::FETCH_CLASS;
-    }
-    else {
-      $this->getType=\PDO::FETCH_ASSOC;
-    }
   }
 
   public function select($args)
@@ -479,7 +447,7 @@ class query extends builder{
 
   public function insertGetId($params){
     $this->execute($this->getInsertQuery($params),false);
-    return $this->getPdo()->lastInsertId();
+    return DB::pdo()->lastInsertId();
   }
 
   public function delete(){
@@ -487,19 +455,17 @@ class query extends builder{
   }
 
   public function execute($query,$return=false){
-    $this->connect();
-
 
     if ($this->params==null) {
-      $stmt = $this->pdo->query($query);
+      $stmt = DB::pdo()->query($query);
     }
     else {
-      $stmt=$this->pdo->prepare($query);
+      $stmt= DB::pdo()->prepare($query);
       $res = $stmt->execute($this->params);
     }
 
     if($return){
-      return $stmt->fetchAll($this->getType);
+      return $stmt->fetchAll(DB::config()['fetch']);
     }
     else {
       return $stmt->rowCount();
@@ -512,14 +478,22 @@ class query extends builder{
 
     $cache_name = "$this->table.$name";
 
-    if (isset(db::$cache[$name]) == false && $func !=false && is_callable($func) ) {
+    if (isset(DB::$cache[$cache_name]) == false && $func !=false && is_callable($func) ) {
       $res = $func($this);
-      db::$cache[$name] = $res;
+      if ($res !== false) {
+        DB::$cache[$cache_name] = $res;
+      }
     }
-    else if(isset(db::$cache[$name])){
-      $res = db::$cache[$name];
+    else if(isset(DB::$cache[$cache_name])){
+      $res = DB::$cache[$cache_name];
     }
+
     return $res;
+  }
+
+  public function removeCache($name){
+    $cache_name = "$this->table.$name";
+    unset(DB::$cache[$cache_name]);
   }
 
 

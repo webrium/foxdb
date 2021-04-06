@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/config.php';
 
-use webrium\foxql\db;
+use webrium\foxql\DB;
 
 
 echo "date:<br>";
