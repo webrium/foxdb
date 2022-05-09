@@ -10,6 +10,12 @@ class builder {
   public function makeValueString($args,$op)
   {
     if (count($args)==3) {
+      
+       // change (WHERE IN) array to string
+      if(\is_array($args[2])){
+        $args[2] = implode(',',$args[2]);
+      }
+      
       $value_name = ":_$this->index_var";
       $this->addToParams($value_name,$args[2]);
 
