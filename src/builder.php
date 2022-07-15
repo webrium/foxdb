@@ -113,6 +113,14 @@ class builder {
 
     foreach ($params as $key => $value) {
       $key_name = ":$key".'_'.$this->index_var;
+
+      if($value===true){
+        $value = 1;
+      }
+      elseif($value===false){
+        $value = 0;
+      }
+      
       $this->addToParams($key_name,$value);
       $update_fields[]="$key=$key_name";
     }
