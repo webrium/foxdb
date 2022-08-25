@@ -111,19 +111,23 @@ class Config
     if ($this->SERVER_PORT != false && !empty($this->SERVER_PORT)) {
       $dsn .= ":$this->SERVER_PORT";
     }
+    
+    $dsn.= ';';
+
+    $dsn.= "dbname=$this->DATABASE_NAME;";
 
     // add charset
-    $dsn .= ";charset=$this->CHARSET";
+    $dsn .= "charset=$this->CHARSET;";
 
     return $dsn;
   }
 
-  
+
   public function connect()
   {
     $dsn = $this->makeConnectionString();
+    echo "\n$dsn\n";
 
-    // init pdo
     $this->PDO = new \PDO($dsn, $this->USERNAME, $this->PASSWORD, [
       \PDO::ATTR_ERRMODE => \PDO::ERRMODE_WARNING,
       \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES '$this->CHARSET' COLLATE '$this->COLLATION'"

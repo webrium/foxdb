@@ -22,7 +22,16 @@ DB::addConnection('main', [
     'collation'=>Config::UTF8_GENERAL_CI,
     'fetch'=>Config::FETCH_CLASS
 ]);
-DB::test();
+
+$res = DB::select('select * from item1 where id=:id',[
+    'id'=>2
+]);
+
+$res = DB::update('update item1 set status=:status where id=:id',[
+    'status'=>0,
+    'id'=>2
+]);
 // DB::showConfigArray();
+echo json_encode($res);
 
 echo "\n";
