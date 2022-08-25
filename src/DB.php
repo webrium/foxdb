@@ -13,7 +13,13 @@ class DB{
     self::$CONFIG[$config_name] = new Config($config_params);
   }
 
-  public static function select(string $query, array $params){
+  public static function table($name){
+    $config = self::getConfig();
+    $builder = new Builder($config);
+    return $builder;
+  }
+
+  public static function select(string $query, array $params=[]){
     $config = self::getConfig();
     $builder = new Builder($config);
     return $builder->execute($query, $params, true);

@@ -23,15 +23,11 @@ DB::addConnection('main', [
     'fetch'=>Config::FETCH_CLASS
 ]);
 
-$res = DB::select('select * from item1 where id=:id',[
-    'id'=>2
-]);
+//$res = DB::select('select * from item1 where id in(:in)',['in'=>"1,2,3"]);
+$res = DB::table('')->in('id',[1,2])->orNotIn('id',[3])->get();
 
-$res = DB::update('update item1 set status=:status where id=:id',[
-    'status'=>0,
-    'id'=>2
-]);
 // DB::showConfigArray();
+// echo json_encode($res->get_source_value());
 echo json_encode($res);
 
 echo "\n";
