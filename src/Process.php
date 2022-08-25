@@ -29,6 +29,21 @@ class Process {
   }
 
 
+
+  public function fix_field_name($name){
+    $array = explode('.', $name);
+    $count = count($array);
+
+    if($count == 1){
+      return ['type'=>'column','name'=>"`$array[0]`"];
+    }
+    else if($count == 2){
+      return ['type'=>'table_and_column','name'=>"`$array[0]`.`$array[1]`", 'table'=>"`$array[0]`", 'column'=>"`$array[1]`"];
+    }
+  }
+
+
+
   public function get_params(){
     return $this->PARAMS;
   }

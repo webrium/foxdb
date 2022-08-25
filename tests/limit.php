@@ -24,7 +24,7 @@ DB::addConnection('main', [
 ]);
 
 //$res = DB::select('select * from item1 where id in(:in)',['in'=>"1,2,3"]);
-$res = DB::table('')->in('id',[1,2])->orNotIn('id',[3])->get();
+$res = DB::table('')->in('id',[1,2])->get();
 
 // DB::showConfigArray();
 // echo json_encode($res->get_source_value());

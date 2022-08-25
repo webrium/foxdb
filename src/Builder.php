@@ -79,6 +79,8 @@ class Builder extends Process {
 
   public function queryMakerIn($name, array $list, $extra_opration = ''){
 
+    $name = $this->fix_field_name($name)['name'];
+
     $values = [];
 
     $this->method_in_maker($list,function($get_param_name)use(&$values) {
