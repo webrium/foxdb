@@ -24,10 +24,16 @@ DB::addConnection('main', [
 ]);
 
 //$res = DB::select('select * from item1 where id in(:in)',['in'=>"1,2,3"]);
-$res = DB::table('')->in('id',[1,2])->get();
+// $res = DB::table('')->where('id',5)->orWhere('id','!=','2')->where('status',1)->get();
+// echo json_encode($res);
 
+
+$res = DB::table('')
+->whereNotBetween('id',[1,2])
+->orWhereNotBetween('id',[1,3])
+->get();
+echo json_encode($res);
 // DB::showConfigArray();
 // echo json_encode($res->get_source_value());
-echo json_encode($res);
 
 echo "\n";

@@ -41,34 +41,46 @@ class Builder extends Process {
 
       $end = $array[count($array)-1];
 
-      if(in_array($end, ['AND','OR'])==false){
+      if(in_array($end, ['AND','OR','('])==false){
         $this->addToSourceArray('WHERE', $oprator);
       }
     }
+    else{
+      $this->addToSourceArray('WHERE', 'WHERE');
+    }
   }
 
-  public function in($name, array $list){
+  public function addStartParentheses(){
+    $this->addToSourceArray('WHERE', '(');
+  }
+
+  public function addEndParentheses(){
+    $this->addToSourceArray('WHERE', ')');
+  }
+
+
+  public function whereIn($name, array $list){
     $query = $this->queryMakerIn($name, $list,'');
     $this->addOperator('AND');
     $this->addToSourceArray('WHERE', $query);
     return $this;
   }
 
-  public function notIn($name, array $list){
+  public function whereNotIn($name, array $list){
     $query = $this->queryMakerIn($name, $list,'NOT');
     $this->addOperator('AND');
     $this->addToSourceArray('WHERE', $query);
     return $this;
   }
 
-  public function orin($name, array $list){
+  public function orWhereIn($name, array $list){
     $query = $this->queryMakerIn($name, $list,'');
     $this->addOperator('OR');
     $this->addToSourceArray('WHERE', $query);
     return $this;
   }
 
-  public function orNotIn($name, array $list){
+  public function orWhereNotIn($name, array $list){
     $query = $this->queryMakerIn($name, $list,'NOT');
     $this->addOperator('OR');
     $this->addToSourceArray('WHERE', $query);
@@ -77,7 +89,7 @@ class Builder extends Process {
 
 
 
-  public function queryMakerIn($name, array $list, $extra_opration = ''){
+  private function queryMakerIn($name, array $list, $extra_opration = ''){
 
     $name = $this->fix_field_name($name)['name'];
 
@@ -102,8 +114,116 @@ class Builder extends Process {
     return $string_query;
   }
 
+  public function where(...$args){
+    $this->addOperator('AND');
+    $this->queryMakerWhere($args);
+    return $this;
+  }
+
+  public function orWhere(...$args){
+    $this->addOperator('OR');
+    $this->queryMakerWhere($args);
+    return $this;
+  }
+
+  public function whereNot(...$args){
+    $this->addOperator('AND');
+    $this->queryMakerWhere($args,'NOT');
+    return $this;
+  }
+
+  public function orWhereNot(...$args){
+    $this->addOperator('OR');
+    $this->queryMakerWhere($args,'NOT');
+    return $this;
+  }
+
+
+
+  public function whereBetween($name, array $values){
+    $this->addOperator('AND');
+    $this->queryMakerWhereBetween($name, $values);
+    return $this;
+  }
+
+  public function orWhereBetween($name, array $values){
+    $this->addOperator('OR');
+    $this->queryMakerWhereBetween($name, $values);
+    return $this;
+  }
+
+  public function whereNotBetween($name, array $values){
+    $this->addOperator('AND');
+    $this->queryMakerWhereBetween($name, $values, 'NOT');
+    return $this;
+  }
+
+  public function orWhereNotBetween($name, array $values){
+    $this->addOperator('OR');
+    $this->queryMakerWhereBetween($name, $values, 'NOT');
+    return $this;
+  }
+
+
+  private function queryMakerWhereBetween($name, array $values, $per_extra_opration=''){
+    $name = $this->fix_field_name($name)['name'];
+    
+    $v1 = $this->add_to_param_auto_name($values[0]);
+    $v2 = $this->add_to_param_auto_name($values[1]);
+
+    $query = "$name BETWEEN $v1 AND $v2";
+
+    /*
+    | Add NOT to query
+    */
+    if(!empty($per_extra_opration)){
+      $query = 'NOT '.$query ;
+    }
+
+    $this->addToSourceArray('WHERE', $query);
+  }
+
+  private function queryMakerWhere($args,$per_extra_opration=''){
+
+    if(is_string($args[0])){
+      $v1 = $args[0];
+      $op = $args[1];
+      $param = $args[2]??false;
+
+      if($param==false){
+        $param = $op;
+        $op = '=';
+      }
+
+      $v1 = $this->fix_field_name($v1)['name'];
+
+      $param_name = $this->add_to_param_auto_name($param);
+
+
+      $query = "$v1 $op $param_name";
+
+      /*
+      | Add NOT to query
+      */
+      if(!empty($per_extra_opration)){
+        $query = 'NOT '.$query ;
+      }
+
+      /*
+      | Add finally string to Source
+      */
+      $this->addToSourceArray('WHERE', $query);
+    }
+    else if(is_callable($args[0])){
+      $this->addStartParentheses();
+      $args[0]($this);
+      $this->addEndParentheses();
+    }
+
+  }
+
   public function makeSelectQueryString(){
-    $array = ['SELECT * FROM item1 WHERE'];
+    $array = ['SELECT * FROM item1 '];
 
     foreach($this->SOURCE_VALUE as $value){
       if(is_array($value)){
