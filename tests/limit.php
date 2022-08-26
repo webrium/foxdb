@@ -29,8 +29,7 @@ DB::addConnection('main', [
 
 
 $res = DB::table('')
-->whereNotBetween('id',[1,2])
-->orWhereNotBetween('id',[1,3])
+->whereNotNull('phone')
 ->get();
 echo json_encode($res);
 // DB::showConfigArray();

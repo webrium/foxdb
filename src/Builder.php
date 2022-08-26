@@ -59,6 +59,8 @@ class Builder extends Process {
   }
 
 
+
+
   public function whereIn($name, array $list){
     $query = $this->queryMakerIn($name, $list,'');
     $this->addOperator('AND');
@@ -89,6 +91,8 @@ class Builder extends Process {
 
 
 
+
+
   private function queryMakerIn($name, array $list, $extra_opration = ''){
 
     $name = $this->fix_field_name($name)['name'];
@@ -113,6 +117,9 @@ class Builder extends Process {
 
     return $string_query;
   }
+
+
+
 
   public function where(...$args){
     $this->addOperator('AND');
@@ -140,6 +147,31 @@ class Builder extends Process {
 
 
 
+  public function whereNull($name){
+    $this->addOperator('AND');
+    $this->queryMakerWhereStaticValue($name,'IS NULL');
+    return $this;
+  }
+
+  public function orWhereNull($name){
+    $this->addOperator('OR');
+    $this->queryMakerWhereStaticValue($name,'IS NULL');
+    return $this;
+  }
+
+  public function whereNotNull($name){
+    $this->addOperator('AND');
+    $this->queryMakerWhereStaticValue($name,'IS NOT NULL');
+    return $this;
+  }
+
+  public function orWhereNotNull($name){
+    $this->addOperator('OR');
+    $this->queryMakerWhereStaticValue($name,'IS NOT NULL');
+    return $this;
+  }
+
+
   public function whereBetween($name, array $values){
     $this->addOperator('AND');
     $this->queryMakerWhereBetween($name, $values);
@@ -164,6 +196,21 @@ class Builder extends Process {
     return $this;
   }
 
+
+  private function queryMakerWhereStaticValue($name ,$value){
+    $name = $this->fix_field_name($name)['name'];
+
+    $query = "$name $value";
+
+    /*
+    | Add NOT to query
+    */
+    if(!empty($per_extra_opration)){
+      $query = 'NOT '.$query ;
+    }
+
+    $this->addToSourceArray('WHERE', $query);
+  }
 
   private function queryMakerWhereBetween($name, array $values, $per_extra_opration=''){
     $name = $this->fix_field_name($name)['name'];
