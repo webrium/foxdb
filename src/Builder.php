@@ -197,6 +197,98 @@ class Builder extends Process {
   }
 
 
+
+  public function whereDate(...$args){
+    $this->addOperator('AND');
+    $this->queryMakerWhereLikeDate('DATE', $args);
+    return $this;
+  }
+
+  public function orWhereDate(...$args){
+    $this->addOperator('OR');
+    $this->queryMakerWhereLikeDate('DATE', $args);
+    return $this;
+  }
+
+  public function whereYear(...$args){
+    $this->addOperator('AND');
+    $this->queryMakerWhereLikeDate('YEAR', $args);
+    return $this;
+  }
+
+  public function orWhereYear(...$args){
+    $this->addOperator('OR');
+    $this->queryMakerWhereLikeDate('YEAR', $args);
+    return $this;
+  }
+
+  public function whereMonth(...$args){
+    $this->addOperator('AND');
+    $this->queryMakerWhereLikeDate('MONTH', $args);
+    return $this;
+  }
+
+  public function orWhereMonth(...$args){
+    $this->addOperator('OR');
+    $this->queryMakerWhereLikeDate('MONTH', $args);
+    return $this;
+  }
+
+
+  public function whereDay(...$args){
+    $this->addOperator('AND');
+    $this->queryMakerWhereLikeDate('DAY', $args);
+    return $this;
+  }
+
+  public function orWhereDay(...$args){
+    $this->addOperator('OR');
+    $this->queryMakerWhereLikeDate('DAY', $args);
+    return $this;
+  }
+
+  public function whereTime(...$args){
+    $this->addOperator('AND');
+    $this->queryMakerWhereLikeDate('TIME', $args);
+    return $this;
+  }
+
+  public function orWhereTime(...$args){
+    $this->addOperator('OR');
+    $this->queryMakerWhereLikeDate('TIME', $args);
+    return $this;
+  }
+
+
+
+
+  private function queryMakerWhereLikeDate($action,$args){
+
+      $v1 = $args[0];
+      $op = $args[1];
+      $param = $args[2]??false;
+
+      if($param==false){
+        $param = $op;
+        $op = '=';
+      }
+
+      $v1 = $this->fix_field_name($v1)['name'];
+
+      $param_name = $this->add_to_param_auto_name($param);
+
+
+      $query = "$action($v1) $op $param_name";
+
+
+      /*
+      | Add finally string to Source
+      */
+      $this->addToSourceArray('WHERE', $query);
+  }
+
+
+
   private function queryMakerWhereStaticValue($name ,$value){
     $name = $this->fix_field_name($name)['name'];
 
@@ -270,7 +362,7 @@ class Builder extends Process {
   }
 
   public function makeSelectQueryString(){
-    $array = ['SELECT * FROM item1 '];
+    $array = ['SELECT * FROM users '];
 
     foreach($this->SOURCE_VALUE as $value){
       if(is_array($value)){
