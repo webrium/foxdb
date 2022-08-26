@@ -29,7 +29,7 @@ DB::addConnection('main', [
 
 
 $res = DB::table('')
-->whereNotNull('phone')
+->whereDay('created_at','18')
 ->get();
 echo json_encode($res);
 // DB::showConfigArray();
