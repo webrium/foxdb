@@ -28,7 +28,7 @@ DB::addConnection('main', [
 // echo json_encode($res);
 
 
-$res = DB::table('')
+$res = DB::table('users')
 ->whereDay('created_at','18')
 ->get();
 echo json_encode($res);

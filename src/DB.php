@@ -16,6 +16,7 @@ class DB{
   public static function table($name){
     $config = self::getConfig();
     $builder = new Builder($config);
+    $builder->setTable($name);
     return $builder;
   }
 

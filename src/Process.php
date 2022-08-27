@@ -34,12 +34,22 @@ class Process {
     $array = explode('.', $name);
     $count = count($array);
 
+    $table ='';
+    $column = '';
+    $type = '';
+
     if($count == 1){
-      return ['type'=>'column','name'=>"`$array[0]`"];
+      $table = "`$this->TABLE`";
+      $column = "`$array[0]`";
+      $type = 'column';
     }
     else if($count == 2){
-      return ['type'=>'table_and_column','name'=>"`$array[0]`.`$array[1]`", 'table'=>"`$array[0]`", 'column'=>"`$array[1]`"];
+      $table = "`$array[0]`";
+      $column = "`$array[1]`";
+      $type = 'table_and_column';
     }
+
+    return ['name'=>"$table.$column", 'table'=>$table, 'column'=>$column, 'type'=>$type];
   }
 
 

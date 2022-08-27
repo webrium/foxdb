@@ -5,6 +5,7 @@ namespace webrium\foxql;
 class Builder extends Process {
 
   protected $CONFIG;
+  protected $TABLE;
   protected $PARAMS = [];
   protected $ACTION = 'select';
 
@@ -12,6 +13,10 @@ class Builder extends Process {
 
   public function __construct(Config $config){
     $this->CONFIG = $config;
+  }
+
+  public function setTable($name){
+    $this->TABLE = $name;
   }
 
   public function execute($query, $params=[], $return=false){
@@ -362,7 +367,7 @@ class Builder extends Process {
   }
 
   public function makeSelectQueryString(){
-    $array = ['SELECT * FROM users '];
+    $array = ["SELECT * FROM `$this->TABLE`"];
 
     foreach($this->SOURCE_VALUE as $value){
       if(is_array($value)){
