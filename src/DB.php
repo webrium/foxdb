@@ -5,12 +5,12 @@ namespace webrium\foxql;
 class DB{
 
 
-  private static $CONFIG;
-  private static $USE_DATABASE = 'main';
+  protected static $CONFIG_LIST;
+  protected static $USE_DATABASE = 'main';
 
 
   public static function addConnection($config_name,array $config_params){
-    self::$CONFIG[$config_name] = new Config($config_params);
+    self::$CONFIG_LIST[$config_name] = new Config($config_params);
   }
 
   public static function table($name){
@@ -20,11 +20,11 @@ class DB{
     return $builder;
   }
 
-  public static function select(string $query, array $params=[]){
-    $config = self::getConfig();
-    $builder = new Builder($config);
-    return $builder->execute($query, $params, true);
-  }
+  // public static function select(string $query, array $params=[]){
+  //   $config = self::getConfig();
+  //   $builder = new Builder($config);
+  //   return $builder->execute($query, $params, true);
+  // }
 
   
   public static function update(string $query, array $params){
@@ -51,11 +51,11 @@ class DB{
   }
 
   private static function getConfigByName($config_name){
-    if (! isset(self::$CONFIG[$config_name])){
+    if (! isset(self::$CONFIG_LIST[$config_name])){
       throw new \Exception("'$config_name' config not found");
     }
 
-    return self::$CONFIG[$config_name];
+    return self::$CONFIG_LIST[$config_name];
   }
 
   private static function getConfig(){
@@ -65,11 +65,11 @@ class DB{
   
 
   public static function test(){
-    self::$CONFIG['main']->pdo();
+    self::$CONFIG_LIST['main']->pdo();
   }
 
   public static function showConfigArray(){
-    foreach(self::$CONFIG as $config){
+    foreach(self::$CONFIG_LIST as $config){
       echo json_encode($config->getAsArray())."\n";
     }
   }

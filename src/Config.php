@@ -126,12 +126,15 @@ class Config
   public function connect()
   {
     $dsn = $this->makeConnectionString();
-    echo "\n$dsn\n";
 
     $this->PDO = new \PDO($dsn, $this->USERNAME, $this->PASSWORD, [
       \PDO::ATTR_ERRMODE => \PDO::ERRMODE_WARNING,
       \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES '$this->CHARSET' COLLATE '$this->COLLATION'"
     ]);
+  }
+
+  public function getFetch(){
+    return $this->FETCH;
   }
 
   public function pdo(){

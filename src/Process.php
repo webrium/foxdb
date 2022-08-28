@@ -2,35 +2,35 @@
 namespace webrium\foxql;
 
 
-class Process {
+trait Process{
 
   private $param_index = 0;
 
-  public function method_in_maker(array $list, $callback){
+  protected function method_in_maker(array $list, $callback){
     foreach($list as $item){
       $param_name = $this->add_to_param_auto_name($item);
       $callback($param_name);
     }
   }
 
-  public function add_to_param($name, $value){
+  protected function add_to_param($name, $value){
     $this->PARAMS[":$name"] = $value;
     return ":$name";
   }
 
-  public function add_to_param_auto_name($value){
+  protected function add_to_param_auto_name($value){
     $name = $this->get_new_param_name();
     return $this->add_to_param($name, $value);
   }
 
-  public function get_new_param_name(){
+  protected function get_new_param_name(){
     $this->param_index++;
     return 'p'.$this->param_index;
   }
 
 
 
-  public function fix_field_name($name){
+  protected function fix_column_name($name){
     $array = explode('.', $name);
     $count = count($array);
 
@@ -52,6 +52,13 @@ class Process {
     return ['name'=>"$table.$column", 'table'=>$table, 'column'=>$column, 'type'=>$type];
   }
 
+  protected function fix_operator_and_value(&$operator, &$value){
+    if($value == false || $value == null){
+      $value = $operator;
+      $operator = '=';
+    }
+  }
+
 
 
   public function get_params(){
@@ -62,13 +69,13 @@ class Process {
     return $this->SOURCE_VALUE;
   }
 
-  public function sql_stractur($key=null)
+  protected function sql_stractur($key=null)
   {
     $arr=[
       'SELECT'        =>1,
       'FIELDS'        =>2,
       'ALL'           =>3,
-      'DISTINCT '     =>4,
+      'DISTINCT'      =>4,
       'DISTINCTROW'   =>5,
       'HIGH_PRIORITY' =>6,
       'STRAIGHT_JOIN' =>7,

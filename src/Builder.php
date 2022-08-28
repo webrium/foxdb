@@ -1,8 +1,10 @@
 <?php
 namespace webrium\foxql;
 
+class Builder extends DB{
 
-class Builder extends Process {
+  use Process;
+
 
   protected $CONFIG;
   protected $TABLE;
@@ -11,15 +13,24 @@ class Builder extends Process {
 
   protected $SOURCE_VALUE = [];
 
-  public function __construct(Config $config){
-    $this->CONFIG = $config;
-  }
+
+
+  // public function __construct(){
+    
+  // }
+
+  // public function __construct(Config $config){
+  //   $this->CONFIG = $config;
+  // }
 
   public function setTable($name){
     $this->TABLE = $name;
   }
 
   public function execute($query, $params=[], $return=false){
+    if(!$this->CONFIG)
+    $this->CONFIG = DB::$CONFIG_LIST[DB::$USE_DATABASE];
+
     $this->CONFIG->connect();
     $this->PARAMS = $params;
 
@@ -32,7 +43,7 @@ class Builder extends Process {
     }
 
     if($return){
-      return $stmt->fetchAll();
+      return $stmt->fetchAll($this->CONFIG->getFetch());
     }
     else {
       return $stmt->rowCount();
@@ -66,6 +77,34 @@ class Builder extends Process {
 
 
 
+  public function select(...$args){
+    if(count($args)==1){
+      if(is_string($args[0])){
+        $this->addToSourceArray('DISTINCT', $args[0]);
+        
+      }
+      elseif(is_array($args[0])){
+        foreach($args[0] as $key=> $arg){
+          $args[0][$key] = $this->fix_column_name($arg)['name'];
+        }
+
+        $this->addToSourceArray('DISTINCT', implode(',',$args[0]));
+      }
+      elseif(is_callable($args[0])){
+        $select = new Select($this);
+        $args[0]($select);
+        
+        $this->addToSourceArray('DISTINCT',$select->getString());
+      }
+      else{
+
+      }
+    }
+
+    return $this;
+  }
+
+
   public function whereIn($name, array $list){
     $query = $this->queryMakerIn($name, $list,'');
     $this->addOperator('AND');
@@ -95,12 +134,22 @@ class Builder extends Process {
   }
 
 
+  public function whereColumn($first, $operator, $second=false){
+
+    $this->addOperator('AND');
+    $this->fix_operator_and_value($operator, $second);
+    $this->addToSourceArray('WHERE',"`$first` $operator `$second`");
+
+    return $this;
+  }
+
+
 
 
 
   private function queryMakerIn($name, array $list, $extra_opration = ''){
 
-    $name = $this->fix_field_name($name)['name'];
+    $name = $this->fix_column_name($name)['name'];
 
     $values = [];
 
@@ -266,24 +315,93 @@ class Builder extends Process {
 
 
 
+  public function join(...$args){
+    $query = $this->queryMakerJoin('INNER',$args);
+    $this->addToSourceArray('JOIN',$query);
+    return $this;
+  }
+
+  public function leftJoin(...$args){
+    $query = $this->queryMakerJoin('LEFT',$args);
+    $this->addToSourceArray('JOIN',$query);
+    return $this;
+  }
+
+  public function rightJoin(...$args){
+    $query = $this->queryMakerJoin('RIGHT',$args);
+    $this->addToSourceArray('JOIN',$query);
+    return $this;
+  }
+
+  public function fullJoin(...$args){
+    $query = $this->queryMakerJoin('FULL',$args);
+    $this->addToSourceArray('JOIN',$query);
+    return $this;
+  }
+
+  public function crossJoin($column){
+    $this->addToSourceArray('JOIN',"CROSS JOIN `$column`");
+    return $this;
+  }
+
+
+
+
+  private function queryMakerJoin($type, $args){
+    $join_table = $args[0];
+    $join_table_column = $args[1];
+    $operator = $args[2]??false;
+    $main_column = $args[3]??false;
+
+    if(!$operator && !$main_column){
+      $table_second = $this->fix_column_name($join_table);
+      $table_main = $this->fix_column_name($join_table_column);
+
+      $join_table = $table_second['table'];
+      
+      $join_table_column = $table_second['name'];
+
+      $operator = '=';
+
+      $main_column = $table_main['name'];
+    }
+    else if($operator && !$main_column){
+      $table_second = $this->fix_column_name($join_table);
+      $table_main = $this->fix_column_name($operator);
+      
+      $operator = $join_table_column;
+
+      $join_table = $table_second['table'];
+      $join_table_column = $table_second['name'];
+      
+      $main_column = $table_main['name'];
+    }
+    else if($main_column){
+      $join_table = "`$join_table`";
+      
+      $join_table_column = $this->fix_column_name($join_table_column)['name'];
+      $main_column = $this->fix_column_name($main_column)['name'];
+    }
+
+    return "$type JOIN $join_table ON $join_table_column $operator $main_column";
+  }
+
+
 
   private function queryMakerWhereLikeDate($action,$args){
 
-      $v1 = $args[0];
-      $op = $args[1];
-      $param = $args[2]??false;
+      $column = $args[0];
+      $operator = $args[1];
+      $value = $args[2]??false;
 
-      if($param==false){
-        $param = $op;
-        $op = '=';
-      }
+      $this->fix_operator_and_value($operator, $value);
 
-      $v1 = $this->fix_field_name($v1)['name'];
+      $column = $this->fix_column_name($column)['name'];
 
-      $param_name = $this->add_to_param_auto_name($param);
+      $value_name = $this->add_to_param_auto_name($column);
 
 
-      $query = "$action($v1) $op $param_name";
+      $query = "$action($column) $operator $value_name";
 
 
       /*
@@ -295,22 +413,22 @@ class Builder extends Process {
 
 
   private function queryMakerWhereStaticValue($name ,$value){
-    $name = $this->fix_field_name($name)['name'];
+    $name = $this->fix_column_name($name)['name'];
 
     $query = "$name $value";
 
     /*
     | Add NOT to query
     */
-    if(!empty($per_extra_opration)){
+    if(!empty($extra_operation)){
       $query = 'NOT '.$query ;
     }
 
     $this->addToSourceArray('WHERE', $query);
   }
 
-  private function queryMakerWhereBetween($name, array $values, $per_extra_opration=''){
-    $name = $this->fix_field_name($name)['name'];
+  private function queryMakerWhereBetween($name, array $values, $extra_operation=''){
+    $name = $this->fix_column_name($name)['name'];
     
     $v1 = $this->add_to_param_auto_name($values[0]);
     $v2 = $this->add_to_param_auto_name($values[1]);
@@ -320,36 +438,35 @@ class Builder extends Process {
     /*
     | Add NOT to query
     */
-    if(!empty($per_extra_opration)){
+    if(!empty($extra_operation)){
       $query = 'NOT '.$query ;
     }
 
     $this->addToSourceArray('WHERE', $query);
   }
 
-  private function queryMakerWhere($args,$per_extra_opration=''){
+  private function queryMakerWhere($args, $extra_operation=''){
 
     if(is_string($args[0])){
-      $v1 = $args[0];
-      $op = $args[1];
-      $param = $args[2]??false;
 
-      if($param==false){
-        $param = $op;
-        $op = '=';
-      }
-
-      $v1 = $this->fix_field_name($v1)['name'];
-
-      $param_name = $this->add_to_param_auto_name($param);
+      $column = $args[0];
+      $operator = $args[1];
+      $value = $args[2]??false;
 
 
-      $query = "$v1 $op $param_name";
+      $this->fix_operator_and_value($operator, $value);
+
+      $column = $this->fix_column_name($column)['name'];
+
+      $value_name = $this->add_to_param_auto_name($value);
+
+
+      $query = "$column $operator $value_name";
 
       /*
       | Add NOT to query
       */
-      if(!empty($per_extra_opration)){
+      if(!empty($extra_operation)){
         $query = 'NOT '.$query ;
       }
 
@@ -359,16 +476,28 @@ class Builder extends Process {
       $this->addToSourceArray('WHERE', $query);
     }
     else if(is_callable($args[0])){
+
       $this->addStartParentheses();
       $args[0]($this);
       $this->addEndParentheses();
+
     }
 
   }
 
   public function makeSelectQueryString(){
-    $array = ["SELECT * FROM `$this->TABLE`"];
 
+    $this->addToSourceArray('SELECT', "SELECT");
+    $this->addToSourceArray('FROM', "FROM `$this->TABLE`");
+
+    if(count($this->getSourceValueItem('DISTINCT'))==0){
+      $this->select('*');
+    }
+    
+    
+    ksort($this->SOURCE_VALUE);
+    
+    $array = [];
     foreach($this->SOURCE_VALUE as $value){
       if(is_array($value)){
         $array []= implode(' ',$value);
@@ -380,7 +509,7 @@ class Builder extends Process {
 
   public function get(){
     $query = $this->makeSelectQueryString();
-    echo $query."\n\n";
+    echo "\n query : ".$query."\n\n";
     echo json_encode($this->PARAMS)."\n\n";
     // die;
     return $this->execute($query, $this->PARAMS, true);
