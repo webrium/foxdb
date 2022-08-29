@@ -5,6 +5,7 @@ $befor = memory_get_usage();
 require_once __DIR__ . '/config.php';
 
 use webrium\foxql\DB;
+use webrium\foxql\Main;
 
 // $res = DB::table('users')->join('books.user_id','users.id')->get();
 // $res = DB::table('users')->join('books.user_id','>','users.id')->get();
@@ -14,12 +15,13 @@ use webrium\foxql\DB;
 // })
 // ->whereRaw('id = ? or id = ?',[2,3])->get();
 // DB::raw('id * ? as id3', [3])
-$res =
-DB::table('users')
-->select(DB::raw('id * 5 as ttt'))
-->get();
+// $res =
+// DB::table('users')
+// ->select(DB::raw('id * 5 as ttt'))
+// ->get();
 // $main = new Main;
 // $res = $main->where('id',1)->get();
+$res = Main::where('id',1)->get();
 echo json_encode($res);
 
 echo "\n";
