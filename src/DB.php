@@ -75,5 +75,10 @@ class DB{
   }
 
 
+  public static function raw($query, array $values = []){
+    $raw = new Raw;
+    $raw->setRawData($query, $values);
+    return $raw;
+  }
 
 }

@@ -3,8 +3,10 @@
 namespace webrium\foxql;
 
 
-class Select extends Builder
+class Select 
 {
+
+  use Process;
 
   protected $builder;
   protected $stringArray = [];

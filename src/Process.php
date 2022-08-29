@@ -59,6 +59,25 @@ trait Process{
     }
   }
 
+  protected function raw_maker($query, $values){
+    $index = 0;
+
+    do{
+      
+      $find = strpos($query, '?');
+      
+      if($find===false){
+        break;
+      }
+
+      $param_name = $this->add_to_param_auto_name($values[$index]);
+      $query = substr_replace($query, $param_name, $find, 1);
+      $index++;
+    }while($find!==false);
+
+    return $query;
+  }
+
 
 
   public function get_params(){

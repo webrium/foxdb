@@ -30,6 +30,11 @@ class Builder extends DB
     $this->TABLE = $name;
   }
 
+  public function setAction($action)
+  {
+    $this->ACTION = $action;
+  }
+
   public function execute($query, $params = [], $return = false)
   {
     if (!$this->CONFIG)
@@ -97,24 +102,38 @@ class Builder extends DB
 
   public function select(...$args)
   {
-    if (count($args) == 1) {
-      if (is_string($args[0])) {
-        $this->addToSourceArray('DISTINCT', $args[0]);
-      } elseif (is_array($args[0])) {
+
+    if (count($args) == 1 && !is_string($args[0]) && !$args[0] instanceof Raw) {
+      if (is_array($args[0])) {
         foreach ($args[0] as $key => $arg) {
-          $args[0][$key] = $this->fix_column_name($arg)['name'];
+          $args[$key] = $this->fix_column_name($arg)['name'];
         }
 
-        $this->addToSourceArray('DISTINCT', implode(',', $args[0]));
+        $this->addToSourceArray('DISTINCT', implode(',', $args));
       } elseif (is_callable($args[0])) {
         $select = new Select($this);
         $args[0]($select);
-
         $this->addToSourceArray('DISTINCT', $select->getString());
-      } else {
       }
     }
+    else{
+      foreach($args as $key=>$arg){
+        if($arg instanceof Raw){
+          $args[$key] = $this->raw_maker($arg->getRawQuery(), $arg->getRawValues());
+        }
+      }
 
+      $this->addToSourceArray('DISTINCT', implode(',', $args));
+    }
+
+
+    return $this;
+  }
+
+  public function selectRaw($query, $values = []){
+    $raw = new Raw;
+    $raw->setRawData($query, $values);
+    $this->select($raw);
     return $this;
   }
 
@@ -280,6 +299,21 @@ class Builder extends DB
     $this->queryMakerWhereBetween($name, $values, 'NOT');
     return $this;
   }
+
+
+  public function whereRaw($query, array $values, $boolean = 'AND')
+  {
+    $this->addOperator($boolean);
+    $this->addToSourceArray('WHERE', $this->raw_maker($query, $values));
+    return $this;
+  }
+
+  public function orWhereRaw($query, array $values)
+  {
+    return $this->whereRaw($query, $values, 'OR');
+  }
+
+
 
 
 
@@ -661,21 +695,28 @@ class Builder extends DB
   }
 
 
-  public function latest(){
-    $this->orderBy('id','DESC');
+  public function latest()
+  {
+    $this->orderBy('id', 'DESC');
     return $this;
   }
 
-  public function oldest(){
-    $this->orderBy('id','ASC');
+  public function oldest()
+  {
+    $this->orderBy('id', 'ASC');
     return $this;
   }
+
+
 
 
 
   // public function chunk($count, callable $callback){
 
   // }
+
+
+
 
 
 
