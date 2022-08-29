@@ -9,7 +9,9 @@ use webrium\foxql\DB;
 // $res = DB::table('users')->join('books.user_id','users.id')->get();
 // $res = DB::table('users')->join('books.user_id','>','users.id')->get();
 $res = DB::table('users')
-->crossJoin('books')->get();
+->havingCount('id','>',1)
+->orHavingAvg('status','>',5)
+->get();
 // $main = new Main;
 // $res = $main->where('id',1)->get();
 echo json_encode($res);
