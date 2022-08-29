@@ -90,6 +90,14 @@ class Select extends Builder
   }
 
 
+  public function raw($column, $operator, $value = null){
+    $this->builder->fix_operator_and_value($operator, $value);
+    $this->builder->fix_column_name($column);
+    $this->stringArray[] = "$column $operator $value";
+    return new AsFleld($this);
+  }
+
+
   
   public function fn($type, $column)
   {

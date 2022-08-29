@@ -409,7 +409,7 @@ class Builder extends DB
   }
 
   /**
-   * RRetrieve the sum of the values of a given column.
+   * Retrieve the sum of the values of a given column.
    *
    * @param  string  $columns
    * @return int
@@ -438,7 +438,35 @@ class Builder extends DB
     return $this->first()->avg;
   }
 
+  /**
+   * Retrieve the max of the values of a given column.
+   *
+   * @param  string  $column
+   * @return mixed
+   */
+  public function max($column = '*')
+  {
+    $this->select(function ($query) use ($column) {
+      $query->max($column)->as('max');
+    });
 
+    return $this->first()->max;
+  }
+
+  /**
+   * Retrieve the min of the values of a given column.
+   *
+   * @param  string  $column
+   * @return mixed
+   */
+  public function min($column = '*')
+  {
+    $this->select(function ($query) use ($column) {
+      $query->min($column)->as('min');
+    });
+
+    return $this->first()->max;
+  }
 
 
   /**
@@ -457,7 +485,7 @@ class Builder extends DB
 
 
 
-  
+
 
   /**
    * Add a "having" clause to the query.
@@ -631,6 +659,23 @@ class Builder extends DB
     $this->addToSourceArray('ORDER_BY', "ORDER BY COUNT($column) $direction");
     return $this;
   }
+
+
+  public function latest(){
+    $this->orderBy('id','DESC');
+    return $this;
+  }
+
+  public function oldest(){
+    $this->orderBy('id','ASC');
+    return $this;
+  }
+
+
+
+  // public function chunk($count, callable $callback){
+
+  // }
 
 
 
