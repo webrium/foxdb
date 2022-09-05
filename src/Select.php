@@ -24,7 +24,7 @@ class Select
 
   public function field($column)
   {
-    $column = $this->builder->fix_column_name($column)['name'];
+    $column = $this->fix_column_name($column)['name'];
     $this->stringArray[] = $column;
     return new AsFleld($this);
   }
@@ -93,8 +93,8 @@ class Select
 
 
   public function raw($column, $operator, $value = null){
-    $this->builder->fix_operator_and_value($operator, $value);
-    $this->builder->fix_column_name($column);
+    $this->fix_operator_and_value($operator, $value);
+    $this->fix_column_name($column);
     $this->stringArray[] = "$column $operator $value";
     return new AsFleld($this);
   }
@@ -104,7 +104,7 @@ class Select
   public function fn($type, $column)
   {
     if ($column != '*') {
-      $column = $this->builder->fix_column_name($column)['name'];
+      $column = $this->fix_column_name($column)['name'];
     }
 
     $this->stringArray[] = "$type($column)";

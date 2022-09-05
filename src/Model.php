@@ -1,7 +1,7 @@
 <?php
 
 namespace webrium\foxql;
-
+use webrium\foxql\DB;
 
 class Model
 {
@@ -28,12 +28,8 @@ class Model
    */
   public $incrementing = true;
 
-  /**
-   * The relations to eager load on every query.
-   *
-   * @var array
-   */
-  protected $with = [];
+
+  protected $visible = [];
 
 
   /**
@@ -52,22 +48,26 @@ class Model
 
   
 
+  public static function where(...$args){
+    return (new static)->makeInstance('where', $args);
+  }
 
-  public function __call($name, $arguments)
-  {
+  public static function find($id){
+    $instance = (new static);
+    return self::where($instance->primaryKey, $id)->first();
   }
 
 
-  protected static function __callStatic($name, $arguments)
+  protected function makeInstance($name, $arguments)
   {
-    return (new static)->makeInstance($name, $arguments);
+    $db = DB::table($this->table)->{$name}(...$arguments);
+
+    if(count($this->visible)){
+      $db->select($this->visible);
+    }
+
+    return $db;
   }
 
 
-  private function makeInstance($name, $arguments)
-  {
-    $builder = new Builder;
-    $builder->setTable($this->table);
-    return $builder->{$name}(...$arguments);
-  }
 }

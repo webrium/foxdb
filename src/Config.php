@@ -2,7 +2,7 @@
 
 namespace webrium\foxql;
 
-class Config
+class Config extends DB
 {
 
   public const FETCH_CLASS = \PDO::FETCH_CLASS;
@@ -23,6 +23,8 @@ class Config
   private const DEFAULT_CHARSET = 'utf8mb4';
   private const DEFAULT_COLLATION = 'utf8_unicode_ci';
   private const DEFAULT_DRIVER = 'mysql';
+
+  private $IS_CONNECT = false;
 
   private $DRIVER = '';
   private $SERVER_HOST = '';
@@ -125,12 +127,21 @@ class Config
 
   public function connect()
   {
-    $dsn = $this->makeConnectionString();
+    if(! $this->IS_CONNECT){
+      $dsn = $this->makeConnectionString();
+  
+      $this->PDO = new \PDO($dsn, $this->USERNAME, $this->PASSWORD, [
+        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_WARNING,
+        \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES '$this->CHARSET' COLLATE '$this->COLLATION'"
+      ]);
+  
+      if(DB::$CHANGE_ONCE){
+        DB::$CHANGE_ONCE = false;
+        DB::$USE_DATABASE = 'main';
+      }
 
-    $this->PDO = new \PDO($dsn, $this->USERNAME, $this->PASSWORD, [
-      \PDO::ATTR_ERRMODE => \PDO::ERRMODE_WARNING,
-      \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES '$this->CHARSET' COLLATE '$this->COLLATION'"
-    ]);
+      $this->IS_CONNECT = true;
+    }
   }
 
   public function getFetch(){

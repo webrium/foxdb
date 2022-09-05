@@ -1,18 +1,12 @@
 <?php
 namespace webrium\foxql;
 
-// require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
-// use webrium\foxql\Model;
+use webrium\foxql\Model;
 
 class Main extends Model{
 
     protected $table = 'users';
-
-
-    public static function ttt(){
-        return self::oldest()->first();
-    }
-
-
+    // protected $visible = ['id','name','phone'];
 }

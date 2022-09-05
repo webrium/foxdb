@@ -5,6 +5,7 @@ namespace webrium\foxql;
 trait Process{
 
   private $param_index = 0;
+  protected $TABLE;
 
   protected function method_in_maker(array $list, $callback){
     foreach($list as $item){
@@ -14,6 +15,14 @@ trait Process{
   }
 
   protected function add_to_param($name, $value){
+
+    if($value===false){
+      $value = 0;
+    }
+    elseif($value === true){
+      $value = 1;
+    }
+
     $this->PARAMS[":$name"] = $value;
     return ":$name";
   }
@@ -39,15 +48,21 @@ trait Process{
     $type = '';
 
     if($count == 1){
-      $table = "`$this->TABLE`";
-      $column = "`$array[0]`";
+      $table = $this->TABLE;
+      $column = $array[0];
       $type = 'column';
     }
     else if($count == 2){
-      $table = "`$array[0]`";
-      $column = "`$array[1]`";
+      $table = $array[0];
+      $column = $array[1];
       $type = 'table_and_column';
     }
+
+    if($column !='*'){
+      $column = "`$column`";
+    }
+
+    $table = "`$table`";
 
     return ['name'=>"$table.$column", 'table'=>$table, 'column'=>$column, 'type'=>$type];
   }
@@ -76,6 +91,15 @@ trait Process{
     }while($find!==false);
 
     return $query;
+  }
+
+  public function get_value($param, $name){
+    if($this->CONFIG->getFetch() == Config::FETCH_CLASS){
+      return $param->{$name};
+    }
+    else{
+      return $param[$name];
+    }
   }
 
 
