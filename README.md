@@ -10,33 +10,45 @@ composer require webrium/foxql
 ```PHP
 use webrium\foxql\DB;
 
-DB::addConfig('main',[
-  'driver'=>'mysql' ,
-  'db_host'=>'localhost' ,
-  'db_host_port'=>3306 ,
-  'db_name'=>'test' ,
-  'username'=>'root' ,
-  'password'=>'1234' ,
-  'charset'=>'utf8mb4' ,
-  'result_stdClass'=>true
+DB::addConnection('main', [
+    'host'=>'localhost',
+    'port'=>'3306',
+
+    'database'=>'test',
+    'username'=>'root',
+    'password'=>'1234',
+
+    'charset'=>Config::UTF8,
+    'collation'=>Config::UTF8_GENERAL_CI,
+    'fetch'=>Config::FETCH_CLASS
 ]);
 ```
 
-> Now it is ready to work :)
 
 ## SELECT
 
 ```PHP
+// Find
 $user = DB::table('users')->find($user_id);
 ```
 
-|Method|Alias|
-|--|--|
-|where|and|
-|orWhere|or|
-|is||
-|true||
-|false||
+```PHP
+// Oldest
+$oldest_user = DB::table('users')->oldest()->first();
+
+// Latest
+$latest_user = DB::table('users')->latest()->first();
+```
+
+```PHP
+// Get list
+$order_list = DB::table('order')->where('user_id',56)->where('price','>',50)->get();
+```
+
+> But you can also use a simpler structure like the example below
+
+
+
 
 ### where
 
