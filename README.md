@@ -19,14 +19,13 @@ DB::addConnection('main', [
     'fetch'=>Config::FETCH_CLASS
 ]);
 ```
+<br>
+
+## Basic Where Clauses
 
 
-## SELECT
+### Methods: oldest / latest
 
-```PHP
-// Find
-$user = DB::table('users')->find($user_id);
-```
 
 ```PHP
 // Oldest
@@ -35,65 +34,44 @@ $oldest_user = DB::table('users')->oldest()->first();
 // Latest
 $latest_user = DB::table('users')->latest()->first();
 ```
+<br>
 
-```PHP
-// Get list
-$order_list = DB::table('orders')->where('user_id',56)->where('price','>',50)->get();
-```
-
-> But you can also use a modern structure like the example below
-
+### Methods: where / orWhere
+#### Similar: and / or
 ```PHP
 
-// where() => and()
-// whereNot() => not()
-// orWhere() => or()
-// orWhereNot => orNot()
-// where('pain',true)
-
-DB::table('orders')
-->where('created_at','>','2022-1-1 00:00:00')
-->and('price','>',50)
-->or('vip',true)
-->get();
-
-
-// True or False 
-
-// False Similar operations
-// ..->where('paid', false)
-// ..->is('paid', false)
-// ..->false('pain')
-
-// True Similar operations
-// ..->where('paid', true)
-// ..->is('paid')  Default is true
-// ..->false('paid')
-
-$active_list = DB::table('users')->is('active')->get();
+$list = DB::table('orders')->where('price','>',50)->orWhere('vip',true)->get();
 ```
 
-### Methods: whereIn / whereNotIn / orWhereIn / orWhereNotIn
-#### Similar: in / notIn / orIn / orNotIn
-```PHP
-$users = DB::table('users')->whereNotIn('id', [10,15,18])->get();
-// OR
-$users = DB::table('users')->notIn('id', [10,15,18])->get();
-```
 <br>
 
 ## Aggregates
 ### Methods: count / sum / avg
+
 ```PHP
 $count_user = DB::table('users')->count();
 // OR
 $count_user = DB::table('users')->count('id'); // Default is 'id'
+```
 
+```PHP
 // Sum of values
 $sum_payment = DB::table('payments')->sum('cost');
 
 // Average
 $avg_paymrnt = DB::table('payments')->avg('cost');
+```
+
+<br>
+
+
+### Methods: whereIn / whereNotIn / orWhereIn / orWhereNotIn
+#### Similar: in / notIn / orIn / orNotIn
+
+```PHP
+$users = DB::table('users')->whereNotIn('id', [10,15,18])->get();
+// OR
+$users = DB::table('users')->notIn('id', [10,15,18])->get();
 ```
 
 
@@ -118,6 +96,32 @@ $order = DB::table('orders')
 
 ```PHP
 $orders = DB::table('orders')->year('created_at', '2015')->get();
+```
+
+<br>
+
+### Methods: is / true / false
+
+```PHP
+// True
+
+$active_list = DB::table('users')->is('active')->get();
+//OR 
+$active_list = DB::table('users')->true('active')->get();
+//OR
+$active_list = DB::table('users')->where('active',true)->get();
+```
+
+```PHP
+
+// False
+
+$inactive_list = DB::table('users')->is('active', false)->get();
+//OR 
+$inactive_list = DB::table('users')->false('active')->get();
+//OR
+$inactive_list = DB::table('users')->where('active',false)->get();
+
 ```
 
 
