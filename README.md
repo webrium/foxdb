@@ -42,6 +42,22 @@ $latest_user = DB::table('users')->latest()->first();
 
 $list = DB::table('orders')->where('price','>',50)->orWhere('vip',true)->get();
 ```
+<br>
+
+### Methods: whereNot / whereNull / orWhereNot / orWhereNull / orWhereNotNull
+#### Similar: not / null / notNull / orNot / orNull / orNotNull
+
+```PHP
+$users = DB::table('users')->whereNull('name')->get();
+```
+
+```PHP
+$users = DB::table('users')->whereNot('name', 'BEN')->orWhereNot('name', 'jac')->get();
+// OR
+$users = DB::table('users')->not('name', 'BEN')->orNot('name', 'jac')->get();
+```
+
+
 
 <br>
 
