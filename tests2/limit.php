@@ -14,12 +14,8 @@ use webrium\foxql\Main;
 // $main = new Main;
 // $res= $main->whereIn('id',[1.2])->count('id');
 
-$db = Main::where('id',1);
-$db->update([
-    'status'=>false
-]);
-$res = $db->first();
-
+$res = DB::table('users')->paginate(2);
+header('Content-Type: application/json ; charset=utf-8 ');
 echo json_encode($res);
 echo "\n";
 

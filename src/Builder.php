@@ -546,10 +546,10 @@ class Builder
   public function min($column = '*')
   {
     $this->select(function ($query) use ($column) {
-      $query->avg($column)->as('max');
+      $query->min($column)->as('min');
     });
 
-    return $this->get_value($this->first(), 'max');
+    return $this->get_value($this->first(), 'min');
   }
 
   /**
@@ -561,7 +561,7 @@ class Builder
   public function max($column = '*')
   {
     $this->select(function ($query) use ($column) {
-      $query->avg($column)->as('max');
+      $query->max($column)->as('max');
     });
 
     return $this->get_value($this->first(), 'max');
@@ -850,8 +850,8 @@ class Builder
 
 
   public function paginate(int $take = 15){
-    $page_id = 2;
-    $url = 'http://localhost:8000';
+    $page_id = $_GET['page']??1;
+    $url = \webrium\core\Url::current();
 
     $list = $this->page($page_id-1, $take);
     $count = DB::table($this->TABLE)->count();
@@ -868,15 +868,15 @@ class Builder
     $params->first_page_url = $url.'?page=1';
     $params->last_page_url = $url.'?page='.$params->last_page;
 
-    $nextpage = (($page_id)<$params->last_page)?($page_id+1):null;
-    $params->next_page_url = ($nextpage)?("$url?page=$nextpage"):null;
+    $nextpage = (($page_id)<$params->last_page)?($page_id+1):false;
+    $params->next_page_url = ($nextpage)?("$url?page=$nextpage"):false;
     
     $prevpage = null;
     if($params->current_page<=$params->last_page && $params->current_page > 1){
       $prevpage = $params->current_page-1;
     }
 
-    $params->prev_page_url = ($prevpage)?("$url?page=$prevpage"):null;
+    $params->prev_page_url = ($prevpage)?("$url?page=$prevpage"):false;
     
     $params->data = $list;
     $params->path = $url;
@@ -1093,16 +1093,7 @@ class Builder
     }
 
 
-    ksort($this->SOURCE_VALUE);
-
-    $array = [];
-    foreach ($this->SOURCE_VALUE as $value) {
-      if (is_array($value)) {
-        $array[] = implode(' ', $value);
-      }
-    }
-
-    return implode(' ', $array);
+    return $this->makeSourceValueStrign();
   }
 
 
@@ -1125,22 +1116,23 @@ class Builder
       $params[] = $this->fix_column_name($name)['name'].' = '. $this->add_to_param_auto_name($value);
     }
 
-    ksort($this->SOURCE_VALUE);
-
-    $array = [];
-    foreach ($this->SOURCE_VALUE as $value) {
-      if (is_array($value)) {
-        $array[] = implode(' ', $value);
-      }
-    }
-
-    $extra = implode(' ', $array);
+    $extra = $this->makeSourceValueStrign();
 
     return "UPDATE `$this->TABLE` SET ".implode(',', $params)." $extra";
   }
 
-  public function makeDeleteQueryString(){
+  public function makeUpdateQueryIncrement(string $column, $value = 1, $action = '+'){
 
+    $column = $this->fix_column_name($column)['name'];
+    $query = "$column = $column $action $value";
+
+    $extra = $this->makeSourceValueStrign();
+
+    return "UPDATE `$this->TABLE` SET $query $extra";
+  }
+
+
+  public function makeSourceValueStrign(){
     ksort($this->SOURCE_VALUE);
 
     $array = [];
@@ -1150,25 +1142,50 @@ class Builder
       }
     }
 
-    $extra = implode(' ', $array);
+    return implode(' ', $array);
+  }
 
+  
+  public function makeDeleteQueryString(){
+    $extra = $this->makeSourceValueStrign();
     return "DELETE FROM `$this->TABLE`  $extra";
   }
 
 
-  public function insert(array $values){
+  public function insert(array $values, $get_last_insert_id = false){
     $this->setAction('insert');
     $query = $this->makerInsertQueryString($values);
-    echo "\n query : " . $query . "\n\n";
-    echo json_encode($this->PARAMS) . "\n\n";
+    $result = $this->execute($query, $this->PARAMS);
+
+    if(!$get_last_insert_id){
+      return $result;
+    }
+    else{
+      return $this->CONFIG->pdo()->lastInsertId();
+    }
+  }
+
+  public function insertGetId(array $values){
+    return $this->insert($values, true);
+  }
+
+
+  public function increment(string $column, $value = 1){
+    $query = $this->makeUpdateQueryIncrement($column, $value);
     return $this->execute($query, $this->PARAMS);
   }
+
+
+  public function decrement(string $column, $value = 1){
+    $query = $this->makeUpdateQueryIncrement($column, $value, '-');
+    return $this->execute($query, $this->PARAMS);
+
+  }
+
 
   public function update(array $values){
     $this->setAction('update');
     $query = $this->makeUpdateQueryString($values);
-    echo "\n query : " . $query . "\n\n";
-    echo json_encode($this->PARAMS) . "\n\n";
     return $this->execute($query, $this->PARAMS);
   }
 
@@ -1176,9 +1193,11 @@ class Builder
   public function delete(){
     $this->setAction('delete');
     $query = $this->makeDeleteQueryString();
-    echo "\n query : " . $query . "\n\n";
-    echo json_encode($this->PARAMS) . "\n\n";
     return $this->execute($query, $this->PARAMS);
+  }
+
+  public function truncate(){
+    return $this->execute("TRUNCATE `$this->TABLE`");
   }
 
 
@@ -1186,8 +1205,6 @@ class Builder
   public function get()
   {
     $query = $this->makeSelectQueryString();
-    echo "\n query : " . $query . "\n\n";
-    echo json_encode($this->PARAMS) . "\n\n";
     return $this->execute($query, $this->PARAMS, true);
   }
 
