@@ -1,6 +1,22 @@
-# MySQL PHP Library
+# A query builder similar to Laravel
 ![](https://repository-images.githubusercontent.com/305963460/de429f74-51c4-42ec-b0cf-581b59f2df7e)
 
+### Attributes:
+ - ✔️ Low use of resources
+ - ✔️ Lighter and faster
+ - ✔️ Similar to Laravel syntax
+ - ✔️ Easy to configure and use
+
+> The Foxdb query builder uses PDO parameter binding to protect your application against SQL injection attacks. There is no need to clean or sanitize strings passed to the query builder as query bindings.
+
+<br>
+
+## Install by composer
+```
+composer require webrium\foxdb
+```
+
+<br>
 
 ### Add Connection Config
 ```PHP
@@ -20,8 +36,33 @@ DB::addConnection('main', [
     'fetch'=>Config::FETCH_CLASS
 ]);
 ```
- > The 'main' statement is the default name of the connection config
+ > The `'main'` statement is the default name of the connection config
 
+<br>
+
+### Retrieving All Rows From A Table
+You may use the `table` method provided by the `DB` facade to begin a query. The `table` method returns a fluent query builder instance for the given table, allowing you to chain more constraints onto the query and then finally retrieve the results of the query using the get method:
+
+```PHP
+use Webrium\Foxdb\DB;
+
+$users = DB::table('users')->get();
+
+foreach ($users as $user) {
+    echo $user->name;
+}
+```
+
+<br>
+
+### Retrieving A Single Row / Column From A Table
+If you just need to retrieve a single row from a database table, you may use the DB facade's `first` method. This method will return a single stdClass object:
+
+```PHP
+$user = DB::table('users')->where('name', 'Jack')->first();
+ 
+return $user->email;
+```
 <br>
 
 ## Basic Where Clauses
