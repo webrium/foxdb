@@ -4,7 +4,8 @@
 
 ### Add Connection Config
 ```PHP
-use webrium\foxql\DB;
+use Webrium\Foxdb\DB;
+use Webrium\Foxdb\Config;
 
 DB::addConnection('main', [
     'host'=>'localhost',
@@ -19,6 +20,8 @@ DB::addConnection('main', [
     'fetch'=>Config::FETCH_CLASS
 ]);
 ```
+ > The 'main' statement is the default name of the connection config
+
 <br>
 
 ## Basic Where Clauses
@@ -98,13 +101,35 @@ $users = DB::table('users')->notIn('id', [10,15,18])->get();
 
 ### Methods: whereDate / orWhereTime / orWhereDate / orWhereTime
 #### Similar: date / time / orDate / orTime
+
+The whereDate method may be used to compare a column's value against a date:
 ```PHP
 $order = DB::table('orders')
-            ->date('created_at', '2022-02-01')
-            ->orDate('created_at', '2022-01-01')
-            ->time('created_at', '15:00:00')
+            ->whereDate('created_at', '2022-02-01')
             ->get();
 ```
+
+The 'whereMonth' method may be used to compare a column's value against a specific month:
+```PHP
+$users = DB::table('users')
+                ->whereMonth('created_at', '12')
+                ->get();
+```
+The 'whereDay' method may be used to compare a column's value against a specific day of the month:
+```PHP
+$users = DB::table('users')
+                ->whereDay('created_at', '31')
+                ->get();
+```
+
+The 'whereYear' method may be used to compare a column's value against a specific year:
+```PHP
+$users = DB::table('users')
+                ->whereYear('created_at', '2018')
+                ->get();
+```
+
+
 <br>
 
 ### Methods: whereYear / whereMonth / whereDay  / orWhereYear / orWhereMonth / orWhereDay
@@ -121,22 +146,23 @@ $orders = DB::table('orders')->year('created_at', '2015')->get();
 ```PHP
 // True
 
-$active_list = DB::table('users')->is('active')->get();
+$active_list = DB::table('users')->where('active',true)->get();
 //OR 
 $active_list = DB::table('users')->true('active')->get();
 //OR
-$active_list = DB::table('users')->where('active',true)->get();
+$active_list = DB::table('users')->is('active')->get();
 ```
 
 ```PHP
 
 // False
 
+$inactive_list = DB::table('users')->where('active',false)->get();
+//OR
 $inactive_list = DB::table('users')->is('active', false)->get();
 //OR 
 $inactive_list = DB::table('users')->false('active')->get();
-//OR
-$inactive_list = DB::table('users')->where('active',false)->get();
+
 
 ```
 
