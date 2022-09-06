@@ -1,8 +1,11 @@
 # A query builder similar to Laravel
 ![](https://repository-images.githubusercontent.com/305963460/de429f74-51c4-42ec-b0cf-581b59f2df7e)
+<div align="center">
+ 
 [![Latest Stable Version](http://poser.pugx.org/webrium/foxql/v)](https://packagist.org/packages/webrium/foxql) [![Total Downloads](http://poser.pugx.org/webrium/foxql/downloads)](https://packagist.org/packages/webrium/foxql) [![Latest Unstable Version](http://poser.pugx.org/webrium/foxql/v/unstable)](https://packagist.org/packages/webrium/foxql) [![License](http://poser.pugx.org/webrium/foxql/license)](https://packagist.org/packages/webrium/foxql) [![PHP Version Require](http://poser.pugx.org/webrium/foxql/require/php)](https://packagist.org/packages/webrium/foxql)
+ 
+</div>
 
-<br>
 
 ### Attributes:
  - ✔️ Low use of resources
