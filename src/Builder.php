@@ -395,9 +395,19 @@ class Builder
     return $this->where(...$args);
   }
 
+  public function not(...$args)
+  {
+    return $this->whereNot(...$args);
+  }
+
   public function or(...$args)
   {
     return $this->orWhere(...$args);
+  }
+
+  public function orNot(...$args)
+  {
+    return $this->orWhereNot(...$args);
   }
 
   public function is($column, $boolean = true)
@@ -419,34 +429,72 @@ class Builder
   {
     return $this->whereDate(...$args);
   }
+  
+  public function orDate(...$args)
+  {
+    return $this->orWhereDate(...$args);
+  }
+
+
   public function year(...$args)
   {
     return $this->whereYear(...$args);
   }
+
+  public function orYear(...$args)
+  {
+    return $this->orWhereYear(...$args);
+  }
+
+
   public function month(...$args)
   {
     return $this->whereMonth(...$args);
   }
+
+  public function orMonth(...$args)
+  {
+    return $this->orWhereMonth(...$args);
+  }
+
+
   public function day(...$args)
   {
     return $this->whereDay(...$args);
   }
+
+  public function orDay(...$args)
+  {
+    return $this->orWhereDay(...$args);
+  }
+
+
   public function time(...$args)
   {
     return $this->whereTime(...$args);
   }
+
+  public function orTime(...$args)
+  {
+    return $this->orWhereTime(...$args);
+  }
+
+  
   public function in($name, array $list)
   {
     return $this->whereIn($name, $list);
   }
+
   public function notIn($name, array $list)
   {
     return $this->whereNotIn($name, $list);
   }
+
   public function orIn($name, array $list)
   {
     return $this->orWhereIn($name, $list);
   }
+
   public function orNotIn($name, array $list)
   {
     return $this->orwhereNotIn($name, $list);
