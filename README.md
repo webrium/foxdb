@@ -1,10 +1,3 @@
-# MySQL PHP Library
-![](https://repository-images.githubusercontent.com/305963460/3f37a400-7c49-11eb-9bd8-2b04e15fdf19)
-
-### Instal Foxql 
-```
-composer require webrium/foxql
-```
 
 ### Add Connection Config
 ```PHP
@@ -42,44 +35,86 @@ $latest_user = DB::table('users')->latest()->first();
 
 ```PHP
 // Get list
-$order_list = DB::table('order')->where('user_id',56)->where('price','>',50)->get();
+$order_list = DB::table('orders')->where('user_id',56)->where('price','>',50)->get();
 ```
 
-> But you can also use a simpler structure like the example below
-
-
-
-
-### where
+> But you can also use a modern structure like the example below
 
 ```PHP
-..->where('name','jan')->..
-```
 
-#### ( where , and )
-```PHP
-DB::table('uses')
-->where('age','>',18)
-->and('score','>',200)
+// where() => and()
+// whereNot() => not()
+// orWhere() => or()
+// orWhereNot => orNot()
+// where('pain',true)
+
+DB::table('orders')
+->where('created_at','>','2022-1-1 00:00:00')
+->and('price','>',50)
+->or('vip',true)
 ->get();
+
+
+// True or False 
+
+// False Similar operations
+// ..->where('paid', false)
+// ..->is('paid', false)
+// ..->false('pain')
+
+// True Similar operations
+// ..->where('paid', true)
+// ..->is('paid')  Default is true
+// ..->false('paid')
+
+$active_list = DB::table('users')->is('active')->get();
 ```
 
-#### ( where , or )
+### Methods: whereIn / whereNotIn / orWhereIn / orWhereNotIn
+#### Similar: in / notIn / orIn / orNotIn
 ```PHP
-DB::table('uses')
-->where('age','>',18)
-->or('score','>',200)
-->get();
+$users = DB::table('users')->whereNotIn('id', [10,15,18])->get();
+// OR
+$users = DB::table('users')->notIn('id', [10,15,18])->get();
 ```
-#### ( is , true , false )
-The "**is**" method is true by default ,You can set the second parameter to **false**
+<br>
+
+## Aggregates
+### Methods: count / sum / avg
 ```PHP
-$list = DB::table('users')->is('confirm')->get();       //.. `confirm` = true
-$list = DB::table('users')->is('confirm',false)->get(); //.. `confirm` = false
+$count_user = DB::table('users')->count();
+// OR
+$count_user = DB::table('users')->count('id'); // Default is 'id'
 
+// Sum of values
+$sum_payment = DB::table('payments')->sum('cost');
 
-// You can use true or false method
-
-DB::table('users')->true('confirm')->get();
-DB::table('users')->false('confirm')->get();
+// Average
+$avg_paymrnt = DB::table('payments')->avg('cost');
 ```
+
+
+
+<br>
+
+## DateTime
+
+### Methods: whereDate / orWhereTime / orWhereDate / orWhereTime
+#### Similar: date / time / orDate / orTime
+```PHP
+$order = DB::table('orders')
+            ->date('created_at', '2022-02-01')
+            ->orDate('created_at', '2022-01-01')
+            ->time('created_at', '15:00:00')
+            ->get();
+```
+<br>
+
+### Methods: whereYear / whereMonth / whereDay  / orWhereYear / orWhereMonth / orWhereDay
+#### Similar: year / month / day / orYear / orMonth/ orDay
+
+```PHP
+$orders = DB::table('orders')->year('created_at', '2015')->get();
+```
+
+
