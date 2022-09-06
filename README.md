@@ -65,8 +65,6 @@ return $user->email;
 ```
 <br>
 
-## Basic Where Clauses
-
 
 ### Methods: oldest / latest
 
