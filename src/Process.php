@@ -1,5 +1,5 @@
 <?php
-namespace Foxql;
+namespace Foxdb;
 
 
 trait Process{
