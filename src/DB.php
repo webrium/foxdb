@@ -1,5 +1,5 @@
 <?php
-namespace webrium\foxql;
+namespace Foxql;
 
 
 class DB extends Builder{
