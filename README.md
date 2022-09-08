@@ -26,8 +26,8 @@ composer require webrium\foxdb
 
 ### Add Connection Config
 ```PHP
-use Webrium\Foxdb\DB;
-use Webrium\Foxdb\Config;
+use Foxdb\DB;
+use Foxdb\Config;
 
 DB::addConnection('main', [
     'host'=>'localhost',
@@ -50,7 +50,7 @@ DB::addConnection('main', [
 You may use the `table` method provided by the `DB` facade to begin a query. The `table` method returns a fluent query builder instance for the given table, allowing you to chain more constraints onto the query and then finally retrieve the results of the query using the get method:
 
 ```PHP
-use Webrium\Foxdb\DB;
+use Foxdb\DB;
 
 $users = DB::table('users')->get();
 
