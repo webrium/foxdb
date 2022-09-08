@@ -174,7 +174,26 @@ $users = DB::table('users')
                 ->get();
 ```
 
+<br>
 
+### Methods: whereBetween / orWhereBetween
+
+The `whereBetween` method verifies that a column's value is between two values:
+
+```PHP
+$users = DB::table('users')
+           ->whereBetween('votes', [1, 100])
+           ->get();
+```
+
+### Methods: whereNotBetween / orWhereNotBetween
+
+The `whereNotBetween` method verifies that a column's value lies outside of two values:
+```PHP
+$users = DB::table('users')
+                    ->whereNotBetween('votes', [1, 100])
+                    ->get();
+```
 <br>
 
 ### Methods: whereYear / whereMonth / whereDay  / orWhereYear / orWhereMonth / orWhereDay
