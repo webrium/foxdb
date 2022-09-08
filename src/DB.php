@@ -1,8 +1,12 @@
 <?php
-namespace Foxql;
-
+namespace Foxdb;
 
 class DB extends Builder{
+
+
+  public static function test(){
+    echo "its work";
+  }
 
 
   protected static $CONFIG_LIST;

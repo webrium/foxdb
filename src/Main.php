@@ -1,9 +1,9 @@
 <?php
-namespace Foxql;
+namespace Foxdb;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use Foxql\Model;
+use Foxdb\Model;
 
 class Main extends Model{
 

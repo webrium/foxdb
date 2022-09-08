@@ -1,6 +1,5 @@
 <?php
-
-namespace Foxql;
+namespace Foxdb;
 
 
 class Select 

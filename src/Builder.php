@@ -1,5 +1,5 @@
 <?php
-namespace Foxql;
+namespace Foxdb;
 
 use PDO;
 use stdClass;

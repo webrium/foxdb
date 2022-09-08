@@ -1,7 +1,7 @@
 <?php
 
-namespace Foxql;
-use Foxql\DB;
+namespace Foxdb;
+use Foxdb\DB;
 
 class Model
 {

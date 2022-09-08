@@ -5,8 +5,8 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-use webrium\foxql\DB;
-use webrium\foxql\Config;
+use Foxdb\DB;
+use Foxdb\Config;
 
 DB::addConnection('main', [
     'host'=>'localhost',
@@ -22,18 +22,18 @@ DB::addConnection('main', [
 ]);
 
 
-DB::addConnection('second', [
-    'host'=>'localhost',
-    'port'=>'3306',
+// DB::addConnection('second', [
+//     'host'=>'localhost',
+//     'port'=>'3306',
 
-    'database'=>'test_2',
-    'username'=>'root',
-    'password'=>'1234',
+//     'database'=>'test_2',
+//     'username'=>'root',
+//     'password'=>'1234',
 
-    'charset'=>Config::UTF8,
-    'collation'=>Config::UTF8_GENERAL_CI,
-    'fetch'=>Config::FETCH_CLASS
-]);
+//     'charset'=>Config::UTF8,
+//     'collation'=>Config::UTF8_GENERAL_CI,
+//     'fetch'=>Config::FETCH_CLASS
+// ]);
 
 // ini_set('display_errors', 1);
 // ini_set('display_startup_errors', 1);

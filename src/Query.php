@@ -1,6 +1,6 @@
 <?php
 
-namespace Foxql;
+namespace Foxdb;
 
 trait Query 
 {
