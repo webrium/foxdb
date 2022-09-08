@@ -1,108 +1,125 @@
 <?php
 namespace webrium\foxql;
 
-class DB extends query{
 
-  private static $db_configs = [],$currentdb=false,$pdo=false;
-  protected static $cache = [];
+class DB extends Builder{
 
 
-  public static function addConfig($name,$params)
-  {
-    // Set Config Params
-    self::$db_configs[$name] = $params;
+  protected static $CONFIG_LIST;
+  protected static $USE_DATABASE = 'main';
+  protected static $CHANGE_ONCE = false;
 
-    // Init Main Config Name
-    if (! self::$currentdb) {
-      self::$currentdb = $name;
-    }
+
+  public static function addConnection($config_name, array $config_params){
+    self::$CONFIG_LIST[$config_name] = new Config($config_params);
   }
 
-  /**
-  * Get Current Pdo
-  *
-  * @return PDO
-  */
-  public static function pdo(){
-    self::connect();
-    return self::config()['pdo']??false;
+  private static function getCurrentConfig(){
+    return self::$CONFIG_LIST[self::$USE_DATABASE];
   }
 
-  /**
-  * Get Current sqlsrv_confg
-  *
-  * @return array Config
-  */
-  public static function config()
-  {
-    return self::$db_configs[self::$currentdb]??false;
-  }
-
-  /**
-  * connect to the DB
-  *
-  * @return array of current config
-  */
-  public static function connect()
-  {
-
-    // Get Current Config
-    $config = self::config();
-
-    // If Not Init
-    if ($config && ! isset($config['pdo'])) {
-
-      // generate host string
-      $host = $config['driver'].":host=".$config['db_host'];
-      if ( isset($config['db_host_port']) && $config['db_host_port'] !=false ) {
-        $host .= ':'.$config['db_host_port'];
-      }
-
-      // Init Pdo Connection
-      $config['pdo'] = new \PDO("$host;dbname=".$config['db_name'].";charset=".$config['charset'],$config['username'],$config['password']);
-      $config['pdo']->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_WARNING);
-      $config['fetch'] = $config['result_stdClass']?\PDO::FETCH_CLASS:\PDO::FETCH_ASSOC;
-
-      // update and add pdo method
-      self::$db_configs[self::$currentdb] = $config;
-    }
-
-    return $config;
-  }
-
-  /**
-  * Set Table Name
-  *
-  * @return query class
-  */
   public static function table($name){
-    $query = new query();
-    $query->setTable($name);
-    return $query;
+    $config = self::getCurrentConfig();
+    $builder = new Builder($config);
+    $builder->setConfig(self::getCurrentConfig());
+    $builder->setTable($name);
+    return $builder;
   }
 
-  /**
-  * Change Database Usage
-  */
-  public static function use($name){
-
-    // Change Current Config
-    self::$currentdb = $name;
+  public static function use(string $config_name){
+    self::$USE_DATABASE = $config_name;
+    return new static;
   }
 
-  public static function beginTransaction()
-  {
-    return self::pdo()->beginTransaction();
+  public static function useOnce(string $config_name){
+    self::$USE_DATABASE = $config_name;
+    self::$CHANGE_ONCE = true;
+    return new static;
+  }
+
+  public static function beginTransaction(){
+    DB::getCurrentConfig()->connect();
+    DB::getCurrentConfig()->pdo()->beginTransaction();
   }
 
   public static function rollBack()
   {
-    return self::pdo()->rollBack();
+    DB::getCurrentConfig()->pdo()->rollBack();
   }
 
   public static function commit()
   {
-    return self::pdo()->commit();
+    DB::getCurrentConfig()->pdo()->commit();
+  }
+
+  public static function setTimestamp(){
+    $now = date('Y-m-d H:i:s');
+
+    return [
+      'created_at' => $now,
+      'updated_at' => $now
+    ];
+  }
+
+  // public static function select(string $query, array $params=[]){
+  //   $config = self::getConfig();
+  //   $builder = new Builder($config);
+  //   return $builder->execute($query, $params, true);
+  // }
+
+  
+  // public static function update(string $query, array $params){
+  //   $config = self::getConfig();
+  //   $builder = new Builder($config);
+  //   return $builder->execute($query, $params, false);
+  // }
+
+
+  // public static function insert(string $query, array $params, $getLastID=false){
+  //   $config = self::getCurrentConfig();
+  //   $builder = new Builder($config);
+  //   $res = $builder->execute($query, $params, false);
+
+  //   if($getLastID){
+  //     $res = $config->pdo()->lastInsertId();
+  //   }
+
+  //   return $res;
+  // }
+
+  // public static function insertGetId(string $query, array $params){
+  //   return self::insert($query, $params, true);
+  // }
+
+  // private static function getConfigByName($config_name){
+  //   if (! isset(self::$CONFIG_LIST[$config_name])){
+  //     throw new \Exception("'$config_name' config not found");
+  //   }
+
+  //   return self::$CONFIG_LIST[$config_name];
+  // }
+
+  // private static function getConfig(){
+  //   return self::getConfigByName(self::$USE_DATABASE);
+  // }
+
+  
+
+  // public static function test(){
+  //   self::$CONFIG_LIST['main']->pdo();
+  // }
+
+  // public static function showConfigArray(){
+  //   foreach(self::$CONFIG_LIST as $config){
+  //     echo json_encode($config->getAsArray())."\n";
+  //   }
+  // }
+
+
+  public static function raw($query, array $values = []){
+    $raw = new Raw;
+    $raw->setRawData($query, $values);
+    return $raw;
   }
 
 }

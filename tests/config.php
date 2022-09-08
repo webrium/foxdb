@@ -1,30 +1,17 @@
-<?php
-require_once __DIR__ . '/../vendor/autoload.php';
+<?php declare(strict_types=1);
 
 use webrium\foxql\DB;
+use webrium\foxql\Config;
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+DB::addConnection('main', [
+    'host'=>'localhost',
+    'port'=>'3306',
 
-db::addConfig('main',[
-  'driver'=>'mysql' ,
-  'db_host'=>'localhost' ,
-  'db_host_port'=>3306 ,
-  'db_name'=>'ce_panel' ,
-  'username'=>'root' ,
-  'password'=>'1234' ,
-  'charset'=>'utf8mb4' ,
-  'result_stdClass'=>true
-]);
+    'database'=>'test',
+    'username'=>'root',
+    'password'=>'1234',
 
-db::addConfig('tv',[
-  'driver'=>'mysql' ,
-  'db_host'=>'localhost' ,
-  'db_host_port'=>3306 ,
-  'db_name'=>'mytvs.ir' ,
-  'username'=>'root' ,
-  'password'=>'1234' ,
-  'charset'=>'utf8mb4' ,
-  'result_stdClass'=>true
+    'charset'=>Config::UTF8,
+    'collation'=>Config::UTF8_GENERAL_CI,
+    'fetch'=>Config::FETCH_CLASS
 ]);
