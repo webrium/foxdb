@@ -395,20 +395,40 @@ class Builder
     return $this->where(...$args);
   }
 
-  public function not(...$args)
-  {
-    return $this->whereNot(...$args);
-  }
-
   public function or(...$args)
   {
     return $this->orWhere(...$args);
+  }
+
+  
+  public function not(...$args)
+  {
+    return $this->whereNot(...$args);
   }
 
   public function orNot(...$args)
   {
     return $this->orWhereNot(...$args);
   }
+
+
+  public function null($column){
+    return $this->whereNull($column);
+  }
+
+  public function orNull($column){
+    return $this->orWhereNull($column);
+  }
+
+  
+  public function notNull($column){
+    return $this->whereNotNull($column);
+  }
+
+  public function orNotNull($column){
+    return $this->orWhereNotNull($column);
+  }
+
 
   public function is($column, $boolean = true)
   {
