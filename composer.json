@@ -1,5 +1,5 @@
 {
-    "name": "foxdb",
+    "name": "webrium/foxdb",
     "description": "Foxdb query builder",
     "type": "library",
     "license": "Apache-2.0",
