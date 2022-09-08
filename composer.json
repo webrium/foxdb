@@ -12,7 +12,7 @@
     ],
     "autoload": {
       "psr-4": {
-        "webrium\\foxdb\\": "src/"
+        "Foxdb\\": "src/"
       }
     },
     "require-dev": {
