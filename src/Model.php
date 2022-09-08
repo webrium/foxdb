@@ -1,7 +1,7 @@
 <?php
 
-namespace webrium\foxql;
-use webrium\foxql\DB;
+namespace Foxql;
+use Foxql\DB;
 
 class Model
 {

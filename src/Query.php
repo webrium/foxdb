@@ -1,6 +1,6 @@
 <?php
 
-namespace webrium\foxql;
+namespace Foxql;
 
 trait Query 
 {

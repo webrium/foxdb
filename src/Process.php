@@ -1,5 +1,5 @@
 <?php
-namespace webrium\foxql;
+namespace Foxql;
 
 
 trait Process{

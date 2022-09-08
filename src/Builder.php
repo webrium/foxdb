@@ -1,6 +1,5 @@
 <?php
-
-namespace webrium\foxql;
+namespace Foxql;
 
 use PDO;
 use stdClass;

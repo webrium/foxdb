@@ -1,9 +1,9 @@
 <?php
-namespace webrium\foxql;
+namespace Foxql;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use webrium\foxql\Model;
+use Foxql\Model;
 
 class Main extends Model{
 
