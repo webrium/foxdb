@@ -13,7 +13,6 @@ class Builder
   protected $TABLE;
   protected $PARAMS = [];
   protected $ACTION = 'select';
-
   protected $SOURCE_VALUE = [];
 
 
@@ -33,8 +32,12 @@ class Builder
   {
     $this->ACTION = $action;
   }
+  
+  public function getAction(){
+    return $this->ACTION;
+  }
 
-  public function execute($query, $params = [], $return = false)
+  protected function execute($query, $params = [], $return = false)
   {
     $this->CONFIG->connect();
     $this->PARAMS = $params;
@@ -56,7 +59,8 @@ class Builder
     return $result;
   }
 
-  public function addOperator($oprator)
+
+  protected function addOperator($oprator)
   {
     $array = $this->getSourceValueItem('WHERE');
 
@@ -72,7 +76,7 @@ class Builder
     }
   }
 
-  public function addOperatorHaving($oprator)
+  protected function addOperatorHaving($oprator)
   {
     $array = $this->getSourceValueItem('HAVING');
 
@@ -86,12 +90,12 @@ class Builder
     }
   }
 
-  public function addStartParentheses()
+  protected function addStartParentheses()
   {
     $this->addToSourceArray('WHERE', '(');
   }
 
-  public function addEndParentheses()
+  protected function addEndParentheses()
   {
     $this->addToSourceArray('WHERE', ')');
   }
@@ -918,7 +922,7 @@ class Builder
 
   public function paginate(int $take = 15){
     $page_id = $_GET['page']??1;
-    $url = \webrium\core\Url::current();
+    $url = \Webrium\Url::current();
 
     $list = $this->page($page_id-1, $take);
     $count = DB::table($this->TABLE)->count();
@@ -1149,7 +1153,7 @@ class Builder
     }
   }
 
-  public function makeSelectQueryString()
+  protected function makeSelectQueryString()
   {
 
     $this->addToSourceArray('SELECT', "SELECT");
@@ -1164,7 +1168,7 @@ class Builder
   }
 
 
-  public function makerInsertQueryString(array $values){
+  protected function makerInsertQueryString(array $values){
     $param_name = [];
     $param_value_name_list = [];
 
@@ -1176,7 +1180,7 @@ class Builder
     return "INSERT INTO `$this->TABLE` (".implode(',',$param_name).") VALUES (".implode(',',$param_value_name_list).")";
   }
 
-  public function makeUpdateQueryString(array $values){
+  protected function makeUpdateQueryString(array $values){
     $params = [];
 
     foreach($values as $name=>$value){
@@ -1188,7 +1192,7 @@ class Builder
     return "UPDATE `$this->TABLE` SET ".implode(',', $params)." $extra";
   }
 
-  public function makeUpdateQueryIncrement(string $column, $value = 1, $action = '+'){
+  protected function makeUpdateQueryIncrement(string $column, $value = 1, $action = '+'){
 
     $column = $this->fix_column_name($column)['name'];
     $query = "$column = $column $action $value";
@@ -1199,7 +1203,7 @@ class Builder
   }
 
 
-  public function makeSourceValueStrign(){
+  protected function makeSourceValueStrign(){
     ksort($this->SOURCE_VALUE);
 
     $array = [];
@@ -1213,7 +1217,7 @@ class Builder
   }
 
   
-  public function makeDeleteQueryString(){
+  protected function makeDeleteQueryString(){
     $extra = $this->makeSourceValueStrign();
     return "DELETE FROM `$this->TABLE`  $extra";
   }
@@ -1331,7 +1335,7 @@ class Builder
     return $this->SOURCE_VALUE[$s_index] ?? [];
   }
 
-  public function addToSourceArray($struct_name, $value)
+  protected function addToSourceArray($struct_name, $value)
   {
     $s_index = $this->sql_stractur($struct_name);
     $this->SOURCE_VALUE[$s_index][] = $value;

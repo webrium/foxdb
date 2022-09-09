@@ -48,25 +48,24 @@ class Model
 
   
 
-  public static function where(...$args){
-    return (new static)->makeInstance('where', $args);
-  }
-
-  public static function find($id){
-    $instance = (new static);
-    return self::where($instance->primaryKey, $id)->first();
-  }
-
-
-  protected function makeInstance($name, $arguments)
+  protected function makeInstance($name, $arguments = [])
   {
-    $db = DB::table($this->table)->{$name}(...$arguments);
+    $db = DB::table($this->table);
 
-    if(count($this->visible)){
+    
+    if(count($this->visible) && $db->getAction()=='select' && count($db->getSourceValueItem('DISTINCT'))==0){
       $db->select($this->visible);
     }
 
+    $db = $db->{$name}(...$arguments);
+
     return $db;
+  }
+
+
+  public static function __callStatic($name, $arguments)
+  {
+    return (new static)->makeInstance($name, $arguments);
   }
 
 

@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
-use webrium\foxql\DB;
-use webrium\foxql\Config;
+use Foxdb\DB;
+use Foxdb\Config;
 
 DB::addConnection('main', [
     'host'=>'localhost',

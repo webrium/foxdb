@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/config.php';
 
-use webrium\foxql\DB;
+use Foxdb\DB;
 use PHPUnit\Framework\TestCase;
 
 class UpdateTest extends TestCase
