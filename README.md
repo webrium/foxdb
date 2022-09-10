@@ -69,6 +69,19 @@ $user = DB::table('users')->where('name', 'Jack')->first();
  
 return $user->email;
 ```
+
+If you don't need an entire row, you may extract a single value from a record using the `value` method. This method will return the value of the column directly:
+
+```PHP
+$email = DB::table('users')->where('name', 'John')->value('email');
+```
+
+To retrieve a single row by its `id` column value, use the `find` method:
+
+```PHP
+$user = DB::table('users')->find(3);
+```
+
 <br>
 
 
