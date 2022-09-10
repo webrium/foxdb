@@ -231,7 +231,8 @@ DB::raw('count(?)',['id'])
 ``
 > ⚠️ Raw statements will be injected into the query as strings, so you should be extremely careful to avoid creating SQL injection vulnerabilities.
 
-#### our suggestion
+#### Our suggestion
+
 But for this purpose, it is better to use the following method to avoid `SQL injection` attack
 ```PHP
 $users = DB::table('users')
