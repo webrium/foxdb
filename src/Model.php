@@ -1,6 +1,7 @@
 <?php
 
 namespace Foxdb;
+
 use Foxdb\DB;
 
 class Model
@@ -21,15 +22,21 @@ class Model
    */
   protected $primaryKey = 'id';
 
+
   /**
-   * Indicates if the IDs are auto-incrementing.
+   * The attributes that should be visible in arrays.
+   *
+   * @var array
+   */
+  protected $visible = [];
+
+
+  /**
+   * Indicates if the model should be timestamped.
    *
    * @var bool
    */
-  public $incrementing = true;
-
-
-  protected $visible = [];
+  protected $timestamps = true;
 
 
   /**
@@ -37,23 +44,25 @@ class Model
    *
    * @var string
    */
-  const CREATED_AT = 'created_at';
+  protected $created_at = 'created_at';
+
 
   /**
    * The name of the "updated at" column.
    *
    * @var string
    */
-  const UPDATED_AT = 'updated_at';
+  protected $updated_at = 'updated_at';
 
-  
+
 
   protected function makeInstance($name, $arguments = [])
   {
     $db = DB::table($this->table);
+    $db->setTimestampsStatus($this->timestamps, $this->created_at, $this->updated_at);
+    $db->setPrimaryKey($this->primaryKey);
 
-    
-    if(count($this->visible) && $db->getAction()=='select' && count($db->getSourceValueItem('DISTINCT'))==0){
+    if (count($this->visible) && $db->getAction() == 'select' && count($db->getSourceValueItem('DISTINCT')) == 0) {
       $db->select($this->visible);
     }
 
@@ -67,6 +76,4 @@ class Model
   {
     return (new static)->makeInstance($name, $arguments);
   }
-
-
 }
