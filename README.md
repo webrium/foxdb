@@ -134,6 +134,16 @@ DB::table('users')->orderBy('id')->chunk(100, function ($users) {
 });
 ```
 
+you may use the `each` method.
+
+```PHP
+use Foxdb\DB;
+ 
+DB::table('users')->orderBy('id')->each(function ($user) {
+    //
+});
+```
+
 <br>
 
 
