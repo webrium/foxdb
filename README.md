@@ -146,6 +146,62 @@ DB::table('users')->orderBy('id')->each(function ($user) {
 
 <br>
 
+### Aggregates
+
+The query builder also provides a variety of methods for retrieving aggregate values like `count`, `max`, `min`, `avg`, and `sum`. You may call any of these methods after constructing your query:
+
+```PHP
+use Foxdb\DB;
+ 
+$users = DB::table('users')->count();
+ 
+$price = DB::table('orders')->max('price');
+
+Of course, you may combine these methods with other clauses to fine-tune how your aggregate value is calculated:
+
+$price = DB::table('orders')
+                ->where('finalized', 1)
+                ->avg('price');
+```
+
+#### Determining If Records Exist
+
+Instead of using the count method to determine if any records exist that match your query's constraints, you may use the exists and doesntExist methods:
+
+```PHP
+if (DB::table('orders')->where('finalized', 1)->exists()) {
+    // ...
+}
+ 
+if (DB::table('orders')->where('finalized', 1)->doesntExist()) {
+    // ...
+}
+```
+
+<br>
+
+
+Select Statements
+
+Specifying A Select Clause
+
+You may not always want to select all columns from a database table. Using the `select` method, you can specify a custom "select" clause for the query:
+
+```PHP
+use Foxdb\DB;
+ 
+$users = DB::table('users')
+            ->select('name', 'email as user_email')
+            ->get();
+            
+ // Or you can send as an array
+ $users = DB::table('users')
+            ->select(['name', 'email as user_email'])
+            ->get();
+```
+
+<br>
+
 
 ### Methods: oldest / latest
 
