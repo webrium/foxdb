@@ -15,6 +15,10 @@ class Builder
   protected $ACTION = 'select';
   protected $SOURCE_VALUE = [];
 
+  protected $PRIMARY_KEY = 'id';
+  protected $TIMESTAMPS = false;
+  protected $CREATED_AT = 'created_at';
+  protected $UPDATED_AT = 'updated_at';
 
 
 
@@ -35,6 +39,22 @@ class Builder
   
   public function getAction(){
     return $this->ACTION;
+  }
+
+  public function setPrimaryKey(string $value){
+    $this->PRIMARY_KEY = $value;
+  }
+
+  public function setTimestampsStatus(bool $value, $set_created_at_name = false, $set_updated_at_name = false){
+    $this->TIMESTAMPS = $value;
+
+    if($set_created_at_name){
+      $this->CREATED_AT = $set_created_at_name;
+    }
+
+    if($set_updated_at_name){
+      $this->UPDATED_AT = $set_updated_at_name;
+    }
   }
 
   protected function execute($query, $params = [], $return = false)
@@ -854,13 +874,13 @@ class Builder
 
   public function latest()
   {
-    $this->orderBy('id', 'DESC');
+    $this->orderBy($this->PRIMARY_KEY, 'DESC');
     return $this;
   }
 
   public function oldest()
   {
-    $this->orderBy('id', 'ASC');
+    $this->orderBy($this->PRIMARY_KEY, 'ASC');
     return $this;
   }
 
@@ -1171,9 +1191,22 @@ class Builder
   }
 
 
-  protected function makerInsertQueryString(array $values){
+  public function setTimestamps(array &$values, $just_update = false){
+    if($this->TIMESTAMPS){
+      $now = date('Y-m-d H:i:s');
+      if(!$just_update){
+        $values[$this->CREATED_AT] = $now;
+      }
+      $values[$this->UPDATED_AT] = $now;
+    }
+  }
+
+
+  protected function makeInsertQueryString(array $values){
     $param_name = [];
     $param_value_name_list = [];
+
+    $this->setTimestamps($values);
 
     foreach($values as $name=>$value){
       $param_name[] = $this->fix_column_name($name)['name'];
@@ -1184,8 +1217,9 @@ class Builder
   }
 
   protected function makeUpdateQueryString(array $values){
-    $params = [];
+    $this->setTimestamps($values, true);
 
+    $params = [];
     foreach($values as $name=>$value){
       $params[] = $this->fix_column_name($name)['name'].' = '. $this->add_to_param_auto_name($value);
     }
@@ -1196,13 +1230,22 @@ class Builder
   }
 
   protected function makeUpdateQueryIncrement(string $column, $value = 1, $action = '+'){
+    
+    $values = [];
+    $this->setTimestamps($values, true);
 
     $column = $this->fix_column_name($column)['name'];
-    $query = "$column = $column $action $value";
+
+    $params = [];
+    $params[] = "$column = $column $action $value";
+
+    foreach($values as $name=>$value){
+      $params[] = $this->fix_column_name($name)['name'].' = '. $this->add_to_param_auto_name($value);
+    }
 
     $extra = $this->makeSourceValueStrign();
 
-    return "UPDATE `$this->TABLE` SET $query $extra";
+    return "UPDATE `$this->TABLE` SET ".implode(',', $params)." $extra";
   }
 
 
@@ -1228,7 +1271,7 @@ class Builder
 
   public function insert(array $values, $get_last_insert_id = false){
     $this->setAction('insert');
-    $query = $this->makerInsertQueryString($values);
+    $query = $this->makeInsertQueryString($values);
     $result = $this->execute($query, $this->PARAMS);
 
     if(!$get_last_insert_id){
@@ -1244,13 +1287,13 @@ class Builder
   }
 
 
-  public function increment(string $column, $value = 1){
+  public function increment(string $column, int $value = 1){
     $query = $this->makeUpdateQueryIncrement($column, $value);
     return $this->execute($query, $this->PARAMS);
   }
 
 
-  public function decrement(string $column, $value = 1){
+  public function decrement(string $column, int $value = 1){
     $query = $this->makeUpdateQueryIncrement($column, $value, '-');
     return $this->execute($query, $this->PARAMS);
 
@@ -1328,7 +1371,7 @@ class Builder
    */
   public function find($id, $columns = [])
   {
-    return $this->where('id', $id)->first($columns);
+    return $this->where($this->PRIMARY_KEY, $id)->first($columns);
   }
 
 
