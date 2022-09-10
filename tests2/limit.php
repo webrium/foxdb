@@ -13,9 +13,12 @@ use Foxdb\Main;
 // $main = new Main;
 // $res= $main->whereIn('id',[1.2])->count('id');
 
-$res = Main::where(function($query){
-    $query->where('id',1)->or('id',2);
-})->get();
-echo json_encode($res);
+$res = Main::chunk(2,function($users){
+    foreach ($users as $user) {
+        echo "name:$user->name\n";
+    }
+    return false;
+});
+// echo json_encode($res);
 // echo "Using ", ((memory_get_usage()-$befor)/1e+6), " bytes of ram.";
 // echo "\n";
