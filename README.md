@@ -84,6 +84,58 @@ $user = DB::table('users')->find(3);
 
 <br>
 
+### Retrieving A List Of Column Values
+
+you may use the `pluck` method. In this example, we'll retrieve a collection of user titles:
+
+```PHP
+use Foxdb\DB;
+ 
+$titles = DB::table('users')->pluck('title');
+ 
+foreach ($titles as $title) {
+    echo $title;
+}
+```
+
+You may specify the column that the resulting collection should use as its keys by providing a second argument to the pluck method:
+
+```PHP
+$titles = DB::table('users')->pluck('title', 'name');
+ 
+foreach ($titles as $name => $title) {
+    echo $title;
+}
+```
+
+<br>
+
+### Chunking Results
+
+If you need to work with thousands of database records, consider using the `chunk` method provided by the DB facade. This method retrieves a small chunk of results at a time and feeds each chunk into a closure for processing. For example, let's retrieve the entire users table in chunks of 100 records at a time:
+
+```PHP
+use Foxdb\DB;
+ 
+DB::table('users')->orderBy('id')->chunk(100, function ($users) {
+    foreach ($users as $user) {
+        //
+    }
+});
+```
+
+You may stop further chunks from being processed by returning false from the closure:
+
+```PHP
+DB::table('users')->orderBy('id')->chunk(100, function ($users) {
+    // Process the records...
+ 
+    return false;
+});
+```
+
+<br>
+
 
 ### Methods: oldest / latest
 
