@@ -181,7 +181,7 @@ if (DB::table('orders')->where('finalized', 1)->doesntExist()) {
 <br>
 
 
-Select Statements
+### Select Statements
 
 Specifying A Select Clause
 
@@ -200,6 +200,48 @@ $users = DB::table('users')
             ->get();
 ```
 
+But there is a more modern way to do this. You can act like the example below
+
+```PHP
+$users = DB::table('users')
+         ->select(function($query){
+            $query->field('name');
+            $query->field('email')->as('user_email');
+         })
+         ->get();
+```
+
+<br>
+
+### Raw Expressions
+
+Sometimes you may need to insert an arbitrary string into a query. To create a raw string expression, you may use the `raw` method provided by the `DB` facade:
+
+```PHP
+$users = DB::table('users')
+             ->select(DB::raw('count(*) as user_count, status'))
+             ->where('status', '<>', 1)
+             ->groupBy('status')
+             ->get();
+```
+To use the parameter in raw like the example below
+
+``
+DB::raw('count(?)',['id'])
+``
+> ⚠️ Raw statements will be injected into the query as strings, so you should be extremely careful to avoid creating SQL injection vulnerabilities.
+
+#### our suggestion
+But for this purpose, it is better to use the following method to avoid `SQL injection` attack
+```PHP
+$users = DB::table('users')
+         ->select(function($query){
+            $query->count('*')->as('user_count')
+            $query->field('status');
+         })
+         ->get();
+```
+In this structure, you have access to `field`, `count`, `sum`, `avg`, `min`, `max`, `all`, `as` methods.
 <br>
 
 
