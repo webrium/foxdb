@@ -243,6 +243,7 @@ $users = DB::table('users')
          ->get();
 ```
 In this structure, you have access to `field`, `count`, `sum`, `avg`, `min`, `max`, `all`, `as` methods.
+
 <br>
 
 
