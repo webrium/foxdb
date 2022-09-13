@@ -246,6 +246,164 @@ In this structure, you have access to `field`, `count`, `sum`, `avg`, `min`, `ma
 
 <br>
 
+## Raw Methods
+
+Instead of using the DB::raw method, you may also use the following methods to insert a raw expression into various parts of your query. Remember, Laravel can not guarantee that any query using raw expressions is protected against SQL injection vulnerabilities.
+
+### whereRaw / orWhereRaw
+
+The whereRaw and orWhereRaw methods can be used to inject a raw "where" clause into your query. These methods accept an optional array of bindings as their second argument:
+
+```PHP
+$orders = DB::table('orders')
+                ->whereRaw('price > IF(state = "TX", ?, 100)', [200])
+                ->get();
+```
+
+
+### havingRaw / orHavingRaw
+
+The havingRaw and orHavingRaw methods may be used to provide a raw string as the value of the "having" clause. These methods accept an optional array of bindings as their second argument:
+
+```PHP
+$orders = DB::table('orders')
+                ->select('department', DB::raw('SUM(price) as total_sales'))
+                ->groupBy('department')
+                ->havingRaw('SUM(price) > ?', [2500])
+                ->get();
+```
+
+<br>
+
+
+## Inner Join Clause
+
+The query builder may also be used to add join clauses to your queries. To perform a basic "inner join", you may use the join method on a query builder instance. The first argument passed to the join method is the name of the table you need to join to, while the remaining arguments specify the column constraints for the join. You may even join multiple tables in a single query:
+
+```PHP
+use Foxdb\DB;
+ 
+$users = DB::table('users')
+            ->join('contacts', 'users.id', '=', 'contacts.user_id')
+            ->join('orders', 'users.id', '=', 'orders.user_id')
+            ->select('users.*', 'contacts.phone', 'orders.price')
+            ->get();
+```
+
+In Foxdb, you can do it more easily
+
+```PHP
+$users = DB::table('users')
+        ->select('users.*', 'orders.price')
+        ->join('orders.user_id', 'user.id')
+        ->get();
+```
+In this structure, you enter the first column name with its foreign key (`'orders.user_id'`) and then the primary key (`'user.id'`)
+
+
+<br>
+
+### Left Join / Right Join Clause
+
+If you would like to perform a "left join" or "right join" instead of an "inner join", use the leftJoin or rightJoin methods. These methods have the same signature as the join method:
+
+```PHP
+$users = DB::table('users')
+            ->leftJoin('posts', 'users.id', '=', 'posts.user_id')
+            ->get();
+ ```
+ 
+ ```PHP
+$users = DB::table('users')
+            ->rightJoin('posts', 'users.id', '=', 'posts.user_id')
+            ->get();
+```
+
+### Cross Join Clause
+
+You may use the crossJoin method to perform a "cross join". Cross joins generate a cartesian product between the first table and the joined table:
+```PHP
+$sizes = DB::table('sizes')
+            ->crossJoin('colors')
+            ->get();
+```
+
+<br>
+
+
+## Where Clauses
+
+You may use the query builder's where method to add "where" clauses to the query. The most basic call to the where method requires three arguments. The first argument is the name of the column. The second argument is an operator, which can be any of the database's supported operators. The third argument is the value to compare against the column's value.
+
+For example, the following query retrieves users where the value of the votes column is equal to 100 and the value of the age column is greater than 35:
+
+```PHP
+$users = DB::table('users')
+                ->where('votes', '=', 100)
+                ->where('age', '>', 35)
+                ->get();
+```
+
+For convenience, if you want to verify that a column is = to a given value, you may pass the value as the second argument to the where method. Laravel will assume you would like to use the = operator:
+
+```PHP
+$users = DB::table('users')->where('votes', 100)->get();
+```
+
+As previously mentioned, you may use any operator that is supported by your database system:
+
+```PHP
+$users = DB::table('users')
+                ->where('votes', '>=', 100)
+                ->get();
+```
+
+```PHP
+$users = DB::table('users')
+                ->where('votes', '<>', 100)
+                ->get();
+ ```
+ 
+ ```PHP
+$users = DB::table('users')
+                ->where('name', 'like', 'T%')
+                ->get();
+```
+
+
+<br>
+
+
+### Or Where Clauses
+
+When chaining together calls to the query builder's where method, the "where" clauses will be joined together using the and operator. However, you may use the orWhere method to join a clause to the query using the or operator. The orWhere method accepts the same arguments as the where method:
+
+```PHP
+$users = DB::table('users')
+                    ->where('votes', '>', 100)
+                    ->orWhere('name', 'John')
+                    ->get();
+```
+
+If you need to group an "or" condition within parentheses, you may pass a closure as the first argument to the orWhere method:
+
+```PHP
+$users = DB::table('users')
+            ->where('votes', '>', 100)
+            ->orWhere(function($query) {
+                $query->where('name', 'Abigail')
+                      ->where('votes', '>', 50);
+            })
+            ->get();
+```
+
+The example above will produce the following SQL:
+
+``
+select * from users where votes > 100 or (name = 'Abigail' and votes > 50)
+``
+
+<br>
 
 ### Methods: oldest / latest
 
