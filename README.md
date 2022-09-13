@@ -248,7 +248,7 @@ In this structure, you have access to `field`, `count`, `sum`, `avg`, `min`, `ma
 
 ## Raw Methods
 
-Instead of using the DB::raw method, you may also use the following methods to insert a raw expression into various parts of your query. Remember, Laravel can not guarantee that any query using raw expressions is protected against SQL injection vulnerabilities.
+Instead of using the DB::raw method, you may also use the following methods to insert a raw expression into various parts of your query. Remember, Foxdb can not guarantee that any query using raw expressions is protected against SQL injection vulnerabilities.
 
 ### whereRaw / orWhereRaw
 
@@ -344,7 +344,7 @@ $users = DB::table('users')
                 ->get();
 ```
 
-For convenience, if you want to verify that a column is = to a given value, you may pass the value as the second argument to the where method. Laravel will assume you would like to use the = operator:
+For convenience, if you want to verify that a column is = to a given value, you may pass the value as the second argument to the where method. Foxdb will assume you would like to use the = operator:
 
 ```PHP
 $users = DB::table('users')->where('votes', 100)->get();
