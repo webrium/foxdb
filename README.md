@@ -405,6 +405,21 @@ select * from users where votes > 100 or (name = 'Abigail' and votes > 50)
 
 <br>
 
+### Where Not Clauses
+
+The whereNot and orWhereNot methods may be used to negate a given group of query constraints. For example, the following query excludes products that are on clearance or which have a price that is less than ten:
+
+```PHP
+$products = DB::table('products')
+                ->whereNot(function ($query) {
+                    $query->where('clearance', true)
+                          ->orWhere('price', '<', 10);
+                })
+                ->get();
+```
+
+<br>
+
 ### Methods: oldest / latest
 
 
