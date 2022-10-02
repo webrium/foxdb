@@ -420,111 +420,24 @@ $products = DB::table('products')
 
 <br>
 
-### Methods: oldest / latest
-
-
-```PHP
-// Oldest
-$oldest_user = DB::table('users')->oldest()->first();
-
-// Latest
-$latest_user = DB::table('users')->latest()->first();
-```
-<br>
-
-### Methods: where / orWhere
-#### Similar: and / or
-```PHP
-
-$list = DB::table('orders')->where('price','>',50)->orWhere('vip',true)->get();
-```
-<br>
-
-### Methods: whereNot / whereNull / orWhereNot / orWhereNull / orWhereNotNull
-#### Similar: not / null / notNull / orNot / orNull / orNotNull
-
-```PHP
-$users = DB::table('users')->whereNull('name')->get();
-```
-
-```PHP
-$users = DB::table('users')->whereNot('name', 'BEN')->orWhereNot('name', 'jac')->get();
-// OR
-$users = DB::table('users')->not('name', 'BEN')->orNot('name', 'jac')->get();
-```
 
 
 
-<br>
-
-## Aggregates
-### Methods: count / sum / avg
-
-```PHP
-$count_user = DB::table('users')->count();
-// OR
-$count_user = DB::table('users')->count('id'); // Default is 'id'
-```
-
-```PHP
-// Sum of values
-$sum_payment = DB::table('payments')->sum('cost');
-
-// Average
-$avg_paymrnt = DB::table('payments')->avg('cost');
-```
-
-<br>
-
-
-### Methods: whereIn / whereNotIn / orWhereIn / orWhereNotIn
-#### Similar: in / notIn / orIn / orNotIn
-
-```PHP
-$users = DB::table('users')->whereNotIn('id', [10,15,18])->get();
-// OR
-$users = DB::table('users')->notIn('id', [10,15,18])->get();
-```
 
 
 
-<br>
 
-## DateTime
 
-### Methods: whereDate / orWhereTime / orWhereDate / orWhereTime
-#### Similar: date / time / orDate / orTime
 
-The whereDate method may be used to compare a column's value against a date:
-```PHP
-$order = DB::table('orders')
-            ->whereDate('created_at', '2022-02-01')
-            ->get();
-```
 
-The 'whereMonth' method may be used to compare a column's value against a specific month:
-```PHP
-$users = DB::table('users')
-                ->whereMonth('created_at', '12')
-                ->get();
-```
-The 'whereDay' method may be used to compare a column's value against a specific day of the month:
-```PHP
-$users = DB::table('users')
-                ->whereDay('created_at', '31')
-                ->get();
-```
 
-The 'whereYear' method may be used to compare a column's value against a specific year:
-```PHP
-$users = DB::table('users')
-                ->whereYear('created_at', '2018')
-                ->get();
-```
 
-<br>
 
-### Methods: whereBetween / orWhereBetween
+
+
+## Additional Where Clauses
+
+### whereBetween / orWhereBetween
 
 The `whereBetween` method verifies that a column's value is between two values:
 
@@ -534,22 +447,135 @@ $users = DB::table('users')
            ->get();
 ```
 
-### Methods: whereNotBetween / orWhereNotBetween
+<br>
+
+### whereNotBetween / orWhereNotBetween
 
 The `whereNotBetween` method verifies that a column's value lies outside of two values:
+
 ```PHP
 $users = DB::table('users')
                     ->whereNotBetween('votes', [1, 100])
                     ->get();
 ```
+
 <br>
 
-### Methods: whereYear / whereMonth / whereDay  / orWhereYear / orWhereMonth / orWhereDay
-#### Similar: year / month / day / orYear / orMonth/ orDay
+
+### whereIn / whereNotIn / orWhereIn / orWhereNotIn
+
+The `whereIn` method verifies that a given column's value is contained within the given array:
 
 ```PHP
-$orders = DB::table('orders')->year('created_at', '2015')->get();
+$users = DB::table('users')
+                    ->whereIn('id', [1, 2, 3])
+                    ->get();
 ```
+
+The `whereNotIn` method verifies that the given column's value is not contained in the given array:
+
+```PHP
+$users = DB::table('users')
+                    ->whereNotIn('id', [1, 2, 3])
+                    ->get();
+```
+
+
+
+
+
+
+
+
+
+
+
+
+### whereNull / whereNotNull / orWhereNull / orWhereNotNull
+
+The `whereNull` method verifies that the value of the given column is NULL:
+
+```PHP
+$users = DB::table('users')
+                ->whereNull('updated_at')
+                ->get();
+```
+
+The `whereNotNull` method verifies that the column's value is not NULL:
+
+```PHP
+$users = DB::table('users')
+                ->whereNotNull('updated_at')
+                ->get();
+```
+
+### whereDate / whereMonth / whereDay / whereYear / whereTime
+
+The `whereDate` method may be used to compare a column's value against a date:
+
+```PHP
+$users = DB::table('users')
+                ->whereDate('created_at', '2016-12-31')
+                ->get();
+```
+
+The `whereMonth` method may be used to compare a column's value against a specific month:
+
+```PHP
+$users = DB::table('users')
+                ->whereMonth('created_at', '12')
+                ->get();
+```
+
+The `whereDay` method may be used to compare a column's value against a specific day of the month:
+
+```PHP
+$users = DB::table('users')
+                ->whereDay('created_at', '31')
+                ->get();
+```
+
+The `whereYear` method may be used to compare a column's value against a specific year:
+
+```PHP
+$users = DB::table('users')
+                ->whereYear('created_at', '2016')
+                ->get();
+```
+
+The `whereTime` method may be used to compare a column's value against a specific time:
+
+```PHP
+$users = DB::table('users')
+                ->whereTime('created_at', '=', '11:20:45')
+                ->get();
+```
+
+### whereColumn / orWhereColumn
+
+The `whereColumn` method may be used to verify that two columns are equal:
+
+```PHP
+$users = DB::table('users')
+                ->whereColumn('first_name', 'last_name')
+                ->get();
+```
+
+You may also pass a comparison operator to the `whereColumn` method:
+
+```PHP
+$users = DB::table('users')
+                ->whereColumn('updated_at', '>', 'created_at')
+                ->get();
+```
+
+
+
+
+
+
+
+
 
 <br>
 
