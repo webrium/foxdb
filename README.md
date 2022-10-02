@@ -423,18 +423,6 @@ $products = DB::table('products')
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 ## Additional Where Clauses
 
 ### whereBetween / orWhereBetween
@@ -489,7 +477,7 @@ $users = DB::table('users')
 
 
 
-
+<br>
 
 ### whereNull / whereNotNull / orWhereNull / orWhereNotNull
 
@@ -508,6 +496,8 @@ $users = DB::table('users')
                 ->whereNotNull('updated_at')
                 ->get();
 ```
+
+<br>
 
 ### whereDate / whereMonth / whereDay / whereYear / whereTime
 
@@ -550,6 +540,8 @@ $users = DB::table('users')
                 ->whereTime('created_at', '=', '11:20:45')
                 ->get();
 ```
+
+<br>
 
 ### whereColumn / orWhereColumn
 
