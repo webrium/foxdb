@@ -126,6 +126,8 @@ class Builder
   public function select(...$args)
   {
 
+    $this->clearSource('DISTINCT');
+
     if (count($args) == 1 && !is_string($args[0]) && !$args[0] instanceof Raw) {
       if (is_array($args[0])) {
         foreach ($args[0] as $key => $arg) {
@@ -142,6 +144,9 @@ class Builder
       foreach ($args as $key => $arg) {
         if ($arg instanceof Raw) {
           $args[$key] = $this->raw_maker($arg->getRawQuery(), $arg->getRawValues());
+        }
+        else{
+          $args[$key] = $this->fix_column_name($arg)['name'];
         }
       }
 
@@ -1385,5 +1390,10 @@ class Builder
   {
     $s_index = $this->sql_stractur($struct_name);
     $this->SOURCE_VALUE[$s_index][] = $value;
+  }
+
+  protected function clearSource($struct_name){
+    $s_index = $this->sql_stractur($struct_name);
+    $this->SOURCE_VALUE[$s_index] = [];
   }
 }
