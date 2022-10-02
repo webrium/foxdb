@@ -298,8 +298,7 @@ $users = DB::table('users')
         ->join('orders.user_id', 'user.id')
         ->get();
 ```
-In this structure, you enter the first column name with its foreign key (`'orders.user_id'`) and then the primary key (`'user.id'`)
-
+In this structure, you enter the name of the table you want to join with its foreign key (`'orders.user_id'`) and then the primary key (`'user.id'`).
 
 <br>
 
