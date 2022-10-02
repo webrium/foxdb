@@ -156,9 +156,11 @@ use Foxdb\DB;
 $users = DB::table('users')->count();
  
 $price = DB::table('orders')->max('price');
+```
 
 Of course, you may combine these methods with other clauses to fine-tune how your aggregate value is calculated:
 
+```PHP
 $price = DB::table('orders')
                 ->where('finalized', 1)
                 ->avg('price');
