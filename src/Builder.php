@@ -877,15 +877,15 @@ class Builder
   }
 
 
-  public function latest()
+  public function latest($column = 'created_at')
   {
-    $this->orderBy($this->PRIMARY_KEY, 'DESC');
+    $this->orderBy($column, 'DESC');
     return $this;
   }
 
-  public function oldest()
+  public function oldest($column = 'created_at')
   {
-    $this->orderBy($this->PRIMARY_KEY, 'ASC');
+    $this->orderBy($column, 'ASC');
     return $this;
   }
 
