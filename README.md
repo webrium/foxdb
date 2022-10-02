@@ -567,6 +567,48 @@ $users = DB::table('users')
 
 
 
+<br>
+
+## Ordering, Grouping, Limit & Offset
+
+### Ordering
+
+#### The orderBy Method
+
+The `orderBy` method allows you to sort the results of the query by a given column. The first argument accepted by the `orderBy` method should be the column you wish to sort by, while the second argument determines the direction of the sort and may be either asc or desc:
+
+```PHP
+$users = DB::table('users')
+                ->orderBy('name', 'desc')
+                ->get();
+```
+
+To sort by multiple columns, you may simply invoke orderBy as many times as necessary:
+
+```PHP
+$users = DB::table('users')
+                ->orderBy('name', 'desc')
+                ->orderBy('email', 'asc')
+                ->get();
+```
+
+<br>
+
+### The latest & oldest Methods
+
+The `latest` and `oldest` methods allow you to easily order results by date. By default, the result will be ordered by the table's `created_at` column. Or, you may pass the column name that you wish to sort by:
+
+```PHP
+$user = DB::table('users')
+                ->latest()
+                ->first();
+
+```
+
+
+
+
+
 
 
 <br>
