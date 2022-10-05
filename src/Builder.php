@@ -137,6 +137,7 @@ class Builder
         $this->addToSourceArray('DISTINCT', implode(',', $args));
       } elseif (is_callable($args[0])) {
         $select = new Select($this);
+        $select->setTable($this->TABLE);
         $args[0]($select);
         $this->addToSourceArray('DISTINCT', $select->getString());
       }
