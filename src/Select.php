@@ -9,6 +9,10 @@ class Select
 
   protected $builder;
   protected $stringArray = [];
+  
+  public function setTable($value){
+    $this->TABLE = $value;
+  }
 
   public function __construct(Builder $builder)
   {
