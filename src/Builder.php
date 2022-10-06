@@ -440,6 +440,14 @@ class Builder
     return $this->orWhereNot(...$args);
   }
 
+  public function like($column, $value){
+    return $this->where($column, 'like', $value);
+  }
+
+  public function orLike($column, $value){
+    return $this->orWhere($column, 'like', $value);
+  }
+
 
   public function null($column){
     return $this->whereNull($column);
@@ -548,7 +556,6 @@ class Builder
   {
     return $this->orwhereNotIn($name, $list);
   }
-
 
 
   public function join(...$args)
@@ -874,6 +881,12 @@ class Builder
   {
     $column = $this->fix_column_name($column)['name'];
     $this->addToSourceArray('ORDER_BY', "ORDER BY COUNT($column) $direction");
+    return $this;
+  }
+
+
+  public function inRandomOrder(){
+    $this->addToSourceArray('ORDER_BY', "ORDER BY RAND()");
     return $this;
   }
 

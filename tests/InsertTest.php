@@ -23,7 +23,7 @@ class InsertTest extends TestCase{
     | Insert
     */
     $user_params = [
-        ['name'=>'BEN','phone'=>'0999000001','fax'=>'','created_at'=>$now],
+        ['name'=>'BEN','phone'=>'0999000001','fax'=>'','created_at'=>'2018-05-01 00:00:00'],
         ['name'=>'Jo','phone'=>'0999000002','fax'=>'','created_at'=>$now],
         ['name'=>'Sofi','phone'=>'0999000003','fax'=>'','created_at'=>$now],
         ['name'=>'Tom','phone'=>'0999000004','fax'=>'','created_at'=>$now],
