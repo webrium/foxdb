@@ -2,7 +2,7 @@
 ![](https://repository-images.githubusercontent.com/305963460/de429f74-51c4-42ec-b0cf-581b59f2df7e)
 <div align="center">
  
-[![Latest Stable Version](http://poser.pugx.org/webrium/foxdb/v)](https://packagist.org/packages/webrium/foxdb) [![Total Downloads](http://poser.pugx.org/webrium/foxdb/downloads)](https://packagist.org/packages/webrium/foxdb) [![Latest Unstable Version](http://poser.pugx.org/webrium/foxdb/v/unstable)](https://packagist.org/packages/webrium/foxdb) [![License](http://poser.pugx.org/webrium/foxdb/license)](https://packagist.org/packages/webrium/foxdb) [![PHP Version Require](http://poser.pugx.org/webrium/foxdb/require/php)](https://packagist.org/packages/webrium/foxdb)
+[![Latest Stable Version](http://poser.pugx.org/webrium/foxdb/v)](https://packagist.org/packages/webrium/foxdb) [![Total Downloads](http://poser.pugx.org/webrium/foxdb/downloads)](https://packagist.org/packages/webrium/foxdb) [![Latest Unstable Version](http://poser.pugx.org/webrium/foxdb/v/unstable)](https://packagist.org/packages/webrium/foxdb) [![License](http://poser.pugx.org/webrium/foxdb/license)](https://packagist.org/packages/webrium/foxdb) 
  
 </div>
 
