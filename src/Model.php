@@ -24,6 +24,22 @@ class Model
 
 
   /**
+   * The type of primary key.
+   *
+   * @var string
+   */
+  protected $keyType = 'int';
+
+
+  /**
+   * The AUTO_INCREMENT tag for primary key.
+   *
+   * @var bool
+   */
+  protected $increment = true';
+
+
+  /**
    * The attributes that should be visible in arrays.
    *
    * @var array
