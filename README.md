@@ -2,7 +2,7 @@
 ![](https://repository-images.githubusercontent.com/305963460/de429f74-51c4-42ec-b0cf-581b59f2df7e)
 <div align="center">
  
-[![Latest Stable Version](http://poser.pugx.org/webrium/foxql/v)](https://packagist.org/packages/webrium/foxql) [![Total Downloads](http://poser.pugx.org/webrium/foxql/downloads)](https://packagist.org/packages/webrium/foxql) [![Latest Unstable Version](http://poser.pugx.org/webrium/foxql/v/unstable)](https://packagist.org/packages/webrium/foxql) [![License](http://poser.pugx.org/webrium/foxql/license)](https://packagist.org/packages/webrium/foxql) [![PHP Version Require](http://poser.pugx.org/webrium/foxql/require/php)](https://packagist.org/packages/webrium/foxql)
+[![Latest Stable Version](http://poser.pugx.org/webrium/foxdb/v)](https://packagist.org/packages/webrium/foxdb) [![Total Downloads](http://poser.pugx.org/webrium/foxdb/downloads)](https://packagist.org/packages/webrium/foxdb) [![Latest Unstable Version](http://poser.pugx.org/webrium/foxdb/v/unstable)](https://packagist.org/packages/webrium/foxdb) [![License](http://poser.pugx.org/webrium/foxdb/license)](https://packagist.org/packages/webrium/foxdb) 
  
 </div>
 
@@ -610,6 +610,71 @@ $user = DB::table('users')
 
 
 
+
+
+<br>
+
+## Random Ordering
+
+The inRandomOrder method may be used to sort the query results randomly. For example, you may use this method to fetch a random user:
+
+```PHP
+$randomUser = DB::table('users')
+                ->inRandomOrder()
+                ->first();
+```
+
+
+<br>
+
+
+
+## Grouping
+
+### The `groupBy` & `having` Methods
+
+As you might expect, the `groupBy` and `having` methods may be used to group the query results. The `having` method's signature is similar to that of the where method:
+
+```PHP
+$users = DB::table('users')
+                ->groupBy('account_id')
+                ->having('account_id', '>', 100)
+                ->get();
+```
+
+
+
+You may pass multiple arguments to the groupBy method to group by multiple columns:
+
+```PHP
+$users = DB::table('users')
+                ->groupBy('first_name', 'status')
+                ->having('account_id', '>', 100)
+                ->get();
+```
+
+To build more advanced having statements, see the havingRaw method.
+
+<br>
+
+## Limit & Offset
+
+### The skip & take Methods
+
+You may use the `skip` and `take` methods to limit the number of results returned from the query or to skip a given number of results in the query:
+
+```PHP
+$users = DB::table('users')->skip(10)->take(5)->get();
+```
+
+Alternatively, you may use the `limit` and `offset` methods. These methods are functionally equivalent to the take and skip methods, respectively:
+
+```PHP
+$users = DB::table('users')
+                ->offset(10)
+                ->limit(5)
+                ->get();
+```
 
 
 <br>
