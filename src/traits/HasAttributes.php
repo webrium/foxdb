@@ -33,6 +33,12 @@ trait HasAttributes
     protected $casts = [];
 
     public function getAttribute($key){
-        return $this->attributes[$key];
+        if (! $key) {
+            return;
+        }
+
+        if (array_key_exists($key, $this->attributes)) {
+            return $this->getAttributeValue($key);
+        }
     }
 }
