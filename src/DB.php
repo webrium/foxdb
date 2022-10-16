@@ -4,11 +4,6 @@ namespace Foxdb;
 class DB extends Builder{
 
 
-  public static function test(){
-    echo "its work";
-  }
-
-
   protected static $CONFIG_LIST;
   protected static $USE_DATABASE = 'main';
   protected static $CHANGE_ONCE = false;
@@ -64,60 +59,6 @@ class DB extends Builder{
       'updated_at' => $now
     ];
   }
-
-  // public static function select(string $query, array $params=[]){
-  //   $config = self::getConfig();
-  //   $builder = new Builder($config);
-  //   return $builder->execute($query, $params, true);
-  // }
-
-  
-  // public static function update(string $query, array $params){
-  //   $config = self::getConfig();
-  //   $builder = new Builder($config);
-  //   return $builder->execute($query, $params, false);
-  // }
-
-
-  // public static function insert(string $query, array $params, $getLastID=false){
-  //   $config = self::getCurrentConfig();
-  //   $builder = new Builder($config);
-  //   $res = $builder->execute($query, $params, false);
-
-  //   if($getLastID){
-  //     $res = $config->pdo()->lastInsertId();
-  //   }
-
-  //   return $res;
-  // }
-
-  // public static function insertGetId(string $query, array $params){
-  //   return self::insert($query, $params, true);
-  // }
-
-  // private static function getConfigByName($config_name){
-  //   if (! isset(self::$CONFIG_LIST[$config_name])){
-  //     throw new \Exception("'$config_name' config not found");
-  //   }
-
-  //   return self::$CONFIG_LIST[$config_name];
-  // }
-
-  // private static function getConfig(){
-  //   return self::getConfigByName(self::$USE_DATABASE);
-  // }
-
-  
-
-  // public static function test(){
-  //   self::$CONFIG_LIST['main']->pdo();
-  // }
-
-  // public static function showConfigArray(){
-  //   foreach(self::$CONFIG_LIST as $config){
-  //     echo json_encode($config->getAsArray())."\n";
-  //   }
-  // }
 
 
   public static function raw($query, array $values = []){

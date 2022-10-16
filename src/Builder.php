@@ -35,6 +35,7 @@ class Builder
   public function setAction($action)
   {
     $this->ACTION = $action;
+    return $this;
   }
   
   public function getAction(){
@@ -1321,6 +1322,7 @@ class Builder
 
   public function update(array $values){
     $this->setAction('update');
+    $this->clearSource('DISTINCT');
     $query = $this->makeUpdateQueryString($values);
     return $this->execute($query, $this->PARAMS);
   }
