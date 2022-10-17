@@ -679,6 +679,56 @@ $users = DB::table('users')
 
 <br>
 
+## Insert Statements
+
+The query builder also provides an `insert` method that may be used to insert records into the database table. The insert method accepts an array of column names and values:
+
+```PHP
+DB::table('users')->insert([
+    'email' => 'kayla@example.com',
+    'votes' => 0
+]);
+```
+
+### Auto-Incrementing IDs
+
+If the table has an auto-incrementing id, use the `insertGetId` method to insert a record and then retrieve the ID:
+
+```PHP
+$id = DB::table('users')->insertGetId(
+    ['email' => 'john@example.com', 'votes' => 0]
+);
+```
+<br>
+
+## Update Statements
+
+In addition to inserting records into the database, the query builder can also update existing records using the update method. The update method, like the insert method, accepts an array of column and value pairs indicating the columns to be updated. The update method returns the number of affected rows. You may constrain the update query using where clauses:
+
+```PHP
+$affected = DB::table('users')
+              ->where('id', 1)
+              ->update(['votes' => 1]);
+```
+
+<br>
+
+### Increment & Decrement
+
+The query builder also provides convenient methods for incrementing or decrementing the value of a given column. Both of these methods accept at least one argument: the column to modify. A second argument may be provided to specify the amount by which the column should be incremented or decremented:
+
+```PHP
+DB::table('users')->increment('votes');
+ 
+DB::table('users')->increment('votes', 5);
+ 
+DB::table('users')->decrement('votes');
+ 
+DB::table('users')->decrement('votes', 5);
+```
+
+<br>
+
 ### Methods: is / true / false
 
 ```PHP
