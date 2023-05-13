@@ -735,7 +735,7 @@ You can use the more enjoyable Syntax, which in addition to shortening the code,
 
 ### Methods: is / true / false
 
-To create queries based on boolean, you can use 'true' and 'false' or 'is' methods
+To create queries based on boolean, you can use `true` and `false` or `is` methods
 
 ```PHP
 
@@ -762,7 +762,31 @@ DB::table('users')
         ->is('active')
         ->and('credit', '>', 0)
         ->or('vip', true)
-        
+        ->get();
 ```
 
+```PHP
+DB::table('users')
+        ->in('id', [1,5,10])
+        ->get();
+```
 
+Other methods are also available, such as the following methods:
+
+`not(..)` / `orNot(..)` 
+<br>
+`in(..)` / `notIn(..)` / `orIn(..)` / `orNotIn(..)`
+<br>
+`like(..)` / `orLike(..)`
+<br>
+`null(..)` / `orNull(..)` / `notNull(..)` / `orNotNull(..)`
+<br>
+`date(..)` / `orDate(..)`
+<br>
+`year(..)` / `orYear(..)`
+<br>
+`month(..)` / `orMonth(..)`
+<br>
+`day(..)` / `orDay(..)`
+<br>
+`time(..)` / `orTime(..)`
