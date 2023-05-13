@@ -729,29 +729,40 @@ DB::table('users')->decrement('votes', 5);
 
 <br>
 
+## Special features:
+
+You can use the more enjoyable Syntax, which in addition to shortening the code, also helps to make the code more readable
+
 ### Methods: is / true / false
 
-```PHP
-// True
+To create queries based on boolean, you can use 'true' and 'false' or 'is' methods
 
-$active_list = DB::table('users')->where('active',true)->get();
-//OR 
-$active_list = DB::table('users')->true('active')->get();
-//OR
+```PHP
+
 $active_list = DB::table('users')->is('active')->get();
+// OR
+$active_list = DB::table('users')->true('active')->get();
 ```
 
 ```PHP
-
-// False
-
-$inactive_list = DB::table('users')->where('active',false)->get();
-//OR
 $inactive_list = DB::table('users')->is('active', false)->get();
 //OR 
 $inactive_list = DB::table('users')->false('active')->get();
+```
+
+### Methods: and / or / in
 
 
+You don't need to use the where method for your queries consecutively. You can use the and method or use or instead of orWhere.
+
+Example:
+
+```PHP
+DB::table('users')
+        ->is('active')
+        ->and('credit', '>', 0)
+        ->or('vip', true)
+        
 ```
 
 
