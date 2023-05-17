@@ -954,45 +954,43 @@ class Builder
 
 
 
-  public function page(int $value,int $take){
-    $offset = $value*$take;
+  public function page(int $page_number, int $take)
+  {
+    $offset = $page_number * $take;
     return $this->take($take)->offset($offset)->get();
   }
 
 
-  public function paginate(int $take = 15){
-    $page_id = $_GET['page']??1;
-    $url = \Webrium\Url::current();
+  public function paginate(int $take = 15,int $page_number = null)
+  {
+    if ($page_number <= 0) {
+      $page_number = 1;
+    }
 
-    $list = $this->page($page_id-1, $take);
-    $count = DB::table($this->TABLE)->count();
+
+    $list = $this->page($page_number - 1, $take);
+    $count = $this->clone()->count();
 
     $params = new stdClass;
+    $params->last_page = round($count / $take);
+ 
 
-    $params->current_page = $page_id;
+    $nextpage = (($page_number) < $params->last_page) ? ($page_number + 1) : false;
+
+    $prevpage = false;
+    if ($page_number <= $params->last_page && $page_number > 1) {
+      $prevpage = $page_number - 1;
+    }
+    
+    
     $params->total = $count;
     $params->count = count($list);
     $params->per_page = $take;
-
-    $params->last_page = intval($count/$take);
-
-    $params->first_page_url = $url.'?page=1';
-    $params->last_page_url = $url.'?page='.$params->last_page;
-
-    $nextpage = (($page_id)<$params->last_page)?($page_id+1):false;
-    $params->next_page_url = ($nextpage)?("$url?page=$nextpage"):false;
-    
-    $prevpage = null;
-    if($params->current_page<=$params->last_page && $params->current_page > 1){
-      $prevpage = $params->current_page-1;
-    }
-
-    $params->prev_page_url = ($prevpage)?("$url?page=$prevpage"):false;
-    
+    $params->prev_page = $prevpage;
+    $params->next_page = $nextpage;
+    $params->current_page = $page_number;
     $params->data = $list;
-    $params->path = $url;
-    
-    
+
     return $params;
   }
 
@@ -1411,5 +1409,17 @@ class Builder
   protected function clearSource($struct_name){
     $s_index = $this->sql_stractur($struct_name);
     $this->SOURCE_VALUE[$s_index] = [];
+  }
+  
+  private function clone()
+  {
+    $db = DB::table($this->TABLE);
+    $db->PARAMS = $this->PARAMS;
+    $db->SOURCE_VALUE = $this->SOURCE_VALUE;
+    $db->clearSource('SELECT');
+    $db->clearSource('LIMIT');
+    $db->clearSource('OFFSET');
+    $db->clearSource('FROM');
+    return $db;
   }
 }
