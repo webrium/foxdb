@@ -1,6 +1,7 @@
 <?php
-
 namespace Foxdb;
+
+use Foxdb\DB;
 
 class Schema
 {
@@ -234,12 +235,13 @@ class Schema
      *
      * @return string
      */
-    public function create()
+    public function create($engine = 'InnoDB', $charset = 'utf8mb4', $collate = 'utf8mb4_unicode_ci')
     {
         $sql = "CREATE TABLE IF NOT EXISTS `{$this->table}` (";
         $sql .= implode(', ', $this->fields);
-        $sql .= ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
+        $sql .= ") ENGINE={$engine} DEFAULT CHARSET={$charset} COLLATE={$collate};";
 
+        DB::query($sql);
         return $sql;
     }
 
@@ -250,7 +252,7 @@ class Schema
      */
     public function drop()
     {
-        return "DROP TABLE IF EXISTS `{$this->table}`;";
+        return DB::query("DROP TABLE IF EXISTS `{$this->table}`;");
     }
 
     /**
@@ -263,7 +265,7 @@ class Schema
         $sql = "ALTER TABLE `{$this->table}` ";
         $sql .= implode(', ', $this->fields);
 
-        return $sql;
+        return DB::query($sql);
     }
 
     /**
@@ -377,6 +379,32 @@ class Schema
     public function dropForeign($name)
     {
         $this->fields[] = "DROP FOREIGN KEY `$name`";
+        return $this;
+    }
+
+
+    /**
+     * Set the character set and collation of the last added column in the $fields array to utf8mb4.
+     *
+     * @param string $collation The collation to use. Default value is utf8mb4_unicode_ci.
+     * @return Schema The current instance of the Schema class.
+     */
+    public function utf8mb4($collation = 'utf8mb4_unicode_ci')
+    {
+        $this->fields[count($this->fields) - 1] .= " CHARACTER SET utf8mb4 COLLATE $collation";
+        return $this;
+    }
+
+
+    /**
+     * Set the character set and collation of the last added column in the $fields array to utf8.
+     *
+     * @param string $collation The collation to use. Default value is utf8_unicode_ci.
+     * @return Schema The current instance of the Schema class.
+     */
+    public function utf8($collation = 'utf8_unicode_ci')
+    {
+        $this->fields[count($this->fields) - 1] .= " CHARACTER SET utf8 COLLATE $collation";
         return $this;
     }
 }

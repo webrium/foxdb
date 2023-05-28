@@ -15,7 +15,6 @@ class WhereTest extends TestCase
 
    public function testJoin()
    {
-      sleep(1);
       $list = DB::table('users')->select(function ($query) {
          $query->all('users');
          $query->field('books.title')->as('book_title');
@@ -53,10 +52,10 @@ class WhereTest extends TestCase
    {
 
       $price = DB::table('books')->min('price');
-      $this->assertSame($price, '55000');
+      $this->assertSame($price, 55000);
 
       $price = DB::table('books')->max('price');
-      $this->assertSame($price, '188000');
+      $this->assertSame($price, 188000);
 
       $price = DB::table('books')->avg('price');
       $this->assertSame(intval($price), 104333);

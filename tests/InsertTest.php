@@ -2,6 +2,7 @@
 require_once __DIR__ . '/config.php';
 
 use Foxdb\DB;
+use Foxdb\Schema;
 use PHPUnit\Framework\TestCase;
 
 class InsertTest extends TestCase{
@@ -9,6 +10,29 @@ class InsertTest extends TestCase{
    public function testInsertUser(){
     parent::setUp();
     $now = date('Y-m-d H:i:s');
+
+    (new Schema('users'))->drop();
+    (new Schema('books'))->drop();
+
+    $table = new Schema('users');
+    $table->id();
+    $table->string('name')->utf8mb4();
+    $table->string('phone');
+    $table->string('fax');
+    $table->boolean('status');
+    $table->timestamps();
+    $table->create();
+
+    $table = new Schema('books');
+    $table->id();
+    $table->integer('user_id');
+    $table->string('title')->utf8mb4();
+    $table->text('text')->utf8mb4();
+    $table->integer('amount');
+    $table->integer('price');
+    $table->timestamps();
+    $table->create();
+    
     
 
     /*
@@ -42,13 +66,14 @@ class InsertTest extends TestCase{
     /*
     | Get last insert id
     */
-    $user = DB::table('users')->latest()->first();    
+    $user = DB::table('users')->latest('id')->first();    
     $last_id = DB::table('users')->insertGetId(['name'=>'Ebi','phone'=>'0999000007','fax'=>'','created_at'=>$now]);
+
     $this->assertSame(intval($user->id+1),  intval($last_id));
 
 
     $oldest_user = DB::table('users')->oldest()->first();
-    $this->assertSame($oldest_user->id,'1');
+    $this->assertSame($oldest_user->id, 1);
    }
 
    public function testInsertBooks(){
@@ -59,7 +84,7 @@ class InsertTest extends TestCase{
 
 
 
-    $last_user = DB::table('users')->latest()->first();
+    $last_user = DB::table('users')->latest('id')->first();
 
     /*
     | Insert

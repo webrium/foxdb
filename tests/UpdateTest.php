@@ -27,13 +27,13 @@ class UpdateTest extends TestCase
 
 
       $amount = DB::table('books')->where('id',1)->value('amount');
-      $this->assertSame($amount, '6');
+      $this->assertSame($amount, 6);
 
 
       $amount = DB::table('books')->where('id',2)->value('amount');
-      $this->assertSame($amount, '10');
+      $this->assertSame($amount, 10);
 
       $amount = DB::table('books')->where('id',3)->value('amount');
-      $this->assertSame($amount, '5');
+      $this->assertSame($amount, 5);
    }
 }
