@@ -58,24 +58,29 @@ class Builder
     }
   }
 
-  protected function execute($query, $params = [], $return = false)
+
+  /**
+ * Executes a query with optional parameters and returns the result.
+ *
+ * @param string $query The SQL query to execute.
+ * @param array|null $params The optional parameters to bind to the query.
+ * @param bool $query_result Whether to fetch the query result or count the affected rows.
+ *
+ * @return mixed The query result or the number of affected rows, depending on the $query_result parameter.
+ */
+  protected function execute($query, $params = [], $query_result = false)
   {
     $this->CONFIG->connect();
     $this->PARAMS = $params;
-
-    if ($this->PARAMS == null) {
-      $stmt = $this->CONFIG->pdo()->query($query);
+    
+    $stmt = $this->CONFIG->pdo()->prepare($query);
+    $stmt->execute($this->PARAMS);
+    
+    if ($query_result) {
+        $result = $stmt->fetchAll($this->CONFIG->getFetch());
     } else {
-      $stmt = $this->CONFIG->pdo()->prepare($query);
-      $stmt->execute($this->PARAMS);
+        $result = $stmt->rowCount();
     }
-
-    if ($return) {
-      $result = $stmt->fetchAll($this->CONFIG->getFetch());
-    } else {
-      $result = $stmt->rowCount();
-    }
-
     
     return $result;
   }
