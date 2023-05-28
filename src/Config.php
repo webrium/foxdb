@@ -39,6 +39,13 @@ class Config extends DB
   private $PDO = false;
 
 
+  /**
+   * Constructor to initialize configuration parameters.
+   *
+   * @param array $params An associative array of configuration parameters.
+   *
+   * @return void
+   */
   public function __construct(array $params = [])
   {
 
@@ -56,52 +63,125 @@ class Config extends DB
   }
 
 
-
+  /**
+   * Sets the character set for the database connection.
+   *
+   * @param string $charset The charset to set.
+   *
+   * @return void
+   */
   public function setCharset(string $charset)
   {
     $this->CHARSET = $charset;
   }
 
+
+  /**
+   * Sets the name of the database to connect to.
+   *
+   * @param string $database_name The name of the database to connect to.
+   *
+   * @return void
+   */
   public function setDatabaseName(string $database_name)
   {
     $this->DATABASE_NAME = $database_name;
   }
 
+
+  /**
+   * Sets the username for the database connection.
+   *
+   * @param string $username The username to use for the database connection.
+   *
+   * @return void
+   */
   public function setUsername(string $username)
   {
     $this->USERNAME = $username;
   }
 
+
+  /**
+   * Sets the password for the database connection.
+   *
+   * @param string $password The password to use for the database connection.
+   *
+   * @return void
+   */
   public function setPassword(string $password)
   {
     $this->PASSWORD = $password;
   }
 
+
+  /**
+   * Sets the PDO Fetch mode for the database connection.
+   *
+   * @param mixed $fetch The fetch mode to use.
+   *
+   * @return void
+   */
   public function setFetch($fetch)
   {
     $this->FETCH = $fetch;
   }
 
+  /**
+   * Sets the driver for the database connection.
+   *
+   * @param string $driver The driver to use for the database connection.
+   *
+   * @return void
+   */
   public function setDriver($driver)
   {
     $this->DRIVER = $driver;
   }
 
+  /**
+   * Sets the hostname or IP address of the server to connect to.
+   *
+   * @param string $host_address A hostname or IP address of the server to connect to.
+   *
+   * @return void
+   */
   public function setHost(string $host_address)
   {
     $this->SERVER_HOST = $host_address;
   }
 
+
+  /**
+   * Sets the port number to use for the database connection.
+   *
+   * @param int $port The port number to use for the database connection.
+   *
+   * @return void
+   */
   public function setPort(string $port)
   {
     $this->SERVER_PORT = $port;
   }
 
+
+  /**
+   * Sets the collation for the database connection.
+   *
+   * @param string $collation The collation to use for the database connection.
+   *
+   * @return void
+   */
   public function setCollation(string $collation)
   {
     $this->COLLATION = $collation;
   }
 
+  /**
+   * Builds a PDO-compatible DNS string from the configuration parameters.
+   *
+   * @return string A PDO-compatible DNS string.
+   */
   public function makeConnectionString()
   {
 
@@ -112,10 +192,10 @@ class Config extends DB
     if ($this->SERVER_PORT != false && !empty($this->SERVER_PORT)) {
       $dsn .= ":$this->SERVER_PORT";
     }
-    
-    $dsn.= ';';
 
-    $dsn.= "dbname=$this->DATABASE_NAME;";
+    $dsn .= ';';
+
+    $dsn .= "dbname=$this->DATABASE_NAME;";
 
     // add charset
     $dsn .= "charset=$this->CHARSET;";
@@ -124,17 +204,24 @@ class Config extends DB
   }
 
 
+  /**
+   * Establishes a connection to the database specified by the configuration parameters.
+   *
+   * @return void
+   *
+   * @throws Exception if database settings were not made correctly and the connection was not established.
+   */
   public function connect()
   {
-    if(! $this->IS_CONNECT){
+    if (!$this->IS_CONNECT) {
       $dsn = $this->makeConnectionString();
-  
+
       $this->PDO = new \PDO($dsn, $this->USERNAME, $this->PASSWORD, [
         \PDO::ATTR_ERRMODE => \PDO::ERRMODE_WARNING,
         \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES '$this->CHARSET' COLLATE '$this->COLLATION'"
       ]);
-  
-      if(DB::$CHANGE_ONCE){
+
+      if (DB::$CHANGE_ONCE) {
         DB::$CHANGE_ONCE = false;
         DB::$USE_DATABASE = 'main';
       }
@@ -143,18 +230,38 @@ class Config extends DB
     }
   }
 
-  public function getFetch(){
+  /**
+   * Returns the PDO Fetch mode for the database connection.
+   *
+   * @return mixed The fetch mode for the database connection.
+   */
+  public function getFetch()
+  {
     return $this->FETCH;
   }
 
-  public function pdo(){
-    if (!$this->PDO){
-      throw new \Exception("The database settings were not made correctly and the connection was not established\n Please check 'https://github.com/webrium/foxql' Documents.");
+  /**
+   * Returns the PDO object for the database connection.
+   *
+   * @return \PDO The PDO object for the database connection.
+   *
+   * @throws Exception if database settings were not made correctly and the connection was not established.
+   */
+  public function pdo()
+  {
+    if (!$this->PDO) {
+      throw new \Exception("Could not establish a connection to the database. Please check your database configuration settings in config file or ensure that your database server is running");
     }
 
     return $this->PDO;
   }
 
+
+  /**
+   * Returns the configuration parameters as an associative array.
+   *
+   * @return array An associative array of configuration parameters.
+   */
   public function getAsArray()
   {
     return [
