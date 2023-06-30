@@ -4,12 +4,12 @@ use Foxdb\DB;
 use Foxdb\Config;
 
 DB::addConnection('main', [
-    'host'=>'localhost',
+    'host'=>'db',
     'port'=>'3306',
 
     'database'=>'test',
     'username'=>'root',
-    'password'=>'1234',
+    'password'=>'123456',
 
     'charset'=>Config::UTF8,
     'collation'=>Config::UTF8_GENERAL_CI,
