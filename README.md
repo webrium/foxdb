@@ -10,7 +10,7 @@
 ### Attributes:
  - ✔️ Low use of resources
  - ✔️ Lighter and faster
- - ✔️ Similar to Laravel syntax
+ - ✔️ Similar to Laravel query builder syntax
  - ✔️ Easy to configure and use
 
 > The Foxdb query builder uses PDO parameter binding to protect your application against SQL injection attacks. There is no need to clean or sanitize strings passed to the query builder as query bindings.
