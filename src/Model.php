@@ -74,18 +74,19 @@ class Model
     return $db;
   }
 
-  
+
   /**
    * @return stdClass
    */
-  public function toObject(){
+  public function toObject()
+  {
     return $this->dynamic_params;
   }
 
 
   public static function __callStatic($name, $arguments)
   {
-    return (new static)->makeInstance($name, $arguments);
+    return (new static )->makeInstance($name, $arguments);
   }
 
 
@@ -103,7 +104,7 @@ class Model
    */
   public function __get($key)
   {
-    return $this->dynamic_params[$key]??null;
+    return $this->dynamic_params[$key] ?? null;
   }
 
 
@@ -129,20 +130,46 @@ class Model
   }
 
 
+  /**
+   * Copy the attributes from a model or stdClass object.
+   *
+   * @param Model|\stdClass $record The model or stdClass object to copy attributes from.
+   * @return void
+   */
+  public function copy(Model|\stdClass $record)
+  {
+
+    if ($record instanceof Model) {
+      $record = $record->toObject();
+    }
+
+    foreach ($record as $key => $value) {
+      if (in_array($key, [$this->primaryKey, self::CREATED_AT, self::UPDATED_AT]) == false) {
+        $this->{$key} = $value;
+      }
+    }
+  }
+
+
+  /**
+   * Find a model by its primary key value.
+   *
+   * @param mixed $value The value of the primary key.
+   * @return bool|Model Returns the found model if it exists, otherwise false.
+   */
   public static function find($value)
   {
-    $class = (new static);
-    
+    $class = (new static );
+
     $find = self::where($class->primaryKey, $value)->first();
 
-    if($find){
+    if ($find) {
       foreach ($find as $key => $value) {
         $class->$key = $value;
       }
-  
+
       return $class;
-    }
-    else{
+    } else {
       return false;
     }
   }
