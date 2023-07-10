@@ -1,4 +1,4 @@
-# A query builder similar to Laravel
+# FoxDB query builder similar to Laravel
 ![](https://repository-images.githubusercontent.com/305963460/de429f74-51c4-42ec-b0cf-581b59f2df7e)
 <div align="center">
  
