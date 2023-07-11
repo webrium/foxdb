@@ -1033,9 +1033,9 @@ class Builder
   {
     $list = $this->get();
 
-    do {
+    while(count($list)){
       $callback(array_splice($list, 0, 1)[0]);
-    } while (count($list));
+    }
   }
 
 
