@@ -1013,12 +1013,12 @@ class Builder
   {
     $list = $this->get();
 
-    do {
+    while (count($list)) {
       $return = $callback(array_splice($list, 0, $count));
       if($return===false){
         break;
       }
-    } while (count($list));
+    }
   }
 
 
