@@ -297,7 +297,7 @@ In Foxdb, you can do it more easily
 ```PHP
 $users = DB::table('users')
         ->select('users.*', 'orders.price')
-        ->join('orders.user_id', 'user.id')
+        ->join('orders.user_id', 'users.id')
         ->get();
 ```
 In this structure, you enter the name of the table you want to join with its foreign key (`'orders.user_id'`) and then the primary key (`'user.id'`).
