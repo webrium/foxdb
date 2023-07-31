@@ -48,9 +48,9 @@ class Schema
      * @param string $name
      * @return $this
      */
-    public function integer($name)
+    public function integer($name, $length = 11)
     {
-        $this->fields[] = "`$name` INT(11)";
+        $this->fields[] = "`$name` INT($length)";
         return $this;
     }
 
