@@ -20,6 +20,8 @@ class InsertTest extends TestCase{
     $table->string('phone');
     $table->string('fax');
     $table->boolean('status');
+    $table->integer('age', 5);
+    $table->dateTime('register')->nullable();
     $table->timestamps();
     $table->create();
 

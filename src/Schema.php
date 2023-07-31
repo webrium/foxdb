@@ -116,6 +116,17 @@ class Schema
     }
 
 
+    /**
+     * Add a dateTime column to the table.
+     *
+     * @param string $name
+     * @return $this
+     */
+    public function dateTime($name)
+    {
+        $this->fields[] = "`$name` DATETIME";
+        return $this;
+    }
 
 
     /**
