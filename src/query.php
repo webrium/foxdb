@@ -233,9 +233,21 @@ class query extends builder{
 
   public function orderBy($field,$order)
   {
-    $this->addToQuery('order by '.$this->getFieldStr($field)." $order",'ORDER_BY');
+
+    if(is_array($field)){
+      $text = [];
+      foreach($field as $f){
+        $text[] = $this->getFieldStr($f);
+      }
+      $this->addToQuery('order by '.implode(',' ,$text)." $order",'ORDER_BY');
+    }
+    else{
+      $this->addToQuery('order by '.$this->getFieldStr($field)." $order",'ORDER_BY');
+    }
+
     return $this;
   }
+  
 
   public function inRandomOrder(){
     $this->addToQuery('order by RAND()','ORDER_BY');
