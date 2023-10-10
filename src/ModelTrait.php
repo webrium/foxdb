@@ -8,22 +8,6 @@ trait ModelTrait
 {
 
 
-  /**
-   * The name of the "created at" column.
-   *
-   * @var string
-   */
-  const CREATED_AT = 'created_at';
-
-  /**
-   * The name of the "updated at" column.
-   *
-   * @var string
-   */
-  const UPDATED_AT = 'updated_at';
-
-
-
   private $dynamic_params = [];
 
 
@@ -62,7 +46,7 @@ trait ModelTrait
   {
 
     $db = DB::table($this->table);
-    $db->setTimestampsStatus($this->getTimestamps(), self::CREATED_AT, self::UPDATED_AT);
+    $db->setTimestampsStatus($this->getTimestamps(), 'created_at', 'updated_at');
     $db->setPrimaryKey($this->getPrimaryKey());
 
     if (count($this->getVisible()) && $db->getAction() == 'select' && count($db->getSourceValueItem('DISTINCT')) == 0) {

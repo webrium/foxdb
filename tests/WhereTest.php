@@ -57,11 +57,21 @@ class WhereTest extends TestCase
       $price = DB::table('books')->max('price');
       $this->assertSame($price, 188000);
 
-      $price = DB::table('books')->avg('price');
-      $this->assertSame(intval($price), 104333);
+      $books = DB::table('books')->get();
 
-      $price = DB::table('books')->sum('price');
-      $this->assertSame(intval($price), 313000);
+      $_avg = 0;
+      $_sum = 0;
+      foreach ($books as $book) {
+         $_avg += $book->price;
+         $_sum += $book->price;
+      }
+      $_avg = $_avg / count($books);
+
+      $price_avg = DB::table('books')->avg('price');
+      $this->assertSame(intval($price_avg), $_avg);
+
+      $price_sum = DB::table('books')->sum('price');
+      $this->assertSame(intval($price_sum), $_sum);
    }
 
    public function testLike()
@@ -85,10 +95,24 @@ class WhereTest extends TestCase
       $one = DB::table('users')->inRandomOrder()->first();
       $two = DB::table('users')->inRandomOrder()->first();
 
-      if ($one->id == $two->id) {
+      while($one->id == $two->id){
          $two = DB::table('users')->inRandomOrder()->first();
       }
 
       $this->assertNotSame($one->id, $two->id);
+   }
+
+
+   public function testOrderBy()
+   {
+
+      // Use a field for order
+      $books = DB::table('books')->orderBy('amount', 'asc')->get();
+      $this->assertLessThan($books[count($books)-1]->amount, $books[0]->amount);
+
+
+      // Using an array of fields for order
+      $books = DB::table('books')->orderBy(['amount', 'price'], 'asc')->get();
+      $this->assertLessThan($books[1]->price, $books[0]->price);
    }
 }

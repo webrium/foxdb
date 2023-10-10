@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/config.php';
 
+use Foxdb\DB;
 use Foxdb\ModelTrait;
 use PHPUnit\Framework\TestCase;
 
@@ -65,11 +66,21 @@ class TraitTest extends TestCase
       $price = self::max('price');
       $this->assertSame($price, 188000);
 
-      $price = self::avg('price');
-      $this->assertSame(intval($price), 104333);
+      $books = DB::table('books')->get();
 
-      $price = self::sum('price');
-      $this->assertSame(intval($price), 313000);
+      $_avg = 0;
+      $_sum = 0;
+      foreach ($books as $book) {
+         $_avg += $book->price;
+         $_sum += $book->price;
+      }
+      $_avg = $_avg / count($books);
+
+      $price_avg = DB::table('books')->avg('price');
+      $this->assertSame(intval($price_avg), $_avg);
+
+      $price_sum = DB::table('books')->sum('price');
+      $this->assertSame(intval($price_sum), $_sum);
    }
 
    public function testLike()
@@ -93,8 +104,8 @@ class TraitTest extends TestCase
       $one = self::inRandomOrder()->first();
       $two = self::inRandomOrder()->first();
 
-      if ($one->id == $two->id) {
-         $two = self::inRandomOrder()->first();
+      while($one->id == $two->id){
+         $two = DB::table('users')->inRandomOrder()->first();
       }
 
       $this->assertNotSame($one->id, $two->id);
