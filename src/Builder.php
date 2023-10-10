@@ -868,10 +868,26 @@ class Builder
    * @param  string  $direction
    * @return $this
    */
-  public function orderBy($column, $direction = 'asc')
+  public function orderBy($columns, $direction = 'asc')
   {
-    $column = $this->fix_column_name($column)['name'];
-    $this->addToSourceArray('ORDER_BY', "ORDER BY $column $direction");
+
+    $column_string = '';
+
+    if(is_array($columns)){
+      $array_string = [];
+      
+      foreach($columns as $column){
+        $array_string[] = $this->fix_column_name($column)['name'];
+      }
+
+      $column_string = implode(',', $array_string);
+    }
+    else{
+      $column_string = $columns;
+    }
+
+
+    $this->addToSourceArray('ORDER_BY', "ORDER BY $column_string $direction");
     return $this;
   }
 
