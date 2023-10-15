@@ -883,7 +883,7 @@ class Builder
       $column_string = implode(',', $array_string);
     }
     else{
-      $column_string = $columns;
+      $column_string = $this->fix_column_name($columns)['name'];
     }
 
 
