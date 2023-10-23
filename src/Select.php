@@ -19,8 +19,12 @@ class Select
     $this->builder = $builder;
   }
 
-  public function all($table)
+  public function all($table = null)
   {
+    if($table == null){
+      $table = $this->TABLE;
+    }
+    
     $this->stringArray[] = "`$table`.*";
     return $this;
   }
