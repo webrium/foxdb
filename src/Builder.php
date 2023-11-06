@@ -612,8 +612,7 @@ class Builder
     $this->select(function ($query) use ($column) {
       $query->count($column)->as('count');
     });
-    // $select = new Select(new $this);
-    // $select->count($column);
+
     return $this->get_value($this->first(), 'count');
   }
 
