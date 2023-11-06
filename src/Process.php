@@ -93,12 +93,13 @@ trait Process{
     return $query;
   }
 
-  public function get_value($param, $name){
+  
+  public function get_value($param, $name, $default = 0){
     if($this->CONFIG->getFetch() == Config::FETCH_CLASS){
-      return $param->{$name};
+      return $param->{$name}??$default;
     }
     else{
-      return $param[$name];
+      return $param[$name]??$default;
     }
   }
 
