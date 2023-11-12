@@ -146,6 +146,35 @@ DB::table('users')->orderBy('id')->each(function ($user) {
 
 <br>
 
+
+
+### Paginate
+
+FoxDB has created a simple method for pagination. In the example below, the number of results is limited to 10 records, and you can get the information by changing the page number.
+
+```PHP
+$page = 1;
+
+$list = DB::table('posts')
+        ->is('active')
+        ->paginate(10, $page);
+```
+
+Its output is a stdClass containing the following properties:
+
+```PHP
+$list->total; // The total number of rows
+$list->count; // The number of rows received on the current page
+$list->per_page; // The number of rows to display on each page
+$list->prev_page; // Previous page number. If not available, its value is false
+$list->next_page; // next page number. If not available, its value is false
+$list->current_page; // Current page number
+$list->data; // List of data rows
+```
+
+<br>
+
+
 ### Aggregates
 
 The query builder also provides a variety of methods for retrieving aggregate values like `count`, `max`, `min`, `avg`, and `sum`. You may call any of these methods after constructing your query:
@@ -729,6 +758,9 @@ DB::table('users')->decrement('votes', 5);
 
 <br>
 
+
+
+
 ## Special features:
 
 You can use the more enjoyable Syntax, which in addition to shortening the code, also helps to make the code more readable
@@ -770,6 +802,7 @@ DB::table('users')
         ->in('id', [1,5,10])
         ->get();
 ```
+
 
 Other methods are also available, such as the following methods:
 
