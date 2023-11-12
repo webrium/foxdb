@@ -223,6 +223,10 @@ class Builder
   private function queryMakerIn($name, array $list, $extra_opration = '')
   {
 
+    if(count($list) == 0){
+      return '';
+    }
+
     $name = $this->fix_column_name($name)['name'];
 
     $values = [];
