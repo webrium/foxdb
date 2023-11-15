@@ -368,9 +368,9 @@ class Schema
      * @param string $type
      * @return $this
      */
-    public function addIndex($name, $columns, $type = 'INDEX')
+    public function addIndex($name,array $columns, $type = 'INDEX')
     {
-        $this->fields[] = "$type `$name` (" . implode(', ', $columns) . ")";
+        $this->fields[] = "ADD $type `$name` (" . implode(', ', $columns) . ")";
         return $this;
     }
 
