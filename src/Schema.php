@@ -266,8 +266,9 @@ class Schema
         $sql .= implode(', ', $this->fields);
         $sql .= ") ENGINE={$engine} DEFAULT CHARSET={$charset} COLLATE={$collate};";
 
-        DB::query($sql);
-        return $sql;
+        $this->reset();
+
+        return DB::query($sql);;
     }
 
     /**
@@ -289,6 +290,9 @@ class Schema
     {
         $sql = "ALTER TABLE `{$this->table}` $this->change_action ";
         $sql .= implode(', ', $this->fields) . " $this->change_position";
+
+        $this->reset();
+
         return DB::query($sql);
     }
 
