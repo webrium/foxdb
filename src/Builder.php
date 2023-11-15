@@ -37,51 +37,54 @@ class Builder
     $this->ACTION = $action;
     return $this;
   }
-  
-  public function getAction(){
+
+  public function getAction()
+  {
     return $this->ACTION;
   }
 
-  public function setPrimaryKey(string $value){
+  public function setPrimaryKey(string $value)
+  {
     $this->PRIMARY_KEY = $value;
   }
 
-  public function setTimestampsStatus(bool $value, $set_created_at_name = false, $set_updated_at_name = false){
+  public function setTimestampsStatus(bool $value, $set_created_at_name = false, $set_updated_at_name = false)
+  {
     $this->TIMESTAMPS = $value;
 
-    if($set_created_at_name){
+    if ($set_created_at_name) {
       $this->CREATED_AT = $set_created_at_name;
     }
 
-    if($set_updated_at_name){
+    if ($set_updated_at_name) {
       $this->UPDATED_AT = $set_updated_at_name;
     }
   }
 
 
   /**
- * Executes a query with optional parameters and returns the result.
- *
- * @param string $query The SQL query to execute.
- * @param array|null $params The optional parameters to bind to the query.
- * @param bool $query_result Whether to fetch the query result or count the affected rows.
- *
- * @return mixed The query result or the number of affected rows, depending on the $query_result parameter.
- */
+   * Executes a query with optional parameters and returns the result.
+   *
+   * @param string $query The SQL query to execute.
+   * @param array|null $params The optional parameters to bind to the query.
+   * @param bool $query_result Whether to fetch the query result or count the affected rows.
+   *
+   * @return mixed The query result or the number of affected rows, depending on the $query_result parameter.
+   */
   protected function execute($query, $params = [], $query_result = false)
   {
     $this->CONFIG->connect();
     $this->PARAMS = $params;
-    
+
     $stmt = $this->CONFIG->pdo()->prepare($query);
     $stmt->execute($this->PARAMS);
-    
+
     if ($query_result) {
-        $result = $stmt->fetchAll($this->CONFIG->getFetch());
+      $result = $stmt->fetchAll($this->CONFIG->getFetch());
     } else {
-        $result = $stmt->rowCount();
+      $result = $stmt->rowCount();
     }
-    
+
     return $result;
   }
 
@@ -151,8 +154,7 @@ class Builder
       foreach ($args as $key => $arg) {
         if ($arg instanceof Raw) {
           $args[$key] = $this->raw_maker($arg->getRawQuery(), $arg->getRawValues());
-        }
-        else{
+        } else {
           $args[$key] = $this->fix_column_name($arg)['name'];
         }
       }
@@ -223,7 +225,7 @@ class Builder
   private function queryMakerIn($name, array $list, $extra_opration = '')
   {
 
-    if(count($list) == 0){
+    if (count($list) == 0) {
       return '';
     }
 
@@ -429,17 +431,17 @@ class Builder
   }
 
 
-  public function and(...$args)
+  public function and (...$args)
   {
     return $this->where(...$args);
   }
 
-  public function or(...$args)
+  public function or (...$args)
   {
     return $this->orWhere(...$args);
   }
 
-  
+
   public function not(...$args)
   {
     return $this->whereNot(...$args);
@@ -450,29 +452,35 @@ class Builder
     return $this->orWhereNot(...$args);
   }
 
-  public function like($column, $value){
+  public function like($column, $value)
+  {
     return $this->where($column, 'like', $value);
   }
 
-  public function orLike($column, $value){
+  public function orLike($column, $value)
+  {
     return $this->orWhere($column, 'like', $value);
   }
 
 
-  public function null($column){
+  public function null($column)
+  {
     return $this->whereNull($column);
   }
 
-  public function orNull($column){
+  public function orNull($column)
+  {
     return $this->orWhereNull($column);
   }
 
-  
-  public function notNull($column){
+
+  public function notNull($column)
+  {
     return $this->whereNotNull($column);
   }
 
-  public function orNotNull($column){
+  public function orNotNull($column)
+  {
     return $this->orWhereNotNull($column);
   }
 
@@ -496,7 +504,7 @@ class Builder
   {
     return $this->whereDate(...$args);
   }
-  
+
   public function orDate(...$args)
   {
     return $this->orWhereDate(...$args);
@@ -546,7 +554,7 @@ class Builder
     return $this->orWhereTime(...$args);
   }
 
-  
+
   public function in($name, array $list)
   {
     return $this->whereIn($name, $list);
@@ -876,16 +884,15 @@ class Builder
 
     $column_string = '';
 
-    if(is_array($columns)){
+    if (is_array($columns)) {
       $array_string = [];
-      
-      foreach($columns as $column){
+
+      foreach ($columns as $column) {
         $array_string[] = $this->fix_column_name($column)['name'];
       }
 
       $column_string = implode(',', $array_string);
-    }
-    else{
+    } else {
       $column_string = $this->fix_column_name($columns)['name'];
     }
 
@@ -910,7 +917,8 @@ class Builder
   }
 
 
-  public function inRandomOrder(){
+  public function inRandomOrder()
+  {
     $this->addToSourceArray('ORDER_BY', "ORDER BY RAND()");
     return $this;
   }
@@ -985,7 +993,7 @@ class Builder
   }
 
 
-  public function paginate(int $take = 15,int $page_number = null)
+  public function paginate(int $take = 15, int $page_number = null)
   {
     if ($page_number <= 0) {
       $page_number = 1;
@@ -997,7 +1005,7 @@ class Builder
 
     $params = new stdClass;
     $params->last_page = round($count / $take);
- 
+
 
     $nextpage = (($page_number) < $params->last_page) ? ($page_number + 1) : false;
 
@@ -1005,8 +1013,8 @@ class Builder
     if ($page_number <= $params->last_page && $page_number > 1) {
       $prevpage = $page_number - 1;
     }
-    
-    
+
+
     $params->total = $count;
     $params->count = count($list);
     $params->per_page = $take;
@@ -1034,7 +1042,7 @@ class Builder
 
     while (count($list)) {
       $return = $callback(array_splice($list, 0, $count));
-      if($return===false){
+      if ($return === false) {
         break;
       }
     }
@@ -1055,7 +1063,7 @@ class Builder
     foreach ($list as $key => $item) {
       $result = $callback($item);
 
-      if($result === false){
+      if ($result === false) {
         break;
       }
     }
@@ -1237,10 +1245,11 @@ class Builder
   }
 
 
-  public function setTimestamps(array &$values, $just_update = false){
-    if($this->TIMESTAMPS){
+  public function setTimestamps(array &$values, $just_update = false)
+  {
+    if ($this->TIMESTAMPS) {
       $now = date('Y-m-d H:i:s');
-      if(!$just_update){
+      if (!$just_update) {
         $values[$this->CREATED_AT] = $now;
       }
       $values[$this->UPDATED_AT] = $now;
@@ -1248,35 +1257,38 @@ class Builder
   }
 
 
-  protected function makeInsertQueryString(array $values){
+  protected function makeInsertQueryString(array $values)
+  {
     $param_name = [];
     $param_value_name_list = [];
 
     $this->setTimestamps($values);
 
-    foreach($values as $name=>$value){
+    foreach ($values as $name => $value) {
       $param_name[] = $this->fix_column_name($name)['name'];
       $param_value_name_list[] = $this->add_to_param_auto_name($value);
     }
 
-    return "INSERT INTO `$this->TABLE` (".implode(',',$param_name).") VALUES (".implode(',',$param_value_name_list).")";
+    return "INSERT INTO `$this->TABLE` (" . implode(',', $param_name) . ") VALUES (" . implode(',', $param_value_name_list) . ")";
   }
 
-  protected function makeUpdateQueryString(array $values){
+  protected function makeUpdateQueryString(array $values)
+  {
     $this->setTimestamps($values, true);
 
     $params = [];
-    foreach($values as $name=>$value){
-      $params[] = $this->fix_column_name($name)['name'].' = '. $this->add_to_param_auto_name($value);
+    foreach ($values as $name => $value) {
+      $params[] = $this->fix_column_name($name)['name'] . ' = ' . $this->add_to_param_auto_name($value);
     }
 
     $extra = $this->makeSourceValueStrign();
 
-    return "UPDATE `$this->TABLE` SET ".implode(',', $params)." $extra";
+    return "UPDATE `$this->TABLE` SET " . implode(',', $params) . " $extra";
   }
 
-  protected function makeUpdateQueryIncrement(string $column, $value = 1, $action = '+'){
-    
+  protected function makeUpdateQueryIncrement(string $column, $value = 1, $action = '+')
+  {
+
     $values = [];
     $this->setTimestamps($values, true);
 
@@ -1285,17 +1297,18 @@ class Builder
     $params = [];
     $params[] = "$column = $column $action $value";
 
-    foreach($values as $name=>$value){
-      $params[] = $this->fix_column_name($name)['name'].' = '. $this->add_to_param_auto_name($value);
+    foreach ($values as $name => $value) {
+      $params[] = $this->fix_column_name($name)['name'] . ' = ' . $this->add_to_param_auto_name($value);
     }
 
     $extra = $this->makeSourceValueStrign();
 
-    return "UPDATE `$this->TABLE` SET ".implode(',', $params)." $extra";
+    return "UPDATE `$this->TABLE` SET " . implode(',', $params) . " $extra";
   }
 
 
-  protected function makeSourceValueStrign(){
+  protected function makeSourceValueStrign()
+  {
     ksort($this->SOURCE_VALUE);
 
     $array = [];
@@ -1308,45 +1321,50 @@ class Builder
     return implode(' ', $array);
   }
 
-  
-  protected function makeDeleteQueryString(){
+
+  protected function makeDeleteQueryString()
+  {
     $extra = $this->makeSourceValueStrign();
     return "DELETE FROM `$this->TABLE`  $extra";
   }
 
 
-  public function insert(array $values, $get_last_insert_id = false){
+  public function insert(array $values, $get_last_insert_id = false)
+  {
     $this->setAction('insert');
     $query = $this->makeInsertQueryString($values);
     $result = $this->execute($query, $this->PARAMS);
 
-    if(!$get_last_insert_id){
+    if (!$get_last_insert_id) {
       return $result;
-    }
-    else{
+    } else {
       return $this->CONFIG->pdo()->lastInsertId();
     }
   }
 
-  public function insertGetId(array $values){
+  public function insertGetId(array $values)
+  {
     return $this->insert($values, true);
   }
 
 
-  public function increment(string $column, int $value = 1){
+  public function increment(string $column, int $value = 1)
+  {
     $query = $this->makeUpdateQueryIncrement($column, $value);
     return $this->execute($query, $this->PARAMS);
   }
 
 
-  public function decrement(string $column, int $value = 1){
+  public function decrement(string $column, int $value = 1)
+  {
     $query = $this->makeUpdateQueryIncrement($column, $value, '-');
     return $this->execute($query, $this->PARAMS);
 
   }
 
 
-  public function update(array $values){
+  public function update(array $values)
+  {
     $this->setAction('update');
     $this->clearSource('DISTINCT');
     $query = $this->makeUpdateQueryString($values);
@@ -1354,13 +1372,20 @@ class Builder
   }
 
 
-  public function delete(){
+  public function delete()
+  {
     $this->setAction('delete');
     $query = $this->makeDeleteQueryString();
     return $this->execute($query, $this->PARAMS);
   }
 
-  public function truncate(){
+  /**
+   * This method truncates all rows from the table named `$this->TABLE`.
+   *
+   * @return \PDOStatement
+   */
+  public function truncate()
+  {
     return $this->execute("TRUNCATE `$this->TABLE`");
   }
 
@@ -1434,12 +1459,13 @@ class Builder
     $this->SOURCE_VALUE[$s_index][] = $value;
   }
 
-  protected function clearSource($struct_name){
+  protected function clearSource($struct_name)
+  {
     $s_index = $this->sql_stractur($struct_name);
     $this->SOURCE_VALUE[$s_index] = [];
   }
-  
-  private function clone()
+
+  private function clone ()
   {
     $db = DB::table($this->TABLE);
     $db->PARAMS = $this->PARAMS;

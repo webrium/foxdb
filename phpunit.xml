@@ -1,0 +1,22 @@
+<phpunit
+        colors="true"
+        bootstrap="./tests/config.php"
+        convertErrorsToExceptions="true"
+        convertNoticesToExceptions="true"
+        convertWarningsToExceptions="true"
+        stopOnError="true"
+        stopOnFailure="false"
+        stopOnIncomplete="false"
+        stopOnSkipped="false"
+        stopOnRisky="false"
+>
+    <testsuites>
+        <testsuite name="Your tests">
+            <file>./tests/SchemaTest.php</file> 
+            <file>./tests/InsertTest.php</file> 
+            <file>./tests/UpdateTest.php</file>
+            <file>./tests/SelectTest.php</file>
+            <file>./tests/TraitTest.php</file>
+        </testsuite>
+    </testsuites>
+</phpunit>

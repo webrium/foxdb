@@ -4,13 +4,20 @@ require_once __DIR__ . '/config.php';
 use Foxdb\DB;
 use PHPUnit\Framework\TestCase;
 
-class WhereTest extends TestCase
+class SelectTest extends TestCase
 {
 
-   public function testWhere()
+   public function testGetByFirst()
    {
       $user = DB::table('users')->where('name', 'BEN')->first();
       $this->assertSame('BEN', $user->name);
+   }
+
+
+   public function testGetList()
+   {
+      $users = DB::table('users')->get();
+      $this->assertCount(7, $users);
    }
 
    public function testJoin()
@@ -29,7 +36,7 @@ class WhereTest extends TestCase
       $this->assertSame(count($list), 3);
    }
 
-   public function testIn()
+   public function testWhereIn()
    {
 
       $oldest_user = DB::table('users')->oldest()->first();
@@ -74,7 +81,7 @@ class WhereTest extends TestCase
       $this->assertSame(intval($price_sum), $_sum);
    }
 
-   public function testLike()
+   public function testWehreLike()
    {
       $list = DB::table('users')->where('phone', 'like', '%003')->get();
       $this->assertSame(1, count($list));
@@ -90,7 +97,7 @@ class WhereTest extends TestCase
       $this->assertSame(2, count($list));
    }
 
-   public function testRand()
+   public function testInRandomOrder()
    {
       $one = DB::table('users')->inRandomOrder()->first();
       $two = DB::table('users')->inRandomOrder()->first();
@@ -114,5 +121,40 @@ class WhereTest extends TestCase
       // Using an array of fields for order
       $books = DB::table('books')->orderBy(['amount', 'price'], 'asc')->get();
       $this->assertLessThan($books[1]->price, $books[0]->price);
+   }
+
+   public function testChunk(){
+      $now = date('Y-m-d H:i:s');
+
+      DB::table('categorys')->select('id')->chunk(2, function($res){
+         $this->assertSame( 2 , count($res));
+      });
+
+      $index = 0;
+      DB::table('categorys')->select('id')->chunk(3, function($res)use(&$index){
+         $index++;
+         if($index==3){
+            $this->assertSame( 2 , count($res));
+         }
+         else{
+            $this->assertSame( 3 , count($res));
+         }
+      });
+
+
+   }
+
+
+   public function testEach()
+   {
+      $now = date('Y-m-d H:i:s');
+      
+      $index = 0;
+      DB::table('categorys')->each(function($category)use(&$index){
+         $index++;
+      });
+      
+   
+      $this->assertSame( 6 , $index);
    }
 }
