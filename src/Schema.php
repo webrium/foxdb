@@ -50,6 +50,17 @@ class Schema
      * @param string $name
      * @return $this
      */
+    public function bigID($name = 'id')
+    {
+        return $this->increments($name, 'BIGINT(20)');
+    }
+
+    /**
+     * Add an auto-incrementing primary key column to the table.
+     *
+     * @param string $name
+     * @return $this
+     */
     public function increments($name = 'id')
     {
         $this->fields[] = "`$name` INT(10) UNSIGNED AUTO_INCREMENT PRIMARY KEY";
@@ -65,6 +76,18 @@ class Schema
     public function integer($name, $length = 11)
     {
         $this->fields[] = "`$name` INT($length)";
+        return $this;
+    }
+
+    /**
+     * Add an big integer column to the table.
+     *
+     * @param string $name
+     * @return $this
+     */
+    public function bigInt($name, $length = 20)
+    {
+        $this->fields[] = "`$name` BIGINT($length)";
         return $this;
     }
 
@@ -268,7 +291,8 @@ class Schema
 
         $this->reset();
 
-        return DB::query($sql);;
+        return DB::query($sql);
+        ;
     }
 
     /**
@@ -368,7 +392,7 @@ class Schema
      * @param string $type
      * @return $this
      */
-    public function addIndex($name,array $columns, $type = 'INDEX')
+    public function addIndex($name, array $columns, $type = 'INDEX')
     {
         $this->fields[] = "ADD $type `$name` (" . implode(', ', $columns) . ")";
         return $this;
