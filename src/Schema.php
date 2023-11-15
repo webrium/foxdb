@@ -7,7 +7,7 @@ class Schema
 {
     private string $table;
     private array $fields = [];
-    private string $change_action;
+    private string $change_action = '';
     private string $change_position = '';
 
     const INDEX_UNIQUE = 'UNIQUE';
@@ -22,6 +22,14 @@ class Schema
     public function __construct($table)
     {
         $this->table = $table;
+    }
+
+
+    private function reset()
+    {
+        $this->fields = [];
+        $this->change_action = '';
+        $this->change_position = '';
     }
 
     /**
@@ -280,7 +288,7 @@ class Schema
     public function change()
     {
         $sql = "ALTER TABLE `{$this->table}` $this->change_action ";
-        $sql .= implode(', ', $this->fields)." $this->change_position";
+        $sql .= implode(', ', $this->fields) . " $this->change_position";
         return DB::query($sql);
     }
 
@@ -329,7 +337,8 @@ class Schema
     }
 
 
-    public function after($column_name){
+    public function after($column_name)
+    {
         $this->change_position = "AFTER `$column_name`";
         return $this;
     }
