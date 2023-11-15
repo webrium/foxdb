@@ -19,7 +19,7 @@
     "php": "^8"
   },
   "scripts": {
-    "test": "./vendor/bin/phpunit --verbose tests"
+    "test": "./vendor/bin/phpunit --verbose --testdox"
   },
   "require-dev": {
     "phpunit/phpunit": "^9",

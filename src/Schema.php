@@ -5,8 +5,14 @@ use Foxdb\DB;
 
 class Schema
 {
-    private $table;
-    private $fields;
+    private string $table;
+    private array $fields = [];
+    private string $change_action = '';
+    private string $change_position = '';
+
+    const INDEX_UNIQUE = 'UNIQUE';
+    const INDEX_PRIMARY = 'PRIMARY';
+    const INDEX = 'INDEX';
 
     /**
      * Constructor method to set the table name.
@@ -16,6 +22,14 @@ class Schema
     public function __construct($table)
     {
         $this->table = $table;
+    }
+
+
+    private function reset()
+    {
+        $this->fields = [];
+        $this->change_action = '';
+        $this->change_position = '';
     }
 
     /**
@@ -28,6 +42,17 @@ class Schema
     {
         $this->fields[] = "`$name` INT(10) UNSIGNED AUTO_INCREMENT PRIMARY KEY";
         return $this;
+    }
+
+    /**
+     * Add an auto-incrementing primary key column to the table.
+     *
+     * @param string $name
+     * @return $this
+     */
+    public function bigID($name = 'id')
+    {
+        return $this->increments($name, 'BIGINT(20)');
     }
 
     /**
@@ -51,6 +76,18 @@ class Schema
     public function integer($name, $length = 11)
     {
         $this->fields[] = "`$name` INT($length)";
+        return $this;
+    }
+
+    /**
+     * Add an big integer column to the table.
+     *
+     * @param string $name
+     * @return $this
+     */
+    public function bigInt($name, $length = 20)
+    {
+        $this->fields[] = "`$name` BIGINT($length)";
         return $this;
     }
 
@@ -252,8 +289,10 @@ class Schema
         $sql .= implode(', ', $this->fields);
         $sql .= ") ENGINE={$engine} DEFAULT CHARSET={$charset} COLLATE={$collate};";
 
-        DB::query($sql);
-        return $sql;
+        $this->reset();
+
+        return DB::query($sql);
+        ;
     }
 
     /**
@@ -273,8 +312,10 @@ class Schema
      */
     public function change()
     {
-        $sql = "ALTER TABLE `{$this->table}` ";
-        $sql .= implode(', ', $this->fields);
+        $sql = "ALTER TABLE `{$this->table}` $this->change_action ";
+        $sql .= implode(', ', $this->fields) . " $this->change_position";
+
+        $this->reset();
 
         return DB::query($sql);
     }
@@ -287,14 +328,10 @@ class Schema
      * @param string|null $after
      * @return $this
      */
-    public function addColumn($name, $type, $after = null)
+    public function addColumn()
     {
-        $column = "`$name` $type";
-        if ($after) {
-            $column .= " AFTER `$after`";
-        }
-        $this->fields[] = $column;
-
+        $this->change_position = '';
+        $this->change_action = 'ADD IF NOT EXISTS';
         return $this;
     }
 
@@ -307,7 +344,8 @@ class Schema
      */
     public function dropColumn($name)
     {
-        $this->fields[] = "DROP COLUMN `$name`";
+        $this->change_position = '';
+        $this->change_action = "DROP COLUMN IF EXISTS `$name`";
         return $this;
     }
 
@@ -319,9 +357,17 @@ class Schema
      * @param string $type
      * @return $this
      */
-    public function renameColumn($name, $new_name, $type)
+    public function renameColumn($current_name)
     {
-        $this->fields[] = "CHANGE `$name` `$new_name` $type";
+        $this->change_position = '';
+        $this->change_action = "CHANGE IF EXISTS `$current_name`";
+        return $this;
+    }
+
+
+    public function after($column_name)
+    {
+        $this->change_position = "AFTER `$column_name`";
         return $this;
     }
 
@@ -332,9 +378,9 @@ class Schema
      * @param string $type
      * @return $this
      */
-    public function modifyColumn($name, $type)
+    public function modifyColumn()
     {
-        $this->fields[] = "MODIFY COLUMN `$name` $type";
+        $this->change_action = 'MODIFY COLUMN';
         return $this;
     }
 
@@ -346,9 +392,9 @@ class Schema
      * @param string $type
      * @return $this
      */
-    public function addIndex($name, $columns, $type = 'INDEX')
+    public function addIndex($name, array $columns, $type = 'INDEX')
     {
-        $this->fields[] = "$type `$name` (" . implode(', ', $columns) . ")";
+        $this->fields[] = "ADD $type `$name` (" . implode(', ', $columns) . ")";
         return $this;
     }
 

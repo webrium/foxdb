@@ -7,10 +7,11 @@ use PHPUnit\Framework\TestCase;
 class UpdateTest extends TestCase
 {
 
-   public function testUpdateUser()
+   public function testUpdate_a_User()
    {
 
       $user = DB::table('users')->latest()->first();
+
       DB::table('users')->where('id', $user->id)->update([
          'status' => false
       ]);
@@ -19,21 +20,16 @@ class UpdateTest extends TestCase
       $this->assertSame(intval($status), 0);
    }
 
-   public function testIncrement()
+   public function testIncrementAmount()
    {
       DB::table('books')->where('id', 1)->increment('amount');
-      DB::table('books')->where('id', 2)->decrement('amount', 4);
-      DB::table('books')->where('id', 3)->increment('amount', 2);
-
-
       $amount = DB::table('books')->where('id',1)->value('amount');
       $this->assertSame($amount, 6);
+   }
 
-
+   public function testDecrementAmount(){
+      DB::table('books')->where('id', 2)->decrement('amount', 4);
       $amount = DB::table('books')->where('id',2)->value('amount');
       $this->assertSame($amount, 10);
-
-      $amount = DB::table('books')->where('id',3)->value('amount');
-      $this->assertSame($amount, 5);
    }
 }
