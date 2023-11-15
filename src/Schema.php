@@ -10,6 +10,10 @@ class Schema
     private string $change_action;
     private string $change_position = '';
 
+    const INDEX_UNIQUE = 'UNIQUE';
+    const INDEX_PRIMARY = 'PRIMARY';
+    const INDEX = 'INDEX';
+
     /**
      * Constructor method to set the table name.
      *
