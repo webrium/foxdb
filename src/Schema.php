@@ -40,7 +40,7 @@ class Schema
      */
     public function id($name = 'id')
     {
-        $this->fields[] = "`$name` INT(10) UNSIGNED AUTO_INCREMENT PRIMARY KEY";
+        $this->increments($name);
         return $this;
     }
 
@@ -61,9 +61,9 @@ class Schema
      * @param string $name
      * @return $this
      */
-    public function increments($name = 'id')
+    public function increments($name = 'id', $type = 'INT(11)')
     {
-        $this->fields[] = "`$name` INT(10) UNSIGNED AUTO_INCREMENT PRIMARY KEY";
+        $this->fields[] = "`$name` $type UNSIGNED AUTO_INCREMENT PRIMARY KEY";
         return $this;
     }
 
