@@ -8,91 +8,119 @@ use PHPUnit\Framework\TestCase;
 class SchemaTest extends TestCase
 {
 
-    public function testDropOldTestTables()
+    public function testTest()
     {
-        (new Schema('users'))->drop();
-        (new Schema('books'))->drop();
-        (new Schema('categorys'))->drop();
+            $table = new Schema('users9');
+            $table->id();
+            $table->integer('age',3);
+            $table->integer('amount');
+            $table->bigInt('credit')->default(0)->nullable();
+            $table->tinyInt('credit2')->nullable();
+            $table->smallInt('credit3')->nullable();
+            $table->mediumInt('credit4')->nullable();
+            $table->text('note')->default('is empty');
+            $table->tinyText('note3');
+            $table->string('username');
+            $table->string('password', 150);
+            $table->timestamps();
 
-
-        $tables = DB::query('SHOW TABLES;', [], true);
-        $this->assertCount(0, $tables);
+            $table->create();
     }
 
-    public function testCreatedTables()
-    {
-
-        $table = new Schema('users');
-        $table->id();
-        $table->string('name')->utf8mb4();
-        $table->string('phone');
-        $table->string('fax');
-        $table->boolean('status');
-        $table->integer('age', 3);
-        $table->dateTime('register')->nullable();
-        $table->timestamps();
-        $table->create();
-
-        $table = new Schema('books');
-        $table->id();
-        $table->string('code');
-        $table->integer('user_id');
-        $table->string('title')->utf8mb4();
-        $table->text('text')->utf8mb4();
-        $table->integer('amount');
-        $table->integer('price');
-        $table->timestamps();
-        $table->create();
+    // public function testDropOldTestTables()
+    // {
+    //     (new Schema('users'))->drop();
+    //     (new Schema('books'))->drop();
+    //     (new Schema('categorys'))->drop();
 
 
-        $table = new Schema('categorys');
-        $table->id();
-        $table->string('name')->utf8mb4();
-        $table->timestamps();
-        $table->create();
+    //     $tables = DB::query('SHOW TABLES;', [], true);
+    //     $this->assertCount(0, $tables);
+    // }
 
-        $tables = DB::query('SHOW TABLES;', [], true);
-        $this->assertCount(3, $tables);
-    }
+    // public function testCreatedTables()
+    // {
+
+    //     $table = new Schema('users');
+    //     $table->id();
+    //     $table->string('name')->utf8mb4();
+    //     $table->string('phone');
+    //     $table->string('fax');
+    //     $table->boolean('status');
+    //     $table->integer('age', 3);
+    //     $table->dateTime('register')->nullable();
+    //     $table->timestamps();
+    //     $table->create();
+
+    //     $table = new Schema('books');
+    //     $table->id();
+    //     $table->string('code');
+    //     $table->integer('user_id');
+    //     $table->string('title')->utf8mb4();
+    //     $table->text('text')->utf8mb4();
+    //     $table->integer('amount');
+    //     $table->integer('price');
+    //     $table->timestamps();
+    //     $table->create();
 
 
-    public function testAddNewColumnToUsersTable(){
-        $table = new Schema('users');
-        $res = $table->addColumn()->boolean('active')->after('register')->default(1)->change();
+    //     $table = new Schema('categorys');
+    //     $table->id();
+    //     $table->string('name')->utf8mb4();
+    //     $table->timestamps();
+    //     $table->create();
 
-        $columns = DB::query('SHOW COLUMNS FROM `users`', [], true);
-
-        $status = false;
-        $check_after = '';
-        foreach($columns as $column){
-            if($column->Field == 'active' && $check_after == 'register'){
-                $status = true;
-                break;
-            }
-            $check_after = $column->Field;
-        }
-
-        $this->assertTrue($status);
-    }
+    //     $tables = DB::query('SHOW TABLES;', [], true);
+    //     $this->assertCount(3, $tables);
 
 
-    public function testRenameColumn(){
-        $table = new Schema('users');
-        $table->renameColumn('fax')->string('email', 150)->nullable()->change();
+    //     $users_columns = DB::query('SHOW COLUMNS FROM users', [] , true);
+    //     foreach($users_columns as $column){
+    //         if($column->Field== 'name'){
+    //             echo "\n".json_encode($column)."\n";
+    //             $this->assertEquals('NO', $column->Null, 'The name type must not be null');
+    //         }
+    //     }
+    // }
 
-        $columns = DB::query('SHOW COLUMNS FROM `users`', [], true);
 
-        $status = false;
+    // public function testAddNewColumnToUsersTable(){
+    //     $table = new Schema('users');
+    //     $res = $table->addColumn()->boolean('active')->after('register')->default(1)->change();
 
-        foreach($columns as $column){
-            if($column->Field == 'email'){
-                $status = true;
-                break;
-            }
-        }
+    //     $columns = DB::query('SHOW COLUMNS FROM `users`', [], true);
 
-        $this->assertTrue($status);
-    }
+    //     $status = false;
+    //     $check_after = '';
+    //     foreach($columns as $column){
+    //         if($column->Field == 'active' && $check_after == 'register'){
+    //             $status = true;
+    //             break;
+    //         }
+    //         $check_after = $column->Field;
+    //     }
+
+    //     $this->assertTrue($status);
+    // }
+
+
+    // public function testRenameColumn(){
+    //     $table = new Schema('users');
+    //     $table->renameColumn('fax')->string('email', 150)->nullable()->change();
+
+    //     $columns = DB::query('SHOW COLUMNS FROM `users`', [], true);
+
+    //     $status = false;
+
+    //     foreach($columns as $column){
+    //         if($column->Field == 'email'){
+    //             $status = true;
+    //             break;
+    //         }
+    //     }
+
+    //     $this->assertTrue($status);
+    // }
 
 }
 

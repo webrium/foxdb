@@ -7,6 +7,8 @@ class Schema
 {
     private string $table;
     private array $fields = [];
+    private array $field_query = [];
+    private bool $field_query_in_process = false;
     private string $change_action = '';
     private string $change_position = '';
 
@@ -22,6 +24,56 @@ class Schema
     public function __construct($table)
     {
         $this->table = $table;
+    }
+
+
+    private function initNewFieldQuery()
+    {
+
+        if ($this->field_query_in_process) {
+            $this->fields[] = $this->field_query;
+        }
+
+        $this->field_query_in_process = true;
+
+        $this->resetFieldQuery();
+    }
+
+    private function resetFieldQuery()
+    {
+        $this->field_query = [
+            'Action' => '',
+            'Field' => '',
+            'Type' => '',
+            'Collation' => '',
+            'Null' => 'NOT NULL',
+            'Default' => '',
+            'Extra' => '',
+            'Position' => ''
+        ];
+    }
+
+    private function setFieldQuery(string $attribute, $value)
+    {
+        if (in_array($attribute, ['Action', 'Field', 'Type', 'Collation', 'Null', 'Default', 'Extra', 'Position']) == false) {
+            throw new \Exception("The field attribute name is not valid", 1);
+        }
+
+        $this->field_query[$attribute] = $value;
+    }
+
+    // private function getFieldQueryString()
+    // {
+    //     return trim(implode(' ', $this->field_query));
+    // }
+
+    private function addToFieldsAndResetFieldQuery()
+    {
+        // $string = $this->getFieldQueryString();
+        // if (empty($string) == false) {
+        $this->fields[] = $this->field_query;
+        // }
+        $this->resetFieldQuery();
     }
 
 
@@ -63,9 +115,76 @@ class Schema
      */
     public function increments($name = 'id', $type = 'INT(11)')
     {
-        $this->fields[] = "`$name` $type UNSIGNED AUTO_INCREMENT PRIMARY KEY";
+        $this->initNewFieldQuery();
+        $this->setFieldQuery('Field', "`$name`");
+        $this->setFieldQuery('Type', "$type UNSIGNED");
+        $this->setFieldQuery('Extra', 'AUTO_INCREMENT PRIMARY KEY');
+
         return $this;
     }
+
+
+    /**
+     * Adds a boolean field to the table.
+     *
+     * @param  string  $name
+     * @return $this
+     */
+    public function boolean($name)
+    {
+        $this->tinyInt($name, 1);
+        $this->default(0);
+
+        return $this;
+    }
+
+
+    /**
+     * Adds a tiny int field to the table.
+     *
+     * @param  string  $name
+     * @return $this
+     */
+    public function tinyInt($name, $length = 4)
+    {
+        $this->initNewFieldQuery();
+        $this->setFieldQuery('Field', "`$name`");
+        $this->setFieldQuery('Type', "TINYINT($length)");
+
+        return $this;
+    }
+
+    /**
+     * Adds a medium int field to the table.
+     *
+     * @param  string  $name
+     * @return $this
+     */
+    public function mediumInt($name, $length = 9)
+    {
+        $this->initNewFieldQuery();
+        $this->setFieldQuery('Field', "`$name`");
+        $this->setFieldQuery('Type', "MEDIUMINT($length)");
+
+        return $this;
+    }
+
+
+    /**
+     * Adds a small int field to the table.
+     *
+     * @param  string  $name
+     * @return $this
+     */
+    public function smallInt($name, $length = 6)
+    {
+        $this->initNewFieldQuery();
+        $this->setFieldQuery('Field', "`$name`");
+        $this->setFieldQuery('Type', "SMALLINT($length)");
+
+        return $this;
+    }
+
 
     /**
      * Add an integer column to the table.
@@ -75,7 +194,9 @@ class Schema
      */
     public function integer($name, $length = 11)
     {
-        $this->fields[] = "`$name` INT($length)";
+        $this->initNewFieldQuery();
+        $this->setFieldQuery('Field', "`$name`");
+        $this->setFieldQuery('Type', "INT($length)");
         return $this;
     }
 
@@ -87,7 +208,10 @@ class Schema
      */
     public function bigInt($name, $length = 20)
     {
-        $this->fields[] = "`$name` BIGINT($length)";
+        $this->initNewFieldQuery();
+        $this->setFieldQuery('Field', "`$name`");
+        $this->setFieldQuery('Type', "BIGINT($length)");
+
         return $this;
     }
 
@@ -100,7 +224,27 @@ class Schema
      */
     public function string($name, $length = 255)
     {
-        $this->fields[] = "`$name` VARCHAR($length)";
+        $this->initNewFieldQuery();
+        $this->setFieldQuery('Field', "`$name`");
+        $this->setFieldQuery('Type', "VARCHAR($length)");
+
+        return $this;
+    }
+
+
+    /**
+     * Add a tiny text column to the table.
+     *
+     * @param string $name
+     * @return $this
+     */
+    public function tinyText($name)
+    {
+
+        $this->initNewFieldQuery();
+        $this->setFieldQuery('Field', "`$name`");
+        $this->setFieldQuery('Type', "TINYTEXT");
+
         return $this;
     }
 
@@ -112,9 +256,31 @@ class Schema
      */
     public function text($name)
     {
-        $this->fields[] = "`$name` TEXT";
+
+        $this->initNewFieldQuery();
+        $this->setFieldQuery('Field', "`$name`");
+        $this->setFieldQuery('Type', "TEXT");
+
         return $this;
     }
+
+
+    /**
+     * Add a medium text column to the table.
+     *
+     * @param string $name
+     * @return $this
+     */
+    public function mediumText($name)
+    {
+
+        $this->initNewFieldQuery();
+        $this->setFieldQuery('Field', "`$name`");
+        $this->setFieldQuery('Type', "MEDIUMTEXT");
+
+        return $this;
+    }
+
 
     /**
      * Add a long text column to the table.
@@ -124,7 +290,10 @@ class Schema
      */
     public function longText($name)
     {
-        $this->fields[] = "`$name` LONGTEXT";
+        $this->initNewFieldQuery();
+        $this->setFieldQuery('Field', "`$name`");
+        $this->setFieldQuery('Type', "LONGTEXT");
+
         return $this;
     }
 
@@ -136,7 +305,10 @@ class Schema
      */
     public function json($name)
     {
-        $this->fields[] = "`$name` JSON";
+        $this->initNewFieldQuery();
+        $this->setFieldQuery('Field', "`$name`");
+        $this->setFieldQuery('Type', "JSON");
+
         return $this;
     }
 
@@ -147,8 +319,21 @@ class Schema
      */
     public function timestamps()
     {
-        $this->fields[] = "`created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP";
-        $this->fields[] = "`updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP";
+        $this->dateTime('created_at')->default('CURRENT_TIMESTAMP', true);
+        $this->timestamp('updated_at')->default('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', true);
+
+        // $this->initNewFieldQuery();
+        // $this->setFieldQuery('Field', "`created_at`");
+        // $this->setFieldQuery('Type', "DATETIME");
+        // $this->setFieldQuery('Default', "DEFAULT CURRENT_TIMESTAMP");
+
+        // $this->initNewFieldQuery();
+        // $this->setFieldQuery('Field', "`updated_at`");
+        // $this->setFieldQuery('Type', "TIMESTAMP");
+        // $this->setFieldQuery('Default', "DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+
+        // $this->fields[] = "`created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP";
+        // $this->fields[] = "`updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP";
         return $this;
     }
 
@@ -161,33 +346,32 @@ class Schema
      */
     public function dateTime($name)
     {
-        $this->fields[] = "`$name` DATETIME";
+        $this->initNewFieldQuery();
+        $this->setFieldQuery('Field', "`$name`");
+        $this->setFieldQuery('Type', "DATETIME");
+
         return $this;
     }
 
 
     /**
-     * Set a default value for the last column added to the table.
+     * Add a dateTime column to the table.
      *
-     * @param string $value
+     * @param string $name
      * @return $this
      */
-    public function default($value)
+    private function timestamp($name)
     {
-        $this->fields[count($this->fields) - 1] .= " DEFAULT '$value'";
+        $this->initNewFieldQuery();
+        $this->setFieldQuery('Field', "`$name`");
+        $this->setFieldQuery('Type', "TIMESTAMP");
+
         return $this;
     }
 
-    /**
-     * Set the last column added to the table as nullable.
-     *
-     * @return $this
-     */
-    public function nullable()
-    {
-        $this->fields[count($this->fields) - 1] .= " NULL";
-        return $this;
-    }
+    
+
+
 
     /**
      * Add a time column to the table.
@@ -197,7 +381,10 @@ class Schema
      */
     public function time($name)
     {
-        $this->fields[] = "`$name` TIME";
+        $this->initNewFieldQuery();
+        $this->setFieldQuery('Field', "`$name`");
+        $this->setFieldQuery('Type', "TIME");
+
         return $this;
     }
 
@@ -209,7 +396,10 @@ class Schema
      */
     public function date($name)
     {
-        $this->fields[] = "`$name` DATE";
+        $this->initNewFieldQuery();
+        $this->setFieldQuery('Field', "`$name`");
+        $this->setFieldQuery('Type', "DATE");
+
         return $this;
     }
 
@@ -220,9 +410,12 @@ class Schema
      * @param string $length
      * @return $this
      */
-    public function float($name, $length = '10,2')
+    public function float($name)
     {
-        $this->fields[] = "`$name` FLOAT($length)";
+        $this->initNewFieldQuery();
+        $this->setFieldQuery('Field', "`$name`");
+        $this->setFieldQuery('Type', "FLOAT");
+
         return $this;
     }
 
@@ -234,7 +427,10 @@ class Schema
      */
     public function year($name)
     {
-        $this->fields[] = "`$name` YEAR(4)";
+        $this->initNewFieldQuery();
+        $this->setFieldQuery('Field', "`$name`");
+        $this->setFieldQuery('Type', 'YEAR(4)');
+
         return $this;
     }
 
@@ -246,9 +442,12 @@ class Schema
      * @param string $length
      * @return $this
      */
-    public function double($name, $length = '10,2')
+    public function double($name)
     {
-        $this->fields[] = "`$name` DOUBLE($length)";
+        $this->initNewFieldQuery();
+        $this->setFieldQuery('Field', "`$name`");
+        $this->setFieldQuery('Type', 'DOUBLE');
+
         return $this;
     }
 
@@ -261,19 +460,41 @@ class Schema
      */
     public function enum($name, array $values)
     {
-        $this->fields[] = "`$name` ENUM('" . implode("','", $values) . "')";
+        $this->initNewFieldQuery();
+        $this->setFieldQuery('Field', "`$name`");
+        $this->setFieldQuery('Type', "ENUM('" . implode("','", $values) . "')");
+
+        return $this;
+    }
+
+
+
+
+    /**
+     * Set a default value for the last column added to the table.
+     *
+     * @param string $value
+     * @return $this
+     */
+    public function default($value, $directly=false)
+    {
+        if($directly){
+            $this->setFieldQuery('Default', "DEFAULT $value");
+        }
+        else{
+            $this->setFieldQuery('Default', "DEFAULT '$value'");
+        }
         return $this;
     }
 
     /**
-     * Adds a boolean field to the table.
+     * Set the last column added to the table as nullable.
      *
-     * @param  string  $name
      * @return $this
      */
-    public function boolean($name)
+    public function nullable()
     {
-        $this->fields[] = "`$name` TINYINT(1) UNSIGNED NOT NULL DEFAULT '0'";
+        $this->setFieldQuery('Null', "NULL");
         return $this;
     }
 
@@ -285,14 +506,32 @@ class Schema
      */
     public function create($engine = 'InnoDB', $charset = 'utf8mb4', $collate = 'utf8mb4_unicode_ci')
     {
+        $this->addToFieldsAndResetFieldQuery();
+
         $sql = "CREATE TABLE IF NOT EXISTS `{$this->table}` (";
-        $sql .= implode(', ', $this->fields);
+        $sql .= $this->generateFieldQueryString();
         $sql .= ") ENGINE={$engine} DEFAULT CHARSET={$charset} COLLATE={$collate};";
 
-        $this->reset();
-
+        // die("$sql\n");
         return DB::query($sql);
-        ;
+    }
+
+    private function generateFieldQueryString(): string
+    {
+
+        foreach ($this->fields as &$field) {
+            $field = implode(' ', $field);
+        }
+
+        return implode(',', $this->fields);
+    }
+
+    private function setActionToAllFieldQuerys(string $action): void
+    {
+
+        foreach ($this->fields as &$field) {
+            $field['Action'] = $action;
+        }
     }
 
     /**
