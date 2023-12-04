@@ -292,7 +292,6 @@ class Schema
         $this->reset();
 
         return DB::query($sql);
-        ;
     }
 
     /**
