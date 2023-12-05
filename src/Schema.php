@@ -497,36 +497,7 @@ class Schema
     }
 
 
-    /**
-     * Generate a CREATE TABLE query for the current table and fields.
-     *
-     * @return string
-     */
-    public function create($engine = 'InnoDB', $charset = 'utf8mb4', $collate = 'utf8mb4_unicode_ci')
-    {
-        $this->addToFieldsAndResetFieldQuery();
 
-        $sql = "CREATE TABLE IF NOT EXISTS `{$this->table}` (";
-        $sql .= $this->generateFieldQueryString();
-        $sql .= ") ENGINE={$engine} DEFAULT CHARSET={$charset} COLLATE={$collate};";
-
-        // die("$sql\n");
-        return DB::query($sql);
-    }
-
-    /**
-     * Generate an ALTER TABLE query for the current table and fields.
-     *
-     * @return string
-     */
-    public function change()
-    {
-        $this->addToFieldsAndResetFieldQuery();
-        $sql = "ALTER TABLE `{$this->table}` ";
-        $sql .= $this->generateFieldQueryString();
-
-        return DB::query($sql);
-    }
 
 
     private function generateFieldQueryString(): string
@@ -600,6 +571,7 @@ class Schema
      */
     public function renameColumn($current_name)
     {
+        // $this->setFieldQuery('Action', "CHANGE IF EXISTS `$current_name`");
         $this->change_action = "CHANGE IF EXISTS `$current_name`";
         return $this;
     }
@@ -608,6 +580,51 @@ class Schema
     public function after($column_name)
     {
         $this->setFieldQuery('Position', "AFTER `$column_name`");
+        return $this;
+    }
+
+
+        /**
+     * Drop an index from the table.
+     *
+     * @param string $name
+     * @return $this
+     */
+    public function dropIndex($name)
+    {
+        $this->setFieldQuery('Action', 'DROP INDEX');
+        $this->setFieldQuery('Field', "`$name`");
+        // $this->fields[] = " ";
+
+        return $this;
+    }
+
+    /**
+     * Add a foreign key constraint to the table.
+     *
+     * @param string $name
+     * @param string $column
+     * @param string $table
+     * @param string $references
+     * @param string $onDelete
+     * @param string $onUpdate
+     * @return $this
+     */
+    public function addForeign($name, $column, $table, $references, $onDelete = 'CASCADE', $onUpdate = 'CASCADE')
+    {
+        $this->fields[] = "CONSTRAINT `$name` FOREIGN KEY (`$column`) REFERENCES `$table` (`$references`) ON DELETE $onDelete ON UPDATE $onUpdate";
+        return $this;
+    }
+
+    /**
+     * Drop a foreign key constraint from the table.
+     *
+     * @param string $name
+     * @return $this
+     */
+    public function dropForeign($name)
+    {
+        $this->fields[] = "DROP FOREIGN KEY `$name`";
         return $this;
     }
 
@@ -660,53 +677,48 @@ class Schema
      */
     public function addIndex($name, array $columns, $type = 'INDEX')
     {
-        // $this->setFieldQuery('Action', 'ADD');
+
         $this->setFieldQuery('Action', "ADD $type");
         $this->setFieldQuery('Field', "`$name`");
         $this->setFieldQuery('Extra', "(" . implode(', ', $columns) . ")");
+        $this->setFieldQuery('Null', '');
 
-        // $this->fields[] = "ADD $type `$name` (" . implode(', ', $columns) . ")";
         return $this;
     }
 
+
+
+
+
     /**
-     * Drop an index from the table.
+     * Generate a CREATE TABLE query for the current table and fields.
      *
-     * @param string $name
-     * @return $this
+     * @return string
      */
-    public function dropIndex($name)
+    public function create($engine = 'InnoDB', $charset = 'utf8mb4', $collate = 'utf8mb4_unicode_ci')
     {
-        $this->fields[] = "DROP INDEX `$name`";
-        return $this;
+        $this->addToFieldsAndResetFieldQuery();
+
+        $sql = "CREATE TABLE IF NOT EXISTS `{$this->table}` (";
+        $sql .= $this->generateFieldQueryString();
+        $sql .= ") ENGINE={$engine} DEFAULT CHARSET={$charset} COLLATE={$collate};";
+
+        $this->reset();
+        return DB::query($sql);
     }
 
     /**
-     * Add a foreign key constraint to the table.
+     * Generate an ALTER TABLE query for the current table and fields.
      *
-     * @param string $name
-     * @param string $column
-     * @param string $table
-     * @param string $references
-     * @param string $onDelete
-     * @param string $onUpdate
-     * @return $this
+     * @return string
      */
-    public function addForeign($name, $column, $table, $references, $onDelete = 'CASCADE', $onUpdate = 'CASCADE')
+    public function change()
     {
-        $this->fields[] = "CONSTRAINT `$name` FOREIGN KEY (`$column`) REFERENCES `$table` (`$references`) ON DELETE $onDelete ON UPDATE $onUpdate";
-        return $this;
-    }
+        $this->addToFieldsAndResetFieldQuery();
+        $sql = "ALTER TABLE `{$this->table}` ";
+        $sql .= $this->generateFieldQueryString();
 
-    /**
-     * Drop a foreign key constraint from the table.
-     *
-     * @param string $name
-     * @return $this
-     */
-    public function dropForeign($name)
-    {
-        $this->fields[] = "DROP FOREIGN KEY `$name`";
-        return $this;
+        $this->reset();
+        return DB::query($sql);
     }
 }

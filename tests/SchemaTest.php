@@ -125,6 +125,7 @@ class SchemaTest extends TestCase
     public function testAddIndex(){
         $table = new Schema('users');
         $table->addIndex('phone',['phone'], Schema::INDEX_UNIQUE)->change();
+        $table->addIndex('email',['email'])->change();
 
         $columns = DB::query('SHOW COLUMNS FROM `users`', [], true);
 
@@ -138,6 +139,38 @@ class SchemaTest extends TestCase
         }
 
         $this->assertTrue($status);
+    }
+
+    public function testDropIndex(){
+        $table = new Schema('users');
+
+        $columns = DB::query('SHOW COLUMNS FROM `users`', [], true);
+
+        $status = false;
+
+        foreach($columns as $column){
+            if($column->Field == 'email' && $column->Key=='MUL'){
+                $status = true;
+                break;
+            }
+        }
+
+        $this->assertTrue($status);
+
+        $table->dropIndex('email')->change();
+
+        $columns = DB::query('SHOW COLUMNS FROM `users`', [], true);
+
+        $status = false;
+
+        foreach($columns as $column){
+            if($column->Field == 'email' && $column->Key=='MUL'){
+                $status = true;
+                break;
+            }
+        }
+
+        $this->assertFalse($status);
     }
 
 }
