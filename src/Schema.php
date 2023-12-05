@@ -1,4 +1,5 @@
 <?php
+
 namespace Foxdb;
 
 use Foxdb\DB;
@@ -10,7 +11,6 @@ class Schema
     private array $field_query = [];
     private bool $field_query_in_process = false;
     private string $change_action = '';
-    private string $change_position = '';
 
     const INDEX_UNIQUE = 'UNIQUE';
     const INDEX_PRIMARY = 'PRIMARY';
@@ -81,7 +81,6 @@ class Schema
     {
         $this->fields = [];
         $this->change_action = '';
-        $this->change_position = '';
     }
 
     /**
@@ -369,7 +368,7 @@ class Schema
         return $this;
     }
 
-    
+
 
 
 
@@ -476,12 +475,11 @@ class Schema
      * @param string $value
      * @return $this
      */
-    public function default($value, $directly=false)
+    public function default($value, $directly = false)
     {
-        if($directly){
+        if ($directly) {
             $this->setFieldQuery('Default', "DEFAULT $value");
-        }
-        else{
+        } else {
             $this->setFieldQuery('Default', "DEFAULT '$value'");
         }
         return $this;
@@ -516,8 +514,26 @@ class Schema
         return DB::query($sql);
     }
 
+    /**
+     * Generate an ALTER TABLE query for the current table and fields.
+     *
+     * @return string
+     */
+    public function change()
+    {
+        $this->addToFieldsAndResetFieldQuery();
+        $sql = "ALTER TABLE `{$this->table}` ";
+        $sql .= $this->generateFieldQueryString();
+
+        return DB::query($sql);
+    }
+
+
     private function generateFieldQueryString(): string
     {
+        if (empty($this->change_action) == false) {
+            $this->setActionToAllFieldQuerys($this->change_action);
+        }
 
         foreach ($this->fields as &$field) {
             $field = implode(' ', $field);
@@ -525,6 +541,7 @@ class Schema
 
         return implode(',', $this->fields);
     }
+
 
     private function setActionToAllFieldQuerys(string $action): void
     {
@@ -544,20 +561,7 @@ class Schema
         return DB::query("DROP TABLE IF EXISTS `{$this->table}`;");
     }
 
-    /**
-     * Generate an ALTER TABLE query for the current table and fields.
-     *
-     * @return string
-     */
-    public function change()
-    {
-        $sql = "ALTER TABLE `{$this->table}` $this->change_action ";
-        $sql .= implode(', ', $this->fields) . " $this->change_position";
 
-        $this->reset();
-
-        return DB::query($sql);
-    }
 
     /**
      * Add a new column to the table.
@@ -569,7 +573,6 @@ class Schema
      */
     public function addColumn()
     {
-        $this->change_position = '';
         $this->change_action = 'ADD IF NOT EXISTS';
         return $this;
     }
@@ -583,7 +586,6 @@ class Schema
      */
     public function dropColumn($name)
     {
-        $this->change_position = '';
         $this->change_action = "DROP COLUMN IF EXISTS `$name`";
         return $this;
     }
@@ -598,7 +600,6 @@ class Schema
      */
     public function renameColumn($current_name)
     {
-        $this->change_position = '';
         $this->change_action = "CHANGE IF EXISTS `$current_name`";
         return $this;
     }
@@ -606,7 +607,33 @@ class Schema
 
     public function after($column_name)
     {
-        $this->change_position = "AFTER `$column_name`";
+        $this->setFieldQuery('Position', "AFTER `$column_name`");
+        return $this;
+    }
+
+
+    /**
+     * Set the character set and collation of the last added column in the $fields array to utf8mb4.
+     *
+     * @param string $collation The collation to use. Default value is utf8mb4_unicode_ci.
+     * @return Schema The current instance of the Schema class.
+     */
+    public function utf8mb4($collation = 'utf8mb4_unicode_ci')
+    {
+        $this->setFieldQuery('Collation', "CHARACTER SET utf8mb4 COLLATE $collation");
+        return $this;
+    }
+
+
+    /**
+     * Set the character set and collation of the last added column in the $fields array to utf8.
+     *
+     * @param string $collation The collation to use. Default value is utf8_unicode_ci.
+     * @return Schema The current instance of the Schema class.
+     */
+    public function utf8($collation = 'utf8_unicode_ci')
+    {
+        $this->setFieldQuery('Collation', "CHARACTER SET utf8 COLLATE $collation");
         return $this;
     }
 
@@ -633,7 +660,12 @@ class Schema
      */
     public function addIndex($name, array $columns, $type = 'INDEX')
     {
-        $this->fields[] = "ADD $type `$name` (" . implode(', ', $columns) . ")";
+        // $this->setFieldQuery('Action', 'ADD');
+        $this->setFieldQuery('Action', "ADD $type");
+        $this->setFieldQuery('Field', "`$name`");
+        $this->setFieldQuery('Extra', "(" . implode(', ', $columns) . ")");
+
+        // $this->fields[] = "ADD $type `$name` (" . implode(', ', $columns) . ")";
         return $this;
     }
 
@@ -675,32 +707,6 @@ class Schema
     public function dropForeign($name)
     {
         $this->fields[] = "DROP FOREIGN KEY `$name`";
-        return $this;
-    }
-
-
-    /**
-     * Set the character set and collation of the last added column in the $fields array to utf8mb4.
-     *
-     * @param string $collation The collation to use. Default value is utf8mb4_unicode_ci.
-     * @return Schema The current instance of the Schema class.
-     */
-    public function utf8mb4($collation = 'utf8mb4_unicode_ci')
-    {
-        $this->fields[count($this->fields) - 1] .= " CHARACTER SET utf8mb4 COLLATE $collation";
-        return $this;
-    }
-
-
-    /**
-     * Set the character set and collation of the last added column in the $fields array to utf8.
-     *
-     * @param string $collation The collation to use. Default value is utf8_unicode_ci.
-     * @return Schema The current instance of the Schema class.
-     */
-    public function utf8($collation = 'utf8_unicode_ci')
-    {
-        $this->fields[count($this->fields) - 1] .= " CHARACTER SET utf8 COLLATE $collation";
         return $this;
     }
 }
