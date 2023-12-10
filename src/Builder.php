@@ -888,16 +888,23 @@ class Builder
       $array_string = [];
 
       foreach ($columns as $column) {
-        $array_string[] = $this->fix_column_name($column)['name'];
+
+        if(is_array($column) && count($column)==2){
+          $array_string[] = $this->fix_column_name($column[0])['name']." ".$column[1];
+        }
+        else{
+          $array_string[] = $this->fix_column_name($column)['name']." $direction";
+        }
       }
 
       $column_string = implode(',', $array_string);
+      $this->addToSourceArray('ORDER_BY', "ORDER BY $column_string");
     } else {
       $column_string = $this->fix_column_name($columns)['name'];
+      $this->addToSourceArray('ORDER_BY', "ORDER BY $column_string $direction");
     }
 
 
-    $this->addToSourceArray('ORDER_BY', "ORDER BY $column_string $direction");
     return $this;
   }
 
