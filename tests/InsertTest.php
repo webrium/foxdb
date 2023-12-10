@@ -43,11 +43,11 @@ class InsertTest extends TestCase
         $last_user = DB::table('users')->latest('id')->first();
 
         $book_params = [
-            ['user_id' => $last_user->id, 'title' => 'First title', 'text' => 'test', 'amount' => 5, 'price' => 55000, 'created_at' => $now, 'updated_at' => $now],
-            ['user_id' => $last_user->id - 1, 'title' => 'Second title', 'text' => 'test', 'amount' => 14, 'price' => 70000, 'created_at' => $now, 'updated_at' => $now],
-            ['user_id' => $last_user->id - 2, 'title' => 'Third title', 'text' => 'test', 'amount' => 3, 'price' => 188000, 'created_at' => $now, 'updated_at' => $now],
-            ['user_id' => 0, 'title' => 'test 1', 'text' => 'test', 'amount' => 0, 'price' => 178000, 'created_at' => $now, 'updated_at' => $now],
-            ['user_id' => 0, 'title' => 'test 2', 'text' => 'test', 'amount' => 0, 'price' => 168000, 'created_at' => $now, 'updated_at' => $now],
+            ['user_id' => $last_user->id,     'code'=>'AS1', 'title' => 'First title', 'text' => 'test', 'amount' => 5, 'price' => 55000, 'created_at' => $now, 'updated_at' => $now],
+            ['user_id' => $last_user->id - 1, 'code'=>'AS2', 'title' => 'Second title', 'text' => 'test', 'amount' => 14, 'price' => 70000, 'created_at' => $now, 'updated_at' => $now],
+            ['user_id' => $last_user->id - 2, 'code'=>'AS3', 'title' => 'Third title', 'text' => 'test', 'amount' => 3, 'price' => 188000, 'created_at' => $now, 'updated_at' => $now],
+            ['user_id' => 0, 'code'=>'AS4', 'title' => 'test 1', 'text' => 'test', 'amount' => 0, 'price' => 178000, 'created_at' => $now, 'updated_at' => $now],
+            ['user_id' => 0,'code'=>'AS5', 'title' => 'test 2', 'text' => 'test', 'amount' => 0, 'price' => 168000, 'created_at' => $now, 'updated_at' => $now],
         ];
 
         foreach ($book_params as $user) {
