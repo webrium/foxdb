@@ -8,9 +8,20 @@ class Schema
 {
     private string $table;
     private array $fields = [];
-    private array $field_query = [];
-    private bool $field_query_in_process = false;
+    private array $field_query = [
+        'Action' => '',
+        'Field' => '',
+        'Type' => '',
+        'Collation' => '',
+        'Null' => false,
+        'Default' => '',
+        'Extra' => '',
+        'Position' => ''
+    ];
+
     private string $change_action = '';
+
+    private bool $init_field_query = false;
 
     const INDEX_UNIQUE = 'UNIQUE';
     const INDEX_PRIMARY = 'PRIMARY';
@@ -27,53 +38,54 @@ class Schema
     }
 
 
-    private function initNewFieldQuery()
+    private function addExistsQueryToFieldsAndRest()
     {
 
-        if ($this->field_query_in_process) {
+        if ($this->init_field_query) {
             $this->fields[] = $this->field_query;
+
+            $this->resetFieldQuery();
         }
-
-        $this->field_query_in_process = true;
-
-        $this->resetFieldQuery();
     }
 
-    private function resetFieldQuery()
+    private function resetFieldQuery(bool $force = false)
     {
+
         $this->field_query = [
             'Action' => '',
             'Field' => '',
             'Type' => '',
             'Collation' => '',
-            'Null' => 'NOT NULL',
+            'Null' => false,
             'Default' => '',
             'Extra' => '',
             'Position' => ''
         ];
+
+
+        $this->init_field_query = false;
     }
 
     private function setFieldQuery(string $attribute, $value)
     {
-        if (in_array($attribute, ['Action', 'Field', 'Type', 'Collation', 'Null', 'Default', 'Extra', 'Position']) == false) {
+        if (in_array(
+            $attribute,
+            [
+                'Action',
+                'Field',
+                'Type',
+                'Collation',
+                'Null',
+                'Default',
+                'Extra',
+                'Position'
+            ]
+        ) == false) {
             throw new \Exception("The field attribute name is not valid", 1);
         }
 
         $this->field_query[$attribute] = $value;
-    }
-
-    // private function getFieldQueryString()
-    // {
-    //     return trim(implode(' ', $this->field_query));
-    // }
-
-    private function addToFieldsAndResetFieldQuery()
-    {
-        // $string = $this->getFieldQueryString();
-        // if (empty($string) == false) {
-        $this->fields[] = $this->field_query;
-        // }
-        $this->resetFieldQuery();
+        $this->init_field_query = true;
     }
 
 
@@ -81,6 +93,7 @@ class Schema
     {
         $this->fields = [];
         $this->change_action = '';
+        $this->resetFieldQuery();
     }
 
     /**
@@ -114,7 +127,7 @@ class Schema
      */
     public function increments($name = 'id', $type = 'INT(11)')
     {
-        $this->initNewFieldQuery();
+        $this->addExistsQueryToFieldsAndRest();
         $this->setFieldQuery('Field', "`$name`");
         $this->setFieldQuery('Type', "$type UNSIGNED");
         $this->setFieldQuery('Extra', 'AUTO_INCREMENT PRIMARY KEY');
@@ -146,7 +159,7 @@ class Schema
      */
     public function tinyInt($name, $length = 4)
     {
-        $this->initNewFieldQuery();
+        $this->addExistsQueryToFieldsAndRest();
         $this->setFieldQuery('Field', "`$name`");
         $this->setFieldQuery('Type', "TINYINT($length)");
 
@@ -161,7 +174,7 @@ class Schema
      */
     public function mediumInt($name, $length = 9)
     {
-        $this->initNewFieldQuery();
+        $this->addExistsQueryToFieldsAndRest();
         $this->setFieldQuery('Field', "`$name`");
         $this->setFieldQuery('Type', "MEDIUMINT($length)");
 
@@ -177,7 +190,7 @@ class Schema
      */
     public function smallInt($name, $length = 6)
     {
-        $this->initNewFieldQuery();
+        $this->addExistsQueryToFieldsAndRest();
         $this->setFieldQuery('Field', "`$name`");
         $this->setFieldQuery('Type', "SMALLINT($length)");
 
@@ -193,7 +206,7 @@ class Schema
      */
     public function integer($name, $length = 11)
     {
-        $this->initNewFieldQuery();
+        $this->addExistsQueryToFieldsAndRest();
         $this->setFieldQuery('Field', "`$name`");
         $this->setFieldQuery('Type', "INT($length)");
         return $this;
@@ -207,7 +220,7 @@ class Schema
      */
     public function bigInt($name, $length = 20)
     {
-        $this->initNewFieldQuery();
+        $this->addExistsQueryToFieldsAndRest();
         $this->setFieldQuery('Field', "`$name`");
         $this->setFieldQuery('Type', "BIGINT($length)");
 
@@ -223,7 +236,7 @@ class Schema
      */
     public function string($name, $length = 255)
     {
-        $this->initNewFieldQuery();
+        $this->addExistsQueryToFieldsAndRest();
         $this->setFieldQuery('Field', "`$name`");
         $this->setFieldQuery('Type', "VARCHAR($length)");
 
@@ -240,7 +253,7 @@ class Schema
     public function tinyText($name)
     {
 
-        $this->initNewFieldQuery();
+        $this->addExistsQueryToFieldsAndRest();
         $this->setFieldQuery('Field', "`$name`");
         $this->setFieldQuery('Type', "TINYTEXT");
 
@@ -256,7 +269,7 @@ class Schema
     public function text($name)
     {
 
-        $this->initNewFieldQuery();
+        $this->addExistsQueryToFieldsAndRest();
         $this->setFieldQuery('Field', "`$name`");
         $this->setFieldQuery('Type', "TEXT");
 
@@ -273,7 +286,7 @@ class Schema
     public function mediumText($name)
     {
 
-        $this->initNewFieldQuery();
+        $this->addExistsQueryToFieldsAndRest();
         $this->setFieldQuery('Field', "`$name`");
         $this->setFieldQuery('Type', "MEDIUMTEXT");
 
@@ -289,7 +302,7 @@ class Schema
      */
     public function longText($name)
     {
-        $this->initNewFieldQuery();
+        $this->addExistsQueryToFieldsAndRest();
         $this->setFieldQuery('Field', "`$name`");
         $this->setFieldQuery('Type', "LONGTEXT");
 
@@ -304,7 +317,7 @@ class Schema
      */
     public function json($name)
     {
-        $this->initNewFieldQuery();
+        $this->addExistsQueryToFieldsAndRest();
         $this->setFieldQuery('Field', "`$name`");
         $this->setFieldQuery('Type', "JSON");
 
@@ -320,19 +333,6 @@ class Schema
     {
         $this->dateTime('created_at')->default('CURRENT_TIMESTAMP', true);
         $this->timestamp('updated_at')->default('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', true);
-
-        // $this->initNewFieldQuery();
-        // $this->setFieldQuery('Field', "`created_at`");
-        // $this->setFieldQuery('Type', "DATETIME");
-        // $this->setFieldQuery('Default', "DEFAULT CURRENT_TIMESTAMP");
-
-        // $this->initNewFieldQuery();
-        // $this->setFieldQuery('Field', "`updated_at`");
-        // $this->setFieldQuery('Type', "TIMESTAMP");
-        // $this->setFieldQuery('Default', "DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
-
-        // $this->fields[] = "`created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP";
-        // $this->fields[] = "`updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP";
         return $this;
     }
 
@@ -345,7 +345,7 @@ class Schema
      */
     public function dateTime($name)
     {
-        $this->initNewFieldQuery();
+        $this->addExistsQueryToFieldsAndRest();
         $this->setFieldQuery('Field', "`$name`");
         $this->setFieldQuery('Type', "DATETIME");
 
@@ -361,15 +361,12 @@ class Schema
      */
     private function timestamp($name)
     {
-        $this->initNewFieldQuery();
+        $this->addExistsQueryToFieldsAndRest();
         $this->setFieldQuery('Field', "`$name`");
         $this->setFieldQuery('Type', "TIMESTAMP");
 
         return $this;
     }
-
-
-
 
 
     /**
@@ -380,7 +377,7 @@ class Schema
      */
     public function time($name)
     {
-        $this->initNewFieldQuery();
+        $this->addExistsQueryToFieldsAndRest();
         $this->setFieldQuery('Field', "`$name`");
         $this->setFieldQuery('Type', "TIME");
 
@@ -395,7 +392,7 @@ class Schema
      */
     public function date($name)
     {
-        $this->initNewFieldQuery();
+        $this->addExistsQueryToFieldsAndRest();
         $this->setFieldQuery('Field', "`$name`");
         $this->setFieldQuery('Type', "DATE");
 
@@ -411,7 +408,7 @@ class Schema
      */
     public function float($name)
     {
-        $this->initNewFieldQuery();
+        $this->addExistsQueryToFieldsAndRest();
         $this->setFieldQuery('Field', "`$name`");
         $this->setFieldQuery('Type', "FLOAT");
 
@@ -426,7 +423,7 @@ class Schema
      */
     public function year($name)
     {
-        $this->initNewFieldQuery();
+        $this->addExistsQueryToFieldsAndRest();
         $this->setFieldQuery('Field', "`$name`");
         $this->setFieldQuery('Type', 'YEAR(4)');
 
@@ -443,7 +440,7 @@ class Schema
      */
     public function double($name)
     {
-        $this->initNewFieldQuery();
+        $this->addExistsQueryToFieldsAndRest();
         $this->setFieldQuery('Field', "`$name`");
         $this->setFieldQuery('Type', 'DOUBLE');
 
@@ -459,7 +456,7 @@ class Schema
      */
     public function enum($name, array $values)
     {
-        $this->initNewFieldQuery();
+        $this->addExistsQueryToFieldsAndRest();
         $this->setFieldQuery('Field', "`$name`");
         $this->setFieldQuery('Type', "ENUM('" . implode("','", $values) . "')");
 
@@ -507,6 +504,10 @@ class Schema
         }
 
         foreach ($this->fields as &$field) {
+            if ($field['Null'] === false) {
+                $field['Null'] = 'NOT NULL';
+            }
+
             $field = implode(' ', $field);
         }
 
@@ -544,6 +545,7 @@ class Schema
      */
     public function addColumn()
     {
+        $this->addExistsQueryToFieldsAndRest();
         $this->change_action = 'ADD IF NOT EXISTS';
         return $this;
     }
@@ -557,7 +559,9 @@ class Schema
      */
     public function dropColumn($name)
     {
-        $this->change_action = "DROP COLUMN IF EXISTS `$name`";
+        $this->addExistsQueryToFieldsAndRest();
+        $this->setFieldQuery('Action', "DROP COLUMN IF EXISTS `$name`");
+        $this->setFieldQuery('Null', '');
         return $this;
     }
 
@@ -571,7 +575,7 @@ class Schema
      */
     public function renameColumn($current_name)
     {
-        // $this->setFieldQuery('Action', "CHANGE IF EXISTS `$current_name`");
+        $this->addExistsQueryToFieldsAndRest();
         $this->change_action = "CHANGE IF EXISTS `$current_name`";
         return $this;
     }
@@ -584,7 +588,7 @@ class Schema
     }
 
 
-        /**
+    /**
      * Drop an index from the table.
      *
      * @param string $name
@@ -592,41 +596,45 @@ class Schema
      */
     public function dropIndex($name)
     {
+        $this->addExistsQueryToFieldsAndRest();
         $this->setFieldQuery('Action', 'DROP INDEX');
         $this->setFieldQuery('Field', "`$name`");
-        // $this->fields[] = " ";
+        $this->setFieldQuery('Null', '');
 
         return $this;
     }
 
-    /**
-     * Add a foreign key constraint to the table.
-     *
-     * @param string $name
-     * @param string $column
-     * @param string $table
-     * @param string $references
-     * @param string $onDelete
-     * @param string $onUpdate
-     * @return $this
-     */
-    public function addForeign($name, $column, $table, $references, $onDelete = 'CASCADE', $onUpdate = 'CASCADE')
-    {
-        $this->fields[] = "CONSTRAINT `$name` FOREIGN KEY (`$column`) REFERENCES `$table` (`$references`) ON DELETE $onDelete ON UPDATE $onUpdate";
-        return $this;
-    }
 
-    /**
-     * Drop a foreign key constraint from the table.
-     *
-     * @param string $name
-     * @return $this
-     */
-    public function dropForeign($name)
-    {
-        $this->fields[] = "DROP FOREIGN KEY `$name`";
-        return $this;
-    }
+    // for later
+    // /**
+    //  * Add a foreign key constraint to the table.
+    //  *
+    //  * @param string $name
+    //  * @param string $column
+    //  * @param string $table
+    //  * @param string $references
+    //  * @param string $onDelete
+    //  * @param string $onUpdate
+    //  * @return $this
+    //  */
+    // public function addForeign($name, $column, $table, $references, $onDelete = 'CASCADE', $onUpdate = 'CASCADE')
+    // {
+    //     $this->setFieldQuery('Action', "CONSTRAINT `$name` FOREIGN KEY (`$column`) REFERENCES `$table` (`$references`) ON DELETE $onDelete ON UPDATE $onUpdate");
+    //     // $this->fields[] = ;
+    //     return $this;
+    // }
+
+    // /**
+    //  * Drop a foreign key constraint from the table.
+    //  *
+    //  * @param string $name
+    //  * @return $this
+    //  */
+    // public function dropForeign($name)
+    // {
+    //     $this->fields[] = "DROP FOREIGN KEY `$name`";
+    //     return $this;
+    // }
 
 
     /**
@@ -663,7 +671,10 @@ class Schema
      */
     public function modifyColumn()
     {
+        $this->addExistsQueryToFieldsAndRest();
         $this->change_action = 'MODIFY COLUMN';
+        $this->setFieldQuery('Null', '');
+        $this->init_field_query = false;
         return $this;
     }
 
@@ -672,12 +683,11 @@ class Schema
      *
      * @param string $name
      * @param array $columns
-     * @param string $type
-     * @return $this
+     * @param string $type @return $this
      */
     public function addIndex($name, array $columns, $type = 'INDEX')
     {
-
+        $this->addExistsQueryToFieldsAndRest();
         $this->setFieldQuery('Action', "ADD $type");
         $this->setFieldQuery('Field', "`$name`");
         $this->setFieldQuery('Extra', "(" . implode(', ', $columns) . ")");
@@ -689,7 +699,6 @@ class Schema
 
 
 
-
     /**
      * Generate a CREATE TABLE query for the current table and fields.
      *
@@ -697,7 +706,7 @@ class Schema
      */
     public function create($engine = 'InnoDB', $charset = 'utf8mb4', $collate = 'utf8mb4_unicode_ci')
     {
-        $this->addToFieldsAndResetFieldQuery();
+        $this->addExistsQueryToFieldsAndRest();
 
         $sql = "CREATE TABLE IF NOT EXISTS `{$this->table}` (";
         $sql .= $this->generateFieldQueryString();
@@ -712,9 +721,9 @@ class Schema
      *
      * @return string
      */
-    public function change()
+    public function change($b=false)
     {
-        $this->addToFieldsAndResetFieldQuery();
+        $this->addExistsQueryToFieldsAndRest();
         $sql = "ALTER TABLE `{$this->table}` ";
         $sql .= $this->generateFieldQueryString();
 

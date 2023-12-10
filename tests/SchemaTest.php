@@ -8,6 +8,16 @@ use PHPUnit\Framework\TestCase;
 class SchemaTest extends TestCase
 {
 
+  // public function testModify(){
+
+  //   $table = new Schema('users');
+  //   $table->addColumn()->integer('ttt')->change();
+  //   $table->modifyColumn()->string('ttt')->change(true);
+
+  //   // die;
+  // }
+
+
     // public function testTest()
     // {
     //         $table = new Schema('users9');
@@ -32,15 +42,15 @@ class SchemaTest extends TestCase
         (new Schema('users'))->drop();
         (new Schema('books'))->drop();
         (new Schema('categorys'))->drop();
-
-
+    
+    
         $tables = DB::query('SHOW TABLES;', [], true);
         $this->assertCount(0, $tables);
     }
-
+    
     public function testCreatedTables()
     {
-
+    
         $table = new Schema('users');
         $table->id();
         $table->string('name')->utf8mb4();
@@ -51,7 +61,7 @@ class SchemaTest extends TestCase
         $table->dateTime('register')->nullable();
         $table->timestamps();
         $table->create();
-
+    
         $table = new Schema('books');
         $table->id();
         $table->string('code');
@@ -62,18 +72,18 @@ class SchemaTest extends TestCase
         $table->integer('price');
         $table->timestamps();
         $table->create();
-
-
+    
+    
         $table = new Schema('categorys');
         $table->id();
         $table->string('name')->utf8mb4();
         $table->timestamps();
         $table->create();
-
+    
         $tables = DB::query('SHOW TABLES;', [], true);
         $this->assertCount(3, $tables);
-
-
+    
+    
         $users_columns = DB::query('SHOW COLUMNS FROM users', [] , true);
         foreach($users_columns as $column){
             if($column->Field== 'name'){
@@ -81,14 +91,14 @@ class SchemaTest extends TestCase
             }
         }
     }
-
-
+    
+    
     public function testAddNewColumnToUsersTable(){
         $table = new Schema('users');
         $res = $table->addColumn()->boolean('active')->after('register')->default(1)->change();
-
+    
         $columns = DB::query('SHOW COLUMNS FROM `users`', [], true);
-
+    
         $status = false;
         $check_after = '';
         foreach($columns as $column){
@@ -98,58 +108,93 @@ class SchemaTest extends TestCase
             }
             $check_after = $column->Field;
         }
-
+    
         $this->assertTrue($status);
     }
-
-
+    
+    
     public function testRenameColumn(){
         $table = new Schema('users');
         $table->renameColumn('fax')->string('email', 150)->nullable()->change();
-
+    
         $columns = DB::query('SHOW COLUMNS FROM `users`', [], true);
-
+    
         $status = false;
-
+    
         foreach($columns as $column){
             if($column->Field == 'email'){
                 $status = true;
                 break;
             }
         }
-
+    
         $this->assertTrue($status);
     }
-
-
+    
+    
     public function testAddIndex(){
         $table = new Schema('users');
         $table->addIndex('phone',['phone'], Schema::INDEX_UNIQUE)->change();
         $table->addIndex('email',['email'])->change();
-
+    
         $columns = DB::query('SHOW COLUMNS FROM `users`', [], true);
-
+    
         $status = false;
-
+    
         foreach($columns as $column){
             if($column->Field == 'phone' && $column->Key=='UNI'){
                 $status = true;
                 break;
             }
         }
-
+    
         $this->assertTrue($status);
     }
-
+    
     public function testDropIndex(){
         $table = new Schema('users');
-
+    
         $columns = DB::query('SHOW COLUMNS FROM `users`', [], true);
-
+    
         $status = false;
-
+    
         foreach($columns as $column){
             if($column->Field == 'email' && $column->Key=='MUL'){
+                $status = true;
+                break;
+            }
+        }
+    
+        $this->assertTrue($status);
+    
+        $table->dropIndex('email')->change();
+    
+        $columns = DB::query('SHOW COLUMNS FROM `users`', [], true);
+    
+        $status = false;
+    
+        foreach($columns as $column){
+            if($column->Field == 'email' && $column->Key=='MUL'){
+                $status = true;
+                break;
+            }
+        }
+    
+        $this->assertFalse($status);
+    }
+    
+    public function testModifyColumn(){
+        $table = new Schema('users');
+        $table->addColumn()->integer('ttt')->change();
+        $table->modifyColumn()->string('ttt')->change();
+
+
+        $columns = DB::query('SHOW COLUMNS FROM `users`', [], true);
+    
+        $status = false;
+    
+        foreach($columns as $column){
+            if($column->Field == 'ttt' && $column->Type=='varchar(255)'){
                 $status = true;
                 break;
             }
@@ -157,14 +202,18 @@ class SchemaTest extends TestCase
 
         $this->assertTrue($status);
 
-        $table->dropIndex('email')->change();
+    }
 
-        $columns = DB::query('SHOW COLUMNS FROM `users`', [], true);
+    public function testDropColumn(){
+      $table = new Schema('users');
+      $table->dropColumn('ttt')->change();
 
+      $columns = DB::query('SHOW COLUMNS FROM `users`', [], true);
+    
         $status = false;
-
+    
         foreach($columns as $column){
-            if($column->Field == 'email' && $column->Key=='MUL'){
+            if($column->Field == 'ttt'){
                 $status = true;
                 break;
             }
