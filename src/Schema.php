@@ -721,7 +721,7 @@ class Schema
      *
      * @return string
      */
-    public function change($b=false)
+    public function change()
     {
         $this->addExistsQueryToFieldsAndRest();
         $sql = "ALTER TABLE `{$this->table}` ";
