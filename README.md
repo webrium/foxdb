@@ -760,7 +760,7 @@ DB::table('users')->decrement('votes', 5);
 
 ### Update Statements
 
-```
+```PHP
 DB::table('users')->where('id', $id)->delete();
 ```
 
