@@ -758,7 +758,13 @@ DB::table('users')->decrement('votes', 5);
 
 <br>
 
+### Update Statements
 
+```
+DB::table('users')->where('id', $id)->delete();
+```
+
+<br>
 
 
 ## Special features:
