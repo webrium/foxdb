@@ -1011,7 +1011,7 @@ class Builder
     $count = $this->clone()->count();
 
     $params = new stdClass;
-    $params->last_page = round($count / $take);
+    $params->last_page = ceil($count / $take);
 
 
     $nextpage = (($page_number) < $params->last_page) ? ($page_number + 1) : false;
