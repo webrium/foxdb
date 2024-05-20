@@ -48,6 +48,8 @@ composer require webrium\foxdb
 
 
 - [Special features](#special-features)
+  - [is / true / false and more ...](#methods-is--true--false)
+  - [Copy method](https://github.com/webrium/foxdb/wiki/Copy-method)
 - [Schema](https://github.com/webrium/foxdb/wiki/Schema)
 - [Eloquent](https://github.com/webrium/foxdb/wiki/eloquent)
 
