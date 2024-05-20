@@ -24,7 +24,23 @@ composer require webrium\foxdb
 <br>
 
 - [Configuration](#add-connection-config)
-- [Retrieving All Rows](https://github.com/webrium/foxdb/edit/main/README.md#retrieving-all-rows-from-a-table)
+- Select
+  - [Retrieving All Rows](#retrieving-all-rows-from-a-table)
+  - [Retrieving A Single Row](#retrieving-a-single-row--column-from-a-table)
+  - [Retrieving A List Of Column Values](#retrieving-a-list-of-column-values)
+  - [Chunking Results](#chunking-results)
+  - [Paginate](#paginate)
+  - [Aggregates](#aggregates)
+  - [Select Statements](#select-statements)
+  - [Raw Expressions](#raw-expressions)
+  - [Raw Methods](#raw-methods)
+  - [Join](#inner-join-clause)
+  - [Where Clauses](#where-clauses)
+  - [Ordering](#ordering)
+  - [Latest & oldest Methods](#the-latest--oldest-methods)
+  - [Random Ordering](#random-ordering)
+  - [Grouping](#grouping)
+  - [Limit & Offset](#limit--offset)
 
 <br>
 
