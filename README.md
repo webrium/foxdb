@@ -41,6 +41,12 @@ composer require webrium\foxdb
   - [Random Ordering](#random-ordering)
   - [Grouping](#grouping)
   - [Limit & Offset](#limit--offset)
+- [Insert Statements](#insert-statements)
+- [Update Statements](#update-statements)
+  - [Increment & Decrement](#increment--decrement)
+- [Delete Statements](#delete-statements)
+
+- [Special features](#special-features)
 
 <br>
 
@@ -778,7 +784,7 @@ DB::table('users')->decrement('votes', 5);
 
 <br>
 
-### Update Statements
+### Delete Statements
 
 ```PHP
 DB::table('users')->where('id', $id)->delete();
