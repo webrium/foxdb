@@ -46,7 +46,10 @@ composer require webrium\foxdb
   - [Increment & Decrement](#increment--decrement)
 - [Delete Statements](#delete-statements)
 
+
 - [Special features](#special-features)
+- [Schema](https://github.com/webrium/foxdb/wiki/Schema)
+- [Eloquent](https://github.com/webrium/foxdb/wiki/eloquent)
 
 <br>
 
