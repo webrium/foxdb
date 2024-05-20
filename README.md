@@ -21,6 +21,10 @@
 ```
 composer require webrium\foxdb
 ```
+<br>
+
+- [Configuration](#add-connection-config)
+- [Retrieving All Rows](https://github.com/webrium/foxdb/edit/main/README.md#retrieving-all-rows-from-a-table)
 
 <br>
 
