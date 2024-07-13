@@ -86,7 +86,7 @@ class Model
 
   public static function __callStatic($name, $arguments)
   {
-    return (new static )->makeInstance($name, $arguments);
+    return (new static)->makeInstance($name, $arguments);
   }
 
 
@@ -110,7 +110,11 @@ class Model
 
   function __set($name, $value)
   {
-    $this->dynamic_params[$name] = $value;
+    if (empty($this->table) && $name == 'table') {
+      $this->table = $value;
+    } else {
+      $this->dynamic_params[$name] = $value;
+    }
   }
 
 
@@ -159,7 +163,7 @@ class Model
    */
   public static function find($value)
   {
-    $class = (new static );
+    $class = new static;
 
     $find = self::where($class->primaryKey, $value)->first();
 

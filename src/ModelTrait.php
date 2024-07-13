@@ -11,30 +11,33 @@ trait ModelTrait
   private $dynamic_params = [];
 
 
-  private function getTimestamps(){
+  private function getTimestamps()
+  {
     $timestamps = true;
 
-    if(isset($this->timestamps)){
+    if (isset($this->timestamps)) {
       $timestamps = $this->timestamps;
     }
 
     return $timestamps;
   }
 
-  private function getPrimaryKey(){
+  private function getPrimaryKey()
+  {
     $primaryKey = 'id';
 
-    if(isset($this->primaryKey)){
+    if (isset($this->primaryKey)) {
       $primaryKey = $this->primaryKey;
     }
 
     return $primaryKey;
   }
 
-  private function getVisible(){
+  private function getVisible()
+  {
     $visible = [];
 
-    if(isset($this->visible)){
+    if (isset($this->visible)) {
       $visible = $this->visible;
     }
 
@@ -58,11 +61,12 @@ trait ModelTrait
     return $db;
   }
 
-  
+
   /**
    * @return \stdClass
    */
-  public function toObject(){
+  public function toObject()
+  {
     return $this->dynamic_params;
   }
 
@@ -87,7 +91,7 @@ trait ModelTrait
    */
   public function __get($key)
   {
-    return $this->dynamic_params[$key]??null;
+    return $this->dynamic_params[$key] ?? null;
   }
 
 
@@ -112,21 +116,40 @@ trait ModelTrait
     }
   }
 
+  /**
+   * Copy the attributes from a model or stdClass object.
+   *
+   * @param Model|\stdClass $record The model or stdClass object to copy attributes from.;
+   * @return void
+   */
+  public function copy(Model|\stdClass $record)
+  {
+
+    if ($record instanceof Model) {
+      $record = $record->toObject();
+    }
+
+    foreach ($record as $key => $value) {
+      if (in_array($key, [$this->getPrimaryKey(), 'created_at', 'updated_at']) == false) {
+        $this->{$key} = $value;
+      }
+    }
+  }
+
 
   public static function find($value)
   {
-    $class = (new static);
-    
+    $class = new static;
+
     $find = self::where($class->getPrimaryKey(), $value)->first();
 
-    if($find){
+    if ($find) {
       foreach ($find as $key => $value) {
         $class->$key = $value;
       }
-  
+
       return $class;
-    }
-    else{
+    } else {
       return false;
     }
   }

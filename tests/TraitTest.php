@@ -110,4 +110,42 @@ class TraitTest extends TestCase
 
       $this->assertNotSame($one->id, $two->id);
    }
+
+   public function testCopyMethod(){
+      $oldest_user = self::oldest()->first();
+      $new_user = new self;
+
+      $new_user->copy($oldest_user);
+      $new_user->name = 'CLONE BEN';
+      $new_user->phone = '0999000009';
+      $new_user->save();
+
+      $this->assertEquals($new_user->id, 8);
+   }
+
+   public function testFindMethod(){
+      $user = self::where('name', 'CLONE BEN')->find();
+
+      if($user){
+         $user->name = 'ALI';
+         $user->save();
+   
+         $this->assertEquals($user->id, 8);
+         $this->assertEquals(self::where('name', 'ALI')->value('name'), 'ALI');
+      }
+
+
+      $user = self::where('name', 'CLONE BEN')->find();
+
+      if($user == false){
+         $user = new self;
+         $user->name = 'BEN2';
+         $user->phone = '0999000010';
+         $user->email = 'test10@mail.com';
+         $user->save();
+
+         $this->assertEquals($user->id, 9);
+      }
+
+   }
 }

@@ -1061,7 +1061,7 @@ class Builder
    *
    * @param  int  $count
    * @param  callable  $callback
-   * @return bool
+   * @return bool|null
    */
   public function each(callable $callback)
   {
@@ -1446,11 +1446,29 @@ class Builder
    *
    * @param  int    $id
    * @param  array  $columns
-   * @return mixed|static
+   * @return Model|bool
    */
-  public function find($id, $columns = [])
+  public function find($id=null, $columns = [])
   {
-    return $this->where($this->PRIMARY_KEY, $id)->first($columns);
+    
+    if($id !== null){
+      $this->where($this->PRIMARY_KEY, $id);
+    }
+
+    $first = $this->first($columns);
+    
+    $model = false;
+    
+    if($first){
+      $model = new Model;
+      $model->table = $this->TABLE;
+  
+      foreach ($first as $key => $value) {
+        $model->{$key} = $value;
+      }
+    }
+    
+    return $model;
   }
 
 
