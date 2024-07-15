@@ -115,7 +115,7 @@ $user = DB::table('users')->find(3);
 
 The difference between the `find` method and `first` is that the `first` method returns the result in the form of a stdClass if it exists, but the `find` method returns the result in the form of a `Model`, which provides us with more features. (If the value does not exist Both methods return false.)
 
-From version 3 and above, queries can be used for find
+🆕 From version 3 and above, queries can be used for find
 
 ```PHP
 $user = User::find(3);
