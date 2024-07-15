@@ -113,6 +113,26 @@ To retrieve a single row by its `id` column value, use the `find` method:
 $user = DB::table('users')->find(3);
 ```
 
+The difference between the `find` method and `first` is that the `first` method returns the result in the form of a stdClass if it exists, but the `find` method returns the result in the form of a `Model`, which provides us with more features. (If the value does not exist Both methods return false.)
+
+From version 3 and above, queries can be used for find
+
+```PHP
+$user = User::find(3);
+if($user){
+ $user->name = 'Tom';
+ $user->save(); // update name
+}
+
+$user = User::where('phone', '09999999999')->find();
+
+if($user){
+ $user->phone = '09999999998';
+ $user->save(); // update user phone number
+}
+```
+
+
 <br>
 
 ### Retrieving A List Of Column Values
