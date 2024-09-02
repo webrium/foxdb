@@ -68,7 +68,7 @@ trait Process{
   }
 
   protected function fix_operator_and_value(&$operator, &$value){
-    if($value == false || $value == null){
+    if($value === false || $value === null){
       $value = $operator;
       $operator = '=';
     }

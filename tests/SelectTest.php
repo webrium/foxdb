@@ -157,4 +157,9 @@ class SelectTest extends TestCase
    
       $this->assertSame( 6 , $index);
    }
+
+   public function testSelectAmount(){
+      $count = DB::table('books')->where('amount', '>', 0)->count();
+      $this->assertEquals($count, 3);
+   }
 }
