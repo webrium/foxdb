@@ -1002,35 +1002,34 @@ class Builder
 
   public function paginate(int $take = 15, int $page_number = null)
   {
-    if ($page_number <= 0) {
-      $page_number = 1;
-    }
+      // Ensure the page number is at least 1
+      if ($page_number <= 0) {
+          $page_number = 1;
+      }
 
+      // Fetch the list of items for the current page
+      $list = $this->page($page_number - 1, $take);
+      // Get the total count of items
+      $count = $this->clone()->count();
 
-    $list = $this->page($page_number - 1, $take);
-    $count = $this->clone()->count();
+      // Calculate the total number of pages
+      $params = new stdClass;
+      $params->total = $count;
+      $params->per_page = $take;
+      $params->count = count($list);
+      $params->current_page = $page_number;
 
-    $params = new stdClass;
-    $params->last_page = ceil($count / $take);
+      // Calculate last page
+      $params->last_page = (int) ceil($count / $take); // Use ceil to ensure we round up
 
+      // Determine next and previous page numbers
+      $params->next_page = ($page_number < $params->last_page) ? ($page_number + 1) : false;
+      $params->prev_page = ($page_number > 1) ? ($page_number - 1) : false;
 
-    $nextpage = (($page_number) < $params->last_page) ? ($page_number + 1) : false;
+      // Assign the data to the params
+      $params->data = $list;
 
-    $prevpage = false;
-    if ($page_number <= $params->last_page && $page_number > 1) {
-      $prevpage = $page_number - 1;
-    }
-
-
-    $params->total = $count;
-    $params->count = count($list);
-    $params->per_page = $take;
-    $params->prev_page = $prevpage;
-    $params->next_page = $nextpage;
-    $params->current_page = $page_number;
-    $params->data = $list;
-
-    return $params;
+      return $params;
   }
 
 
