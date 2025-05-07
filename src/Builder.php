@@ -1000,7 +1000,7 @@ class Builder
   }
 
 
-  public function paginate(int $take = 15, int $page_number = null)
+  public function paginate(int $take = 15, int $page_number = 1)
   {
       // Ensure the page number is at least 1
       if ($page_number <= 0) {
