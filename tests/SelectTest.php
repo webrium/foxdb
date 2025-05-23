@@ -97,6 +97,42 @@ class SelectTest extends TestCase
       $this->assertSame(2, count($list));
    }
 
+   public function testWhereDate()
+   {
+      $list = DB::table('users')->whereDate('date_of_birth', '2002-02-28')->get();
+      $this->assertSame(1, count($list));
+
+      $list = DB::table('users')->whereDate('date_of_birth', '2000-10-04')->get();
+      $this->assertSame(1, count($list));
+   }
+
+   public function testWhereYear()
+   {
+      $list = DB::table('users')->whereYear('date_of_birth', '2002')->get();
+      $this->assertSame(3, count($list));
+   }
+
+   public function testWhereMonth()
+   {
+      $list = DB::table('users')->whereMonth('date_of_birth', '01')->orMonth('date_of_birth', 9)->get();
+      $this->assertSame(4, count($list));
+
+      $list = DB::table('users')->month('date_of_birth','!=', '01')->orMonth('date_of_birth', 9)->get();
+      $this->assertSame(3, count($list));
+
+      $user = DB::table('users')->whereMonth('date_of_birth', '10')->first();
+      $this->assertSame('Nic', $user->name);
+   }
+
+   public function testWhereDay()
+   {
+      $list = DB::table('users')->whereDay('date_of_birth', '01')->get();
+      $this->assertSame(3, count($list));
+
+      $user = DB::table('users')->whereDay('date_of_birth', 28)->first();
+      $this->assertSame('Sofi', $user->name);
+   }
+
    public function testInRandomOrder()
    {
       $one = DB::table('users')->inRandomOrder()->first();
