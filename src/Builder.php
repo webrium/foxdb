@@ -1149,7 +1149,7 @@ class Builder
 
     $column = $this->fix_column_name($column)['name'];
 
-    $value_name = $this->add_to_param_auto_name($column);
+    $value_name = $this->add_to_param_auto_name($value);
 
 
     $query = "$action($column) $operator $value_name";
