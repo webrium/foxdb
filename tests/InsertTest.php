@@ -18,12 +18,12 @@ class InsertTest extends TestCase
         | Insert
         */
         $user_params = [
-            ['name' => 'BEN', 'phone' => '0999000001', 'email' => 'test1@mail.com', 'created_at' => '2018-05-01 00:00:00'],
-            ['name' => 'Jo', 'phone' => '0999000002', 'email' => 'test2@mail.com', 'created_at' => $now],
-            ['name' => 'Sofi', 'phone' => '0999000003', 'email' => 'test3@mail.com', 'created_at' => $now],
-            ['name' => 'Tom', 'phone' => '0999000004', 'email' => 'test4@mail.com', 'created_at' => $now],
-            ['name' => 'Nic', 'phone' => '0999000005', 'email' => 'test5@mail.com', 'created_at' => $now],
-            ['name' => 'Shakira', 'phone' => '0999000006', 'email' => 'test6@mail.com', 'created_at' => $now],
+            ['name' => 'BEN',   'phone' => '0999000001', 'date_of_birth'=>'2002-01-01 00:00:00',  'email' => 'test1@mail.com', 'created_at' => '2018-05-01 00:00:00'],
+            ['name' => 'Jo',    'phone' => '0999000002', 'date_of_birth'=>'2002-01-18 00:00:00', 'email' => 'test2@mail.com', 'created_at' => $now],
+            ['name' => 'Sofi',  'phone' => '0999000003', 'date_of_birth'=>'2002-02-28 00:00:00', 'email' => 'test3@mail.com', 'created_at' => $now],
+            ['name' => 'Tom',   'phone' => '0999000004', 'date_of_birth'=>'2001-01-01 00:00:00', 'email' => 'test4@mail.com', 'created_at' => $now],
+            ['name' => 'Nic',   'phone' => '0999000005', 'date_of_birth'=>'2000-10-04 00:00:00', 'email' => 'test5@mail.com', 'created_at' => $now],
+            ['name' => 'Shakira','phone' => '0999000006', 'date_of_birth'=>'2000-09-01 00:00:00', 'email' => 'test6@mail.com', 'created_at' => $now],
         ];
 
         foreach ($user_params as $user) {

@@ -8,35 +8,6 @@ use PHPUnit\Framework\TestCase;
 class SchemaTest extends TestCase
 {
 
-  // public function testModify(){
-
-  //   $table = new Schema('users');
-  //   $table->addColumn()->integer('ttt')->change();
-  //   $table->modifyColumn()->string('ttt')->change(true);
-
-  //   // die;
-  // }
-
-
-    // public function testTest()
-    // {
-    //         $table = new Schema('users9');
-    //         $table->id();
-    //         $table->integer('age',3);
-    //         $table->integer('amount');
-    //         $table->bigInt('credit')->default(0)->nullable();
-    //         $table->tinyInt('credit2')->nullable();
-    //         $table->smallInt('credit3')->nullable();
-    //         $table->mediumInt('credit4')->nullable();
-    //         $table->text('note')->default('is empty');
-    //         $table->tinyText('note3');
-    //         $table->string('username');
-    //         $table->string('password', 150);
-    //         $table->timestamps();
-
-    //         $table->create();
-    // }
-
     public function testDropOldTestTables()
     {
         (new Schema('users'))->drop();
@@ -58,6 +29,7 @@ class SchemaTest extends TestCase
         $table->string('fax');
         $table->boolean('status');
         $table->integer('age', 3)->nullable();
+        $table->dateTime('date_of_birth')->nullable();
         $table->dateTime('register')->nullable();
         $table->timestamps();
         $table->create();
