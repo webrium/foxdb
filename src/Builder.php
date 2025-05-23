@@ -431,12 +431,12 @@ class Builder
   }
 
 
-  public function and (...$args)
+  public function and(...$args)
   {
     return $this->where(...$args);
   }
 
-  public function or (...$args)
+  public function or(...$args)
   {
     return $this->orWhere(...$args);
   }
@@ -889,11 +889,10 @@ class Builder
 
       foreach ($columns as $column) {
 
-        if(is_array($column) && count($column)==2){
-          $array_string[] = $this->fix_column_name($column[0])['name']." ".$column[1];
-        }
-        else{
-          $array_string[] = $this->fix_column_name($column)['name']." $direction";
+        if (is_array($column) && count($column) == 2) {
+          $array_string[] = $this->fix_column_name($column[0])['name'] . " " . $column[1];
+        } else {
+          $array_string[] = $this->fix_column_name($column)['name'] . " $direction";
         }
       }
 
@@ -1002,34 +1001,34 @@ class Builder
 
   public function paginate(int $take = 15, int $page_number = 1)
   {
-      // Ensure the page number is at least 1
-      if ($page_number <= 0) {
-          $page_number = 1;
-      }
+    // Ensure the page number is at least 1
+    if ($page_number <= 0) {
+      $page_number = 1;
+    }
 
-      // Fetch the list of items for the current page
-      $list = $this->page($page_number - 1, $take);
-      // Get the total count of items
-      $count = $this->clone()->count();
+    // Fetch the list of items for the current page
+    $list = $this->page($page_number - 1, $take);
+    // Get the total count of items
+    $count = $this->clone()->count();
 
-      // Calculate the total number of pages
-      $params = new stdClass;
-      $params->total = $count;
-      $params->per_page = $take;
-      $params->count = count($list);
-      $params->current_page = $page_number;
+    // Calculate the total number of pages
+    $params = new stdClass;
+    $params->total = $count;
+    $params->per_page = $take;
+    $params->count = count($list);
+    $params->current_page = $page_number;
 
-      // Calculate last page
-      $params->last_page = (int) ceil($count / $take); // Use ceil to ensure we round up
+    // Calculate last page
+    $params->last_page = (int) ceil($count / $take); // Use ceil to ensure we round up
 
-      // Determine next and previous page numbers
-      $params->next_page = ($page_number < $params->last_page) ? ($page_number + 1) : false;
-      $params->prev_page = ($page_number > 1) ? ($page_number - 1) : false;
+    // Determine next and previous page numbers
+    $params->next_page = ($page_number < $params->last_page) ? ($page_number + 1) : false;
+    $params->prev_page = ($page_number > 1) ? ($page_number - 1) : false;
 
-      // Assign the data to the params
-      $params->data = $list;
+    // Assign the data to the params
+    $params->data = $list;
 
-      return $params;
+    return $params;
   }
 
 
@@ -1447,26 +1446,26 @@ class Builder
    * @param  array  $columns
    * @return Model|bool
    */
-  public function find($id=null, $columns = [])
+  public function find($id = null, $columns = [])
   {
-    
-    if($id !== null){
+
+    if ($id !== null) {
       $this->where($this->PRIMARY_KEY, $id);
     }
 
     $first = $this->first($columns);
-    
+
     $model = false;
-    
-    if($first){
+
+    if ($first) {
       $model = new Model;
       $model->table = $this->TABLE;
-  
+
       foreach ($first as $key => $value) {
         $model->{$key} = $value;
       }
     }
-    
+
     return $model;
   }
 
@@ -1489,7 +1488,7 @@ class Builder
     $this->SOURCE_VALUE[$s_index] = [];
   }
 
-  private function clone ()
+  private function clone()
   {
     $db = DB::table($this->TABLE);
     $db->PARAMS = $this->PARAMS;
