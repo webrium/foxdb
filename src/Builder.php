@@ -177,6 +177,11 @@ class Builder
 
   public function whereIn($name, array $list)
   {
+    // Skip adding WHERE clause if array is empty
+    if (empty($list)) {
+      return $this;
+    }
+    
     $query = $this->queryMakerIn($name, $list, '');
     $this->addOperator('AND');
     $this->addToSourceArray('WHERE', $query);
@@ -185,6 +190,11 @@ class Builder
 
   public function whereNotIn($name, array $list)
   {
+    // Skip adding WHERE clause if array is empty
+    if (empty($list)) {
+      return $this;
+    }
+    
     $query = $this->queryMakerIn($name, $list, 'NOT');
     $this->addOperator('AND');
     $this->addToSourceArray('WHERE', $query);
@@ -193,6 +203,11 @@ class Builder
 
   public function orWhereIn($name, array $list)
   {
+    // Skip adding WHERE clause if array is empty
+    if (empty($list)) {
+      return $this;
+    }
+    
     $query = $this->queryMakerIn($name, $list, '');
     $this->addOperator('OR');
     $this->addToSourceArray('WHERE', $query);
@@ -201,6 +216,11 @@ class Builder
 
   public function orWhereNotIn($name, array $list)
   {
+    // Skip adding WHERE clause if array is empty
+    if (empty($list)) {
+      return $this;
+    }
+    
     $query = $this->queryMakerIn($name, $list, 'NOT');
     $this->addOperator('OR');
     $this->addToSourceArray('WHERE', $query);
@@ -224,11 +244,6 @@ class Builder
 
   private function queryMakerIn($name, array $list, $extra_opration = '')
   {
-
-    if (count($list) == 0) {
-      return '';
-    }
-
     $name = $this->fix_column_name($name)['name'];
 
     $values = [];
@@ -316,6 +331,11 @@ class Builder
 
   public function whereBetween($name, array $values)
   {
+    // Skip adding WHERE clause if array has fewer than 2 elements
+    if (count($values) < 2) {
+      return $this;
+    }
+    
     $this->addOperator('AND');
     $this->queryMakerWhereBetween($name, $values);
     return $this;
@@ -323,6 +343,11 @@ class Builder
 
   public function orWhereBetween($name, array $values)
   {
+    // Skip adding WHERE clause if array has fewer than 2 elements
+    if (count($values) < 2) {
+      return $this;
+    }
+    
     $this->addOperator('OR');
     $this->queryMakerWhereBetween($name, $values);
     return $this;
@@ -330,6 +355,11 @@ class Builder
 
   public function whereNotBetween($name, array $values)
   {
+    // Skip adding WHERE clause if array has fewer than 2 elements
+    if (count($values) < 2) {
+      return $this;
+    }
+    
     $this->addOperator('AND');
     $this->queryMakerWhereBetween($name, $values, 'NOT');
     return $this;
@@ -337,6 +367,11 @@ class Builder
 
   public function orWhereNotBetween($name, array $values)
   {
+    // Skip adding WHERE clause if array has fewer than 2 elements
+    if (count($values) < 2) {
+      return $this;
+    }
+    
     $this->addOperator('OR');
     $this->queryMakerWhereBetween($name, $values, 'NOT');
     return $this;
@@ -572,7 +607,7 @@ class Builder
 
   public function orNotIn($name, array $list)
   {
-    return $this->orwhereNotIn($name, $list);
+    return $this->orWhereNotIn($name, $list);
   }
 
 

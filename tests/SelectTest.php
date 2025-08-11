@@ -54,6 +54,44 @@ class SelectTest extends TestCase
       }
    }
 
+   public function testWhereInWithEmptyArray()
+   {
+      // Test whereIn with empty array - should return all users (no WHERE constraint applied)
+      $users = DB::table('users')->whereIn('id', [])->get();
+      $this->assertSame(7, count($users)); // Should return all users since no WHERE clause added
+
+      // Test whereNotIn with empty array - should return all users (no WHERE constraint applied)
+      $users = DB::table('users')->whereNotIn('id', [])->get();
+      $this->assertSame(7, count($users)); // Should return all users since no WHERE clause added
+
+      // Test orWhereIn with empty array
+      $users = DB::table('users')->where('id', '>', 0)->orWhereIn('id', [])->get();
+      $this->assertSame(7, count($users)); // Should return all users since no WHERE clause added
+
+      // Test orWhereNotIn with empty array
+      $users = DB::table('users')->where('id', '>', 0)->orWhereNotIn('id', [])->get();
+      $this->assertSame(7, count($users)); // Should return all users since no WHERE clause added
+   }
+
+   public function testWhereBetweenWithInsufficientArrays()
+   {
+      // Test whereBetween with empty array - should return all users (no WHERE constraint applied)
+      $users = DB::table('users')->whereBetween('id', [])->get();
+      $this->assertSame(7, count($users)); // Should return all users since no WHERE clause added
+
+      // Test whereBetween with single element array - should return all users (no WHERE constraint applied)
+      $users = DB::table('users')->whereBetween('id', [1])->get();
+      $this->assertSame(7, count($users)); // Should return all users since no WHERE clause added
+
+      // Test whereNotBetween with empty array - should return all users (no WHERE constraint applied)
+      $users = DB::table('users')->whereNotBetween('id', [])->get();
+      $this->assertSame(7, count($users)); // Should return all users since no WHERE clause added
+
+      // Test orWhereBetween with insufficient array - should return all users (no WHERE constraint applied)
+      $users = DB::table('users')->where('id', '>', 0)->orWhereBetween('id', [1])->get();
+      $this->assertSame(7, count($users)); // Should return all users since no WHERE clause added
+   }
+
 
    public function testMin()
    {
