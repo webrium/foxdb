@@ -177,11 +177,6 @@ class Builder
 
   public function whereIn($name, array $list)
   {
-    // Skip adding WHERE clause if array is empty
-    if (empty($list)) {
-      return $this;
-    }
-    
     $query = $this->queryMakerIn($name, $list, '');
     $this->addOperator('AND');
     $this->addToSourceArray('WHERE', $query);
@@ -190,11 +185,6 @@ class Builder
 
   public function whereNotIn($name, array $list)
   {
-    // Skip adding WHERE clause if array is empty
-    if (empty($list)) {
-      return $this;
-    }
-    
     $query = $this->queryMakerIn($name, $list, 'NOT');
     $this->addOperator('AND');
     $this->addToSourceArray('WHERE', $query);
@@ -203,11 +193,6 @@ class Builder
 
   public function orWhereIn($name, array $list)
   {
-    // Skip adding WHERE clause if array is empty
-    if (empty($list)) {
-      return $this;
-    }
-    
     $query = $this->queryMakerIn($name, $list, '');
     $this->addOperator('OR');
     $this->addToSourceArray('WHERE', $query);
@@ -216,11 +201,6 @@ class Builder
 
   public function orWhereNotIn($name, array $list)
   {
-    // Skip adding WHERE clause if array is empty
-    if (empty($list)) {
-      return $this;
-    }
-    
     $query = $this->queryMakerIn($name, $list, 'NOT');
     $this->addOperator('OR');
     $this->addToSourceArray('WHERE', $query);
@@ -244,25 +224,20 @@ class Builder
 
   private function queryMakerIn($name, array $list, $extra_opration = '')
   {
+    if (count($list) == 0) {
+      return '1=0';
+    }
     $name = $this->fix_column_name($name)['name'];
-
     $values = [];
-
     $this->method_in_maker($list, function ($get_param_name) use (&$values) {
       $values[] = $get_param_name;
     });
-
     $string_query_name = $name;
-
     if (!empty($extra_opration)) {
       $string_query_name .= ' ' . $extra_opration;
     }
-
-
     $string_query_value = 'IN(' . implode(',', $values) . ')';
-
     $string_query = "$string_query_name $string_query_value";
-
     return $string_query;
   }
 

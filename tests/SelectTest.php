@@ -56,21 +56,21 @@ class SelectTest extends TestCase
 
    public function testWhereInWithEmptyArray()
    {
-      // Test whereIn with empty array - should return all users (no WHERE constraint applied)
+      // Test whereIn with empty array - should return no users (1=0 applied)
       $users = DB::table('users')->whereIn('id', [])->get();
-      $this->assertSame(7, count($users)); // Should return all users since no WHERE clause added
+      $this->assertSame(0, count($users)); // Should return no users
 
-      // Test whereNotIn with empty array - should return all users (no WHERE constraint applied)
+      // Test whereNotIn with empty array - should return all users (no constraint)
       $users = DB::table('users')->whereNotIn('id', [])->get();
-      $this->assertSame(7, count($users)); // Should return all users since no WHERE clause added
+      $this->assertSame(7, count($users)); // Should return all users
 
-      // Test orWhereIn with empty array
+      // Test orWhereIn with empty array - should return no users (1=0 applied)
       $users = DB::table('users')->where('id', '>', 0)->orWhereIn('id', [])->get();
-      $this->assertSame(7, count($users)); // Should return all users since no WHERE clause added
+      $this->assertSame(7, count($users)); // Should return all users (since where('id', '>', 0) matches all)
 
-      // Test orWhereNotIn with empty array
+      // Test orWhereNotIn with empty array - should return all users (no constraint)
       $users = DB::table('users')->where('id', '>', 0)->orWhereNotIn('id', [])->get();
-      $this->assertSame(7, count($users)); // Should return all users since no WHERE clause added
+      $this->assertSame(7, count($users)); // Should return all users
    }
 
    public function testWhereBetweenWithInsufficientArrays()
