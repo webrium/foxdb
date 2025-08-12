@@ -224,30 +224,20 @@ class Builder
 
   private function queryMakerIn($name, array $list, $extra_opration = '')
   {
-
     if (count($list) == 0) {
-      return '';
+      return '1=0';
     }
-
     $name = $this->fix_column_name($name)['name'];
-
     $values = [];
-
     $this->method_in_maker($list, function ($get_param_name) use (&$values) {
       $values[] = $get_param_name;
     });
-
     $string_query_name = $name;
-
     if (!empty($extra_opration)) {
       $string_query_name .= ' ' . $extra_opration;
     }
-
-
     $string_query_value = 'IN(' . implode(',', $values) . ')';
-
     $string_query = "$string_query_name $string_query_value";
-
     return $string_query;
   }
 
@@ -316,6 +306,11 @@ class Builder
 
   public function whereBetween($name, array $values)
   {
+    // Skip adding WHERE clause if array has fewer than 2 elements
+    if (count($values) < 2) {
+      return $this;
+    }
+    
     $this->addOperator('AND');
     $this->queryMakerWhereBetween($name, $values);
     return $this;
@@ -323,6 +318,11 @@ class Builder
 
   public function orWhereBetween($name, array $values)
   {
+    // Skip adding WHERE clause if array has fewer than 2 elements
+    if (count($values) < 2) {
+      return $this;
+    }
+    
     $this->addOperator('OR');
     $this->queryMakerWhereBetween($name, $values);
     return $this;
@@ -330,6 +330,11 @@ class Builder
 
   public function whereNotBetween($name, array $values)
   {
+    // Skip adding WHERE clause if array has fewer than 2 elements
+    if (count($values) < 2) {
+      return $this;
+    }
+    
     $this->addOperator('AND');
     $this->queryMakerWhereBetween($name, $values, 'NOT');
     return $this;
@@ -337,6 +342,11 @@ class Builder
 
   public function orWhereNotBetween($name, array $values)
   {
+    // Skip adding WHERE clause if array has fewer than 2 elements
+    if (count($values) < 2) {
+      return $this;
+    }
+    
     $this->addOperator('OR');
     $this->queryMakerWhereBetween($name, $values, 'NOT');
     return $this;
@@ -572,7 +582,7 @@ class Builder
 
   public function orNotIn($name, array $list)
   {
-    return $this->orwhereNotIn($name, $list);
+    return $this->orWhereNotIn($name, $list);
   }
 
 
