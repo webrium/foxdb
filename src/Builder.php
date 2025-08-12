@@ -225,7 +225,12 @@ class Builder
   private function queryMakerIn($name, array $list, $extra_opration = '')
   {
     if (count($list) == 0) {
-      return '1=0';
+      if( $extra_opration == 'NOT' ){
+        return '1 = 1';
+      }
+      else{
+        return '1 = 0';
+      }
     }
     $name = $this->fix_column_name($name)['name'];
     $values = [];
@@ -969,7 +974,7 @@ class Builder
    * Alias to set the "limit" value of the query.
    *
    * @param  int  $value
-   * @return \Illuminate\Database\Query\Builder|static
+   * @return $this
    */
   public function take(int $value)
   {
