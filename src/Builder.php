@@ -73,19 +73,99 @@ class Builder
    */
   protected function execute($query, $params = [], $query_result = false)
   {
-    $this->CONFIG->connect();
-    $this->PARAMS = $params;
+    try {
+      $this->CONFIG->connect();
+      $this->PARAMS = $params;
 
-    $stmt = $this->CONFIG->pdo()->prepare($query);
-    $stmt->execute($this->PARAMS);
+      $stmt = $this->CONFIG->pdo()->prepare($query);
+      
+      if (!$stmt) {
+        $errorInfo = $this->CONFIG->pdo()->errorInfo();
+        $errorMessage = "Failed to prepare SQL statement: " . ($errorInfo[2] ?? 'Unknown error');
+        
+        if ($this->CONFIG->getThrowExceptions()) {
+          throw new \Foxdb\Exceptions\QueryException(
+            $errorMessage,
+            (int)($errorInfo[1] ?? 0),
+            null,
+            $query,
+            $params,
+            $errorInfo[0] ?? null,
+            $errorInfo
+          );
+        } else {
+          error_log($errorMessage . " - SQL: " . $query . " - Params: " . json_encode($params));
+          return false;
+        }
+      }
 
-    if ($query_result) {
-      $result = $stmt->fetchAll($this->CONFIG->getFetch());
-    } else {
-      $result = $stmt->rowCount();
+      $success = $stmt->execute($this->PARAMS);
+      
+      if (!$success) {
+        $errorInfo = $stmt->errorInfo();
+        $errorMessage = "Failed to execute SQL statement: " . ($errorInfo[2] ?? 'Unknown error');
+        
+        if ($this->CONFIG->getThrowExceptions()) {
+          throw new \Foxdb\Exceptions\QueryException(
+            $errorMessage,
+            (int)($errorInfo[1] ?? 0),
+            null,
+            $query,
+            $params,
+            $errorInfo[0] ?? null,
+            $errorInfo
+          );
+        } else {
+          error_log($errorMessage . " - SQL: " . $query . " - Params: " . json_encode($params));
+          return false;
+        }
+      }
+
+      if ($query_result) {
+        try {
+          $result = $stmt->fetchAll($this->CONFIG->getFetch());
+        } catch (\PDOException $fetchException) {
+          $errorMessage = "Failed to fetch results: " . $fetchException->getMessage();
+          
+          if ($this->CONFIG->getThrowExceptions()) {
+            throw new \Foxdb\Exceptions\QueryException(
+              $errorMessage,
+              $fetchException->getCode(),
+              $fetchException,
+              $query,
+              $params,
+              $fetchException->getCode(),
+              method_exists($fetchException, 'errorInfo') ? $fetchException->errorInfo : null
+            );
+          } else {
+            error_log($errorMessage . " - SQL: " . $query . " - Params: " . json_encode($params));
+            return false;
+          }
+        }
+      } else {
+        $result = $stmt->rowCount();
+      }
+
+      return $result;
+      
+    } catch (\PDOException $e) {
+      $errorMessage = "Database error: " . $e->getMessage();
+      
+      if ($this->CONFIG->getThrowExceptions()) {
+        throw new \Foxdb\Exceptions\QueryException(
+          $errorMessage,
+          $e->getCode(),
+          $e,
+          $query,
+          $params,
+          $e->getCode(),
+          method_exists($e, 'errorInfo') ? $e->errorInfo : null
+        );
+      } else {
+        error_log($errorMessage . " - SQL: " . $query . " - Params: " . json_encode($params));
+        return false;
+      }
     }
-
-    return $result;
   }
 
 

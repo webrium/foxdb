@@ -37,6 +37,7 @@ class Config extends DB
   private $COLLATION = '';
 
   private $PDO = false;
+  private $THROW_EXCEPTIONS = true;
 
 
   /**
@@ -60,6 +61,8 @@ class Config extends DB
     $this->setDatabaseName($params['database'] ?? false);
     $this->setUsername($params['username'] ?? false);
     $this->setPassword($params['password'] ?? false);
+    
+    $this->setThrowExceptions($params['throw_exceptions'] ?? true);
   }
 
 
@@ -178,6 +181,28 @@ class Config extends DB
   }
 
   /**
+   * Sets whether to throw exceptions on database errors.
+   *
+   * @param bool $value Whether to throw exceptions (true) or return false on errors (false).
+   *
+   * @return void
+   */
+  public function setThrowExceptions(bool $value)
+  {
+    $this->THROW_EXCEPTIONS = $value;
+  }
+
+  /**
+   * Gets whether exceptions are thrown on database errors.
+   *
+   * @return bool True if exceptions are thrown, false otherwise.
+   */
+  public function getThrowExceptions()
+  {
+    return $this->THROW_EXCEPTIONS;
+  }
+
+  /**
    * Builds a PDO-compatible DNS string from the configuration parameters.
    *
    * @return string A PDO-compatible DNS string.
@@ -216,10 +241,17 @@ class Config extends DB
     if (!$this->IS_CONNECT) {
       $dsn = $this->makeConnectionString();
 
-      $this->PDO = new \PDO($dsn, $this->USERNAME, $this->PASSWORD, [
-        \PDO::ATTR_ERRMODE => \PDO::ERRMODE_WARNING,
+      $pdoOptions = [
         \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES '$this->CHARSET' COLLATE '$this->COLLATION'"
-      ]);
+      ];
+      
+      if ($this->THROW_EXCEPTIONS) {
+        $pdoOptions[\PDO::ATTR_ERRMODE] = \PDO::ERRMODE_EXCEPTION;
+      } else {
+        $pdoOptions[\PDO::ATTR_ERRMODE] = \PDO::ERRMODE_WARNING;
+      }
+      
+      $this->PDO = new \PDO($dsn, $this->USERNAME, $this->PASSWORD, $pdoOptions);
 
       if (DB::$CHANGE_ONCE) {
         DB::$CHANGE_ONCE = false;
