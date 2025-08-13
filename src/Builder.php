@@ -311,9 +311,9 @@ class Builder
 
   public function whereBetween($name, array $values)
   {
-    // Skip adding WHERE clause if array has fewer than 2 elements
-    if (count($values) < 2) {
-      return $this;
+    // Validate that the array contains exactly two elements
+    if (count($values) !== 2) {
+      throw new \Exception("Between values must contain exactly two elements.");
     }
     
     $this->addOperator('AND');
@@ -323,9 +323,9 @@ class Builder
 
   public function orWhereBetween($name, array $values)
   {
-    // Skip adding WHERE clause if array has fewer than 2 elements
-    if (count($values) < 2) {
-      return $this;
+    // Validate that the array contains exactly two elements
+    if (count($values) !== 2) {
+      throw new \Exception("Between values must contain exactly two elements.");
     }
     
     $this->addOperator('OR');
@@ -335,9 +335,9 @@ class Builder
 
   public function whereNotBetween($name, array $values)
   {
-    // Skip adding WHERE clause if array has fewer than 2 elements
-    if (count($values) < 2) {
-      return $this;
+    // Validate that the array contains exactly two elements
+    if (count($values) !== 2) {
+      throw new \Exception("Between values must contain exactly two elements.");
     }
     
     $this->addOperator('AND');
@@ -347,9 +347,9 @@ class Builder
 
   public function orWhereNotBetween($name, array $values)
   {
-    // Skip adding WHERE clause if array has fewer than 2 elements
-    if (count($values) < 2) {
-      return $this;
+    // Validate that the array contains exactly two elements
+    if (count($values) !== 2) {
+      throw new \Exception("Between values must contain exactly two elements.");
     }
     
     $this->addOperator('OR');
