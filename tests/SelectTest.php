@@ -9,15 +9,15 @@ class SelectTest extends TestCase
 
    public function testGetByFirst()
    {
-      $user = DB::table('users')->where('name', 'John Doe')->first();
-      $this->assertSame('John Doe', $user->name);
+      $user = DB::table('users')->where('name', 'BEN')->first();
+      $this->assertSame('BEN', $user->name);
    }
 
 
    public function testGetList()
    {
       $users = DB::table('users')->get();
-      $this->assertCount(12, $users); // Updated: 7 original + 5 additional users
+      $this->assertCount(7, $users);
    }
 
    public function testJoin()

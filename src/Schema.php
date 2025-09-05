@@ -530,7 +530,11 @@ class Schema
      */
     public function drop()
     {
-        return DB::query("DROP TABLE IF EXISTS `{$this->table}`;");
+        // Disable foreign key checks to allow dropping tables referenced by FKs
+        DB::query("SET FOREIGN_KEY_CHECKS=0;");
+        $result = DB::query("DROP TABLE IF EXISTS `{$this->table}`;");
+        DB::query("SET FOREIGN_KEY_CHECKS=1;");
+        return $result;
     }
 
 
@@ -546,7 +550,7 @@ class Schema
     public function addColumn()
     {
         $this->addExistsQueryToFieldsAndRest();
-        $this->change_action = 'ADD IF NOT EXISTS';
+        $this->change_action = 'ADD COLUMN';
         return $this;
     }
 
@@ -560,7 +564,7 @@ class Schema
     public function dropColumn($name)
     {
         $this->addExistsQueryToFieldsAndRest();
-        $this->setFieldQuery('Action', "DROP COLUMN IF EXISTS `$name`");
+        $this->setFieldQuery('Action', "DROP COLUMN `$name`");
         $this->setFieldQuery('Null', '');
         return $this;
     }
@@ -576,7 +580,7 @@ class Schema
     public function renameColumn($current_name)
     {
         $this->addExistsQueryToFieldsAndRest();
-        $this->change_action = "CHANGE IF EXISTS `$current_name`";
+        $this->change_action = "CHANGE COLUMN `$current_name`";
         return $this;
     }
 
