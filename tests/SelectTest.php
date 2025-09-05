@@ -65,21 +65,59 @@ class SelectTest extends TestCase
 
    public function testWhereBetweenWithInsufficientArrays()
    {
-      // Test whereBetween with empty array - should return all users (no WHERE constraint applied)
-      $users = DB::table('users')->whereBetween('id', [])->get();
-      $this->assertSame(7, count($users)); // Should return all users since no WHERE clause added
+      // Test whereBetween with empty array - should throw exception
+      $this->expectException(\Exception::class);
+      $this->expectExceptionMessage("Between values must contain exactly two elements.");
+      DB::table('users')->whereBetween('id', [])->get();
 
-      // Test whereBetween with single element array - should return all users (no WHERE constraint applied)
-      $users = DB::table('users')->whereBetween('id', [1])->get();
-      $this->assertSame(7, count($users)); // Should return all users since no WHERE clause added
+      // Test whereBetween with single element array - should throw exception
+      $this->expectException(\Exception::class);
+      $this->expectExceptionMessage("Between values must contain exactly two elements.");
+      DB::table('users')->whereBetween('id', [1])->get();
 
-      // Test whereNotBetween with empty array - should return all users (no WHERE constraint applied)
-      $users = DB::table('users')->whereNotBetween('id', [])->get();
-      $this->assertSame(7, count($users)); // Should return all users since no WHERE clause added
+      // Test whereNotBetween with empty array - should throw exception
+      $this->expectException(\Exception::class);
+      $this->expectExceptionMessage("Between values must contain exactly two elements.");
+      DB::table('users')->whereNotBetween('id', [])->get();
 
-      // Test orWhereBetween with insufficient array - should return all users (no WHERE constraint applied)
-      $users = DB::table('users')->where('id', '>', 0)->orWhereBetween('id', [1])->get();
-      $this->assertSame(7, count($users)); // Should return all users since no WHERE clause added
+      // Test orWhereBetween with insufficient array - should throw exception
+      $this->expectException(\Exception::class);
+      $this->expectExceptionMessage("Between values must contain exactly two elements.");
+      DB::table('users')->where('id', '>', 0)->orWhereBetween('id', [1])->get();
+   }
+
+
+   public function testWhereBetweenExceptionScenarios()
+   {
+      // Test whereBetween with empty array
+      $this->expectException(\Exception::class);
+      $this->expectExceptionMessage("Between values must contain exactly two elements.");
+      DB::table('users')->whereBetween('id', []);
+
+      // Test whereBetween with single element array
+      $this->expectException(\Exception::class);
+      $this->expectExceptionMessage("Between values must contain exactly two elements.");
+      DB::table('users')->whereBetween('id', [1]);
+
+      // Test whereBetween with more than two elements
+      $this->expectException(\Exception::class);
+      $this->expectExceptionMessage("Between values must contain exactly two elements.");
+      DB::table('users')->whereBetween('id', [1, 2, 3]);
+
+      // Test orWhereBetween with empty array
+      $this->expectException(\Exception::class);
+      $this->expectExceptionMessage("Between values must contain exactly two elements.");
+      DB::table('users')->orWhereBetween('id', []);
+
+      // Test whereNotBetween with single element array
+      $this->expectException(\Exception::class);
+      $this->expectExceptionMessage("Between values must contain exactly two elements.");
+      DB::table('users')->whereNotBetween('id', [5]);
+
+      // Test orWhereNotBetween with more than two elements
+      $this->expectException(\Exception::class);
+      $this->expectExceptionMessage("Between values must contain exactly two elements.");
+      DB::table('users')->orWhereNotBetween('id', [1, 2, 3, 4]);
    }
 
 
