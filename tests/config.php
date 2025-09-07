@@ -4,7 +4,7 @@ use Foxdb\DB;
 use Foxdb\Config;
 
 DB::addConnection('main', [
-    'host'=>'db',
+    'host'=>'localhost',
     'port'=>'3306',
 
     'database'=>'test',
@@ -13,5 +13,6 @@ DB::addConnection('main', [
 
     'charset'=>Config::UTF8,
     'collation'=>Config::UTF8_GENERAL_CI,
-    'fetch'=>Config::FETCH_CLASS
+    'fetch'=>Config::FETCH_CLASS,
+    'throw_exceptions'=>true
 ]);

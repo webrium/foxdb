@@ -50,6 +50,7 @@ composer require webrium\foxdb
 - [Special features](#special-features)
   - [is / true / false and more ...](#methods-is--true--false)
   - [Copy method](https://github.com/webrium/foxdb/wiki/Copy-method)
+- [Error Handling](#error-handling)
 - [Schema](https://github.com/webrium/foxdb/wiki/Schema)
 - [Eloquent](https://github.com/webrium/foxdb/wiki/eloquent)
 
@@ -70,10 +71,87 @@ DB::addConnection('main', [
 
     'charset'=>Config::UTF8,
     'collation'=>Config::UTF8_GENERAL_CI,
-    'fetch'=>Config::FETCH_CLASS
+    'fetch'=>Config::FETCH_CLASS,
+    'throw_exceptions'=>true  // Enable exception throwing for better error handling
 ]);
 ```
  > The `'main'` statement is the default name of the connection config
+
+<br>
+
+### Error Handling
+
+Foxdb now provides comprehensive error handling with custom exceptions. By default, database errors will throw exceptions, but you can configure this behavior.
+
+#### Configuration Options
+
+```PHP
+DB::addConnection('main', [
+    'host'=>'localhost',
+    'port'=>'3306',
+    'database'=>'test',
+    'username'=>'root',
+    'password'=>'1234',
+    'charset'=>Config::UTF8,
+    'collation'=>Config::UTF8_GENERAL_CI,
+    'fetch'=>Config::FETCH_CLASS,
+    'throw_exceptions'=>true  // true = throw exceptions (default), false = return false on errors
+]);
+```
+
+#### Handling Exceptions
+
+```PHP
+use Foxdb\DB;
+use Foxdb\Exceptions\QueryException;
+use Foxdb\Exceptions\DatabaseException;
+
+try {
+    $users = DB::table('users')->where('invalid_column', 'test')->get();
+} catch (QueryException $e) {
+    echo "SQL Error: " . $e->getMessage() . "\n";
+    echo "SQL Query: " . $e->getSql() . "\n";
+    echo "Parameters: " . json_encode($e->getParams()) . "\n";
+    echo "Error Code: " . $e->getErrorCode() . "\n";
+    
+    // Get formatted error message with all details
+    echo $e->getFormattedMessage();
+}
+```
+
+#### Disabling Exceptions
+
+If you prefer to handle errors without exceptions, set `throw_exceptions` to `false`:
+
+```PHP
+DB::addConnection('no_exceptions', [
+    'host'=>'localhost',
+    'port'=>'3306',
+    'database'=>'test',
+    'username'=>'root',
+    'password'=>'1234',
+    'throw_exceptions'=>false  // Errors will return false instead of throwing exceptions
+]);
+
+DB::use('no_exceptions');
+$result = DB::query("SELECT * FROM non_existent_table");
+if ($result === false) {
+    // Handle error manually
+    echo "Query failed";
+}
+```
+
+#### Available Exception Classes
+
+- **`QueryException`**: Thrown for SQL query execution errors
+- **`DatabaseException`**: Thrown for general database connection and transaction errors
+
+Both exceptions provide methods to access:
+- SQL query that failed
+- Parameters used in the query
+- Database error codes
+- Detailed error information
+- Formatted error messages
 
 <br>
 

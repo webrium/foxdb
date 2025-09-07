@@ -43,18 +43,42 @@ class DB extends Builder
 
   public static function beginTransaction()
   {
-    DB::getCurrentConfig()->connect();
-    DB::getCurrentConfig()->pdo()->beginTransaction();
+    try {
+      DB::getCurrentConfig()->connect();
+      DB::getCurrentConfig()->pdo()->beginTransaction();
+    } catch (\PDOException $e) {
+      throw new \Foxdb\Exceptions\DatabaseException(
+        "Failed to begin transaction: " . $e->getMessage(),
+        $e->getCode(),
+        $e
+      );
+    }
   }
 
   public static function rollBack()
   {
-    DB::getCurrentConfig()->pdo()->rollBack();
+    try {
+      DB::getCurrentConfig()->pdo()->rollBack();
+    } catch (\PDOException $e) {
+      throw new \Foxdb\Exceptions\DatabaseException(
+        "Failed to rollback transaction: " . $e->getMessage(),
+        $e->getCode(),
+        $e
+      );
+    }
   }
 
   public static function commit()
   {
-    DB::getCurrentConfig()->pdo()->commit();
+    try {
+      DB::getCurrentConfig()->pdo()->commit();
+    } catch (\PDOException $e) {
+      throw new \Foxdb\Exceptions\DatabaseException(
+        "Failed to commit transaction: " . $e->getMessage(),
+        $e->getCode(),
+        $e
+      );
+    }
   }
 
   public static function setTimestamp()
