@@ -20,11 +20,25 @@ class SelectTest extends TestCase
       $this->assertCount(7, $users);
    }
 
+   
    public function testJoin()
    {
-      // Skip this test since books table doesn't have user_id column
-      $this->markTestSkipped('Books table does not have user_id column for JOIN test');
+
+      $list = DB::table('users')->select(function ($query) {
+         $query->all('users');
+         $query->field('books.title')->as('book_title');
+         $query->field('books.id')->as('book_id');
+      })
+         ->join('books.user_id', 'users.id')
+         ->orderBy('id', 'DESC')
+         ->get();
+
+
+      $this->assertSame($list[0]->book_title, 'First title');
+      $this->assertSame($list[1]->book_title, 'Second title');
+      $this->assertSame(count($list), 3);
    }
+
 
    public function testWhereIn()
    {
@@ -183,7 +197,7 @@ class SelectTest extends TestCase
       $list = DB::table('users')->whereMonth('date_of_birth', '01')->orMonth('date_of_birth', 9)->get();
       $this->assertSame(4, count($list));
 
-      $list = DB::table('users')->month('date_of_birth','!=', '01')->orMonth('date_of_birth', 9)->get();
+      $list = DB::table('users')->month('date_of_birth', '!=', '01')->orMonth('date_of_birth', 9)->get();
       $this->assertSame(3, count($list));
 
       $user = DB::table('users')->whereMonth('date_of_birth', '10')->first();
@@ -204,7 +218,7 @@ class SelectTest extends TestCase
       $one = DB::table('users')->inRandomOrder()->first();
       $two = DB::table('users')->inRandomOrder()->first();
 
-      while($one->id == $two->id){
+      while ($one->id == $two->id) {
          $two = DB::table('users')->inRandomOrder()->first();
       }
 
@@ -217,7 +231,7 @@ class SelectTest extends TestCase
 
       // Use a field for order
       $books = DB::table('books')->orderBy('amount', 'asc')->get();
-      $this->assertLessThan($books[count($books)-1]->amount, $books[0]->amount);
+      $this->assertLessThan($books[count($books) - 1]->amount, $books[0]->amount);
 
 
       // Using an array of fields for order
@@ -225,42 +239,41 @@ class SelectTest extends TestCase
       $this->assertLessThan($books[1]->price, $books[0]->price);
    }
 
-   public function testChunk(){
+   public function testChunk()
+   {
       $now = date('Y-m-d H:i:s');
 
-      DB::table('categorys')->select('id')->chunk(2, function($res){
-         $this->assertSame( 2 , count($res));
+      DB::table('categorys')->select('id')->chunk(2, function ($res) {
+         $this->assertSame(2, count($res));
       });
 
       $index = 0;
-      DB::table('categorys')->select('id')->chunk(3, function($res)use(&$index){
+      DB::table('categorys')->select('id')->chunk(3, function ($res) use (&$index) {
          $index++;
-         if($index==3){
-            $this->assertSame( 2 , count($res));
-         }
-         else{
-            $this->assertSame( 3 , count($res));
+         if ($index == 3) {
+            $this->assertSame(2, count($res));
+         } else {
+            $this->assertSame(3, count($res));
          }
       });
-
-
    }
 
 
    public function testEach()
    {
       $now = date('Y-m-d H:i:s');
-      
+
       $index = 0;
-      DB::table('categorys')->each(function($category)use(&$index){
+      DB::table('categorys')->each(function ($category) use (&$index) {
          $index++;
       });
-      
-   
-      $this->assertSame( 6 , $index);
+
+
+      $this->assertSame(6, $index);
    }
 
-   public function testSelectAmount(){
+   public function testSelectAmount()
+   {
       $count = DB::table('books')->where('amount', '>', 0)->count();
       $this->assertEquals($count, 3);
    }
