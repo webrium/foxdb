@@ -11,7 +11,7 @@ class DatabaseException extends Exception
     protected $errorCode;
     protected $errorInfo;
 
-    public function __construct($message = "", $code = 0, Exception $previous = null, $sql = null, $params = [], $errorCode = null, $errorInfo = null)
+    public function __construct($message = "", $code = 0, ?Exception $previous = null, $sql = null, $params = [], $errorCode = null, $errorInfo = null)
     {
         // Ensure code is always an integer
         $code = is_numeric($code) ? (int)$code : 0;
