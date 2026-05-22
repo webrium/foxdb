@@ -69,6 +69,10 @@ class Model
       $db->select($this->visible);
     }
 
+    if ($name === 'getBuilder') {
+      return $db;
+    }
+
     $db = $db->{$name}(...$arguments);
 
     return $db;
@@ -178,4 +182,14 @@ class Model
     }
   }
 
+  /**
+   * Begin querying the model.
+   *
+   * @return \Foxdb\DB
+   */
+  public static function query()
+  {
+    return (new static)->makeInstance('getBuilder');
+  }
+  
 }
