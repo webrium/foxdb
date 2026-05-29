@@ -279,26 +279,76 @@ DB::table('users')->orderBy('id')->each(function ($user) {
 
 ### Paginate
 
-FoxDB has created a simple method for pagination. In the example below, the number of results is limited to 10 records, and you can get the information by changing the page number.
+FoxDB provides a convenient pagination method for handling large datasets. The method returns pagination metadata along with the data for the current page.
+
+#### Method Signature
 
 ```PHP
-$page = 1;
-
-$list = DB::table('posts')
-        ->is('active')
-        ->paginate(10, $page);
+paginate(int $take = 15, int $page_number = 1)
 ```
 
-Its output is a stdClass containing the following properties:
+**Parameters:**
+- `$take` (int): Number of records to display per page (default: 15)
+- `$page_number` (int): Current page number, starting from 1 (default: 1)
+
+#### Basic Example
 
 ```PHP
-$list->total; // The total number of rows
-$list->count; // The number of rows received on the current page
-$list->per_page; // The number of rows to display on each page
-$list->prev_page; // Previous page number. If not available, its value is false
-$list->next_page; // next page number. If not available, its value is false
-$list->current_page; // Current page number
-$list->data; // List of data rows
+use Foxdb\DB;
+
+$page = 1;
+$per_page = 10;
+
+$result = DB::table('posts')
+    ->where('status', 'active')
+    ->paginate($per_page, $page);
+
+// Access the paginated data
+foreach ($result->data as $post) {
+    echo $post->title;
+}
+```
+
+#### Pagination Object Properties
+
+The method returns a `stdClass` object with the following properties:
+
+```PHP
+$result->total;        // Total number of rows in the entire dataset
+$result->per_page;     // Number of rows to display per page
+$result->count;        // Number of rows on the current page
+$result->current_page; // Current page number
+$result->last_page;    // Last page number
+$result->data;         // Array of records for the current page
+$result->prev_page;    // Previous page number (false if on first page)
+$result->next_page;    // Next page number (false if on last page)
+```
+
+#### Practical Example
+
+```PHP
+$page_number = $_GET['page'] ?? 1;
+$per_page = 20;
+
+$posts = DB::table('posts')->paginate($per_page, $page_number);
+
+// Display pagination info
+echo "Page {$posts->current_page} of {$posts->last_page}";
+echo "Showing {$posts->count} of {$posts->total} results";
+
+// Display records
+foreach ($posts->data as $post) {
+    echo $post->title;
+}
+
+// Display navigation links
+if ($posts->prev_page) {
+    echo "<a href='?page={$posts->prev_page}'>Previous</a>";
+}
+
+if ($posts->next_page) {
+    echo "<a href='?page={$posts->next_page}'>Next</a>";
+}
 ```
 
 <br>
