@@ -116,10 +116,13 @@ abstract class Grammar
             return "SELECT {$distinct}*";
         }
 
-        $cols = array_map(
-            fn(string $col) => $this->wrapColumn($col),
-            $state['columns'],
-        );
+        $cols = array_map(function (mixed $col): string {
+            // RawExpression — embed as-is, no quoting.
+            if ($col instanceof \Foxdb\Query\RawExpression) {
+                return $col->value;
+            }
+            return $this->wrapColumn((string) $col);
+        }, $state['columns']);
 
         return 'SELECT ' . $distinct . implode(', ', $cols);
     }
