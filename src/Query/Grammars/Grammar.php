@@ -164,11 +164,19 @@ abstract class Grammar
         $parts = [];
 
         foreach ($state['joins'] as $join) {
-            $table  = $this->wrapTable($join['table']);
-            $type   = strtoupper($join['type']);
-            $on     = $this->compileJoinClauses($join['clauses']);
-
-            $parts[] = "{$type} JOIN {$table} {$on}";
+            // Accepts both plain arrays (from tests) and JoinClause objects.
+            if ($join instanceof \Foxdb\Query\JoinClause) {
+                $table    = $this->wrapTable($join->table);
+                $type     = $join->type;
+                $onPart   = $this->compileJoinClauses($join->getOnClauses());
+                $wherePart = $this->compileJoinWhereClauses($join->getWhereClauses());
+                $parts[]  = "{$type} JOIN {$table} {$onPart}{$wherePart}";
+            } else {
+                $table   = $this->wrapTable($join['table']);
+                $type    = strtoupper($join['type']);
+                $on      = $this->compileJoinClauses($join['clauses']);
+                $parts[] = "{$type} JOIN {$table} {$on}";
+            }
         }
 
         return implode(' ', $parts);
@@ -200,6 +208,44 @@ abstract class Grammar
         }
 
         return implode(' ', $parts);
+    }
+
+    /**
+     * Compile WHERE conditions that appear inside a JoinClause.
+     * These are appended after the ON conditions as AND/OR WHERE fragments.
+     *
+     * @param  array<int, array<string, mixed>> $clauses
+     * @return string
+     */
+    protected function compileJoinWhereClauses(array $clauses): string
+    {
+        if (empty($clauses)) {
+            return '';
+        }
+
+        $parts = [];
+
+        foreach ($clauses as $clause) {
+            $boolean = strtoupper($clause['boolean'] ?? 'AND');
+            $type    = $clause['whereType'] ?? 'basic';
+
+            $sql = match ($type) {
+                'basic'   => $this->wrapColumn($clause['first']) . ' ' . $clause['operator'] . ' ?',
+                'null'    => $this->wrapColumn($clause['first']) . ' IS NULL',
+                'notNull' => $this->wrapColumn($clause['first']) . ' IS NOT NULL',
+                'in'      => $this->wrapColumn($clause['first']) . ' IN (' . $this->parameters(count($clause['values'])) . ')',
+                'notIn'   => $this->wrapColumn($clause['first']) . ' NOT IN (' . $this->parameters(count($clause['values'])) . ')',
+                'raw'     => $clause['sql'],
+                default   => '',
+            };
+
+            if ($sql !== '') {
+                $parts[] = "{$boolean} {$sql}";
+            }
+        }
+
+        // Keep boolean prefix intact — these clauses follow ON conditions.
+        return ' ' . implode(' ', $parts);
     }
 
     // -----------------------------------------------------------------------
@@ -295,6 +341,32 @@ abstract class Grammar
         $placeholders = implode(', ', array_fill(0, count($where['values']), '?'));
 
         return "{$col} NOT IN ({$placeholders})";
+    }
+
+    /**
+     * WHERE column IN (subquery)
+     *
+     * @param  array<string, mixed> $where
+     * @return string
+     */
+    protected function compileWhereInSub(array $where): string
+    {
+        $col = $this->wrapColumn($where['column']);
+
+        return "{$col} IN ({$where['sql']})";
+    }
+
+    /**
+     * WHERE column NOT IN (subquery)
+     *
+     * @param  array<string, mixed> $where
+     * @return string
+     */
+    protected function compileWhereNotInSub(array $where): string
+    {
+        $col = $this->wrapColumn($where['column']);
+
+        return "{$col} NOT IN ({$where['sql']})";
     }
 
     /**
@@ -604,11 +676,20 @@ abstract class Grammar
      */
     public function compileUpdate(string $table, array $state, array $values): string
     {
-        $table  = $this->wrapTable($table);
-        $set    = implode(', ', array_map(
-            fn(string $col) => $this->wrapColumn($col) . ' = ?',
-            array_keys($values),
-        ));
+        $table    = $this->wrapTable($table);
+        $setParts = [];
+
+        foreach ($values as $col => $val) {
+            $wrapped = $this->wrapColumn((string) $col);
+            // RawExpression (e.g. increment/decrement) — embed directly, no placeholder.
+            if ($val instanceof \Foxdb\Query\RawExpression) {
+                $setParts[] = "{$wrapped} = {$val->value}";
+            } else {
+                $setParts[] = "{$wrapped} = ?";
+            }
+        }
+
+        $set = implode(', ', $setParts);
 
         $sql = "UPDATE {$table} SET {$set}";
 
@@ -730,9 +811,24 @@ abstract class Grammar
      */
     public function wrapTable(string $table): string
     {
+        // Subquery: starts with ( — already fully formed SQL.
+        // Match alias only after the closing ) to avoid matching AS inside the subquery.
+        if (str_starts_with(ltrim($table), '(')) {
+            // Find the last ) and check for AS after it
+            $lastParen = strrpos($table, ')');
+            if ($lastParen !== false) {
+                $afterParen = substr($table, $lastParen + 1);
+                if (preg_match('/^\s+AS\s+(\S+)/i', $afterParen, $m)) {
+                    $sub   = substr($table, 0, $lastParen + 1);
+                    $alias = trim($m[1], '`"');
+                    return $sub . ' AS ' . $this->quoteSingle($alias);
+                }
+            }
+            return $table;
+        }
+
         if (stripos($table, ' as ') !== false) {
             [$tbl, $alias] = preg_split('/\s+as\s+/i', $table, 2);
-
             return $this->quoteSingle(trim($tbl)) . ' AS ' . $this->quoteSingle(trim($alias));
         }
 
