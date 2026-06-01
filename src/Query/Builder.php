@@ -1697,10 +1697,8 @@ class Builder
     protected function buildState(): array
     {
         // Normalise columns: RawExpression → its string value for Grammar.
-        $columns = array_map(
-            fn(mixed $col) => $col instanceof RawExpression ? (string) $col : $col,
-            $this->columns,
-        );
+        // Keep RawExpression objects intact — Grammar identifies and skips quoting them.
+        $columns = $this->columns;
 
         // Normalise joins: raw-join arrays pass their raw key through.
         $joins = array_map(function (mixed $join) {
