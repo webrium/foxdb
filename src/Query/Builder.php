@@ -7,6 +7,7 @@ namespace Foxdb\Query;
 use Foxdb\Contracts\ConnectionInterface;
 use Foxdb\Exceptions\QueryException;
 use Foxdb\Query\Grammars\Grammar;
+use Foxdb\Support\Collection;
 use InvalidArgumentException;
 
 /**
@@ -1163,13 +1164,15 @@ class Builder
     // -----------------------------------------------------------------------
 
     /**
-     * Execute the query and return all matching rows.
+     * Execute the query and return all matching rows as a Collection.
      *
-     * @return array<int, object>
+     * @return Collection
      */
-    public function get(): array
+    public function get(): Collection
     {
-        return $this->connection->select($this->toSql(), $this->getBindings());
+        $rows = $this->connection->select($this->toSql(), $this->getBindings());
+
+        return new Collection($rows);
     }
 
     /**
@@ -1219,25 +1222,14 @@ class Builder
         $cols = $keyColumn ? [$column, $keyColumn] : [$column];
         $rows = $this->select(...$cols)->get();
 
-        if ($keyColumn) {
-            $result = [];
-            foreach ($rows as $row) {
-                $result[$row->{$keyColumn}] = $row->{$column};
-            }
-            return $result;
-        }
-
-        return array_column(
-            array_map(fn(object $r) => (array) $r, $rows),
-            $column,
-        );
+        return $rows->pluck($column, $keyColumn);
     }
 
     /**
      * Process query results in batches of $size rows at a time.
      *
      * @param  int      $size
-     * @param  callable $callback  Receives array<object> per batch; return false to stop.
+     * @param  callable(Collection): bool|void $callback  Receives a Collection per batch; return false to stop.
      * @return void
      */
     public function chunk(int $size, callable $callback): void
@@ -1247,7 +1239,7 @@ class Builder
         do {
             $results = (clone $this)->limit($size)->offset($page * $size)->get();
 
-            if (empty($results)) {
+            if ($results->isEmpty()) {
                 break;
             }
 
@@ -1256,7 +1248,7 @@ class Builder
             }
 
             $page++;
-        } while (count($results) === $size);
+        } while ($results->count() === $size);
     }
 
     /**
@@ -1267,7 +1259,7 @@ class Builder
      */
     public function each(callable $callback): void
     {
-        $this->chunk(100, function (array $rows) use ($callback): bool {
+        $this->chunk(100, function (Collection $rows) use ($callback): bool {
             foreach ($rows as $row) {
                 if ($callback($row) === false) {
                     return false;
@@ -1293,10 +1285,10 @@ class Builder
             'total'        => $total,
             'per_page'     => $perPage,
             'current_page' => $page,
-            'last_page'    => (int) ceil($total / $perPage),
+            'last_page'    => max(1, (int) ceil($total / $perPage)),
             'from'         => $total > 0 ? ($page - 1) * $perPage + 1 : 0,
             'to'           => min($page * $perPage, $total),
-            'data'         => $results,
+            'data'         => $results,   // Collection
         ];
     }
 
