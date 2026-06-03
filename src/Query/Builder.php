@@ -76,6 +76,14 @@ class Builder
      */
     protected array $subBindings = [];
 
+    /**
+     * Optional callback to hydrate each row into a model instance.
+     * Set by Model::newQuery() — null means raw stdClass rows.
+     *
+     * @var callable(object): object|null
+     */
+    protected mixed $hydrator = null;
+
     // -----------------------------------------------------------------------
     // Dependencies
     // -----------------------------------------------------------------------
@@ -1165,6 +1173,8 @@ class Builder
 
     /**
      * Execute the query and return all matching rows as a Collection.
+     * When a hydrator is set (Model queries), each row is transformed
+     * into a model instance.
      *
      * @return Collection
      */
@@ -1172,17 +1182,32 @@ class Builder
     {
         $rows = $this->connection->select($this->toSql(), $this->getBindings());
 
+        if ($this->hydrator !== null) {
+            $rows = array_map($this->hydrator, $rows);
+        }
+
         return new Collection($rows);
     }
 
     /**
      * Execute the query and return the first row, or false if none.
+     * When a hydrator is set, the row is transformed into a model instance.
      *
      * @return object|false
      */
     public function first(): object|false
     {
-        return $this->limit(1)->connection->selectOne($this->toSql(), $this->getBindings());
+        $row = $this->limit(1)->connection->selectOne($this->toSql(), $this->getBindings());
+
+        if ($row === false) {
+            return false;
+        }
+
+        if ($this->hydrator !== null) {
+            return ($this->hydrator)($row);
+        }
+
+        return $row;
     }
 
     /**
@@ -1617,6 +1642,20 @@ class Builder
     public function setPrimaryKey(string $key): static
     {
         $this->primaryKey = $key;
+
+        return $this;
+    }
+
+    /**
+     * Set a hydration callback that transforms each raw stdClass row
+     * into a model instance. Used by Model::newQuery().
+     *
+     * @param  callable(object): object $hydrator
+     * @return static
+     */
+    public function setHydrator(callable $hydrator): static
+    {
+        $this->hydrator = $hydrator;
 
         return $this;
     }
