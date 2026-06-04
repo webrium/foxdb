@@ -6,6 +6,7 @@ namespace Foxdb\Eloquent;
 
 use Foxdb\DB;
 use Foxdb\Eloquent\Concerns\HasCasts;
+use Foxdb\Eloquent\Concerns\HasRelations;
 use Foxdb\Eloquent\Concerns\HasSoftDeletes;
 use Foxdb\Eloquent\Concerns\HasTimestamps;
 use Foxdb\Exceptions\ModelNotFoundException;
@@ -47,6 +48,7 @@ abstract class Model
 {
     use HasTimestamps;
     use HasCasts;
+    use HasRelations;
 
     // -----------------------------------------------------------------------
     // Model configuration (override in subclass)
@@ -484,6 +486,37 @@ abstract class Model
     }
 
     /**
+     * Eager-load the given relations on a query.
+     *
+     * Usage:
+     *   User::with('posts', 'profile')->get()
+     *   User::with(['posts' => fn($q) => $q->where('published', 1)])->get()
+     *
+     * @param  string|array<string|int, string|callable> ...$relations
+     * @return \Foxdb\Eloquent\EagerBuilder
+     */
+    public static function with(string|array ...$relations): \Foxdb\Eloquent\EagerBuilder
+    {
+        // Normalise: accept both with('a','b') and with(['a','b']) and with(['a'=>fn])
+        $withs = [];
+        foreach ($relations as $rel) {
+            if (is_array($rel)) {
+                foreach ($rel as $k => $v) {
+                    if (is_int($k)) {
+                        $withs[$v] = null;
+                    } else {
+                        $withs[$k] = $v;
+                    }
+                }
+            } else {
+                $withs[$rel] = null;
+            }
+        }
+
+        return new \Foxdb\Eloquent\EagerBuilder(static::query(), static::class, $withs);
+    }
+
+    /**
      * Return all rows as a Collection of model instances.
      *
      * @return Collection<int, static>
@@ -743,6 +776,26 @@ abstract class Model
      */
     public function __get(string $key): mixed
     {
+        // Check raw attributes first.
+        if (array_key_exists($key, $this->attributes)) {
+            return $this->getAttribute($key);
+        }
+
+        // Check loaded relation cache.
+        if (array_key_exists($key, $this->relations)) {
+            return $this->relations[$key];
+        }
+
+        // Lazy-load relation if a method exists.
+        if (method_exists($this, $key)) {
+            $relation = $this->$key();
+            if ($relation instanceof \Foxdb\Eloquent\Relations\Relation) {
+                $result = $relation->getResults();
+                $this->setRelation($key, $result);
+                return $result;
+            }
+        }
+
         return $this->getAttribute($key);
     }
 
