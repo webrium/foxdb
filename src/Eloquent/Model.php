@@ -124,7 +124,7 @@ abstract class Model
      *
      * @var bool
      */
-    public bool $exists = false;
+    protected bool $exists = false;
 
     // -----------------------------------------------------------------------
     // Constructor
@@ -180,6 +180,30 @@ abstract class Model
     public function getKey(): mixed
     {
         return $this->attributes[$this->primaryKey] ?? null;
+    }
+
+    /**
+     * Determine whether this model instance exists in the database.
+     * Use this instead of directly accessing $exists.
+     *
+     * @return bool
+     */
+    public function isExists(): bool
+    {
+        return $this->exists;
+    }
+
+    /**
+     * Mark the model as existing (persisted in DB).
+     * Called internally after successful INSERT.
+     * Not intended for external use.
+     *
+     * @internal
+     * @return void
+     */
+    protected function markAsExisting(): void
+    {
+        $this->exists = true;
     }
 
     // -----------------------------------------------------------------------
@@ -741,7 +765,14 @@ abstract class Model
     // -----------------------------------------------------------------------
 
     /**
-     * Convert the model to an associative array, applying casts and hiding hidden columns.
+     * Convert the model to an associative array.
+     *
+     * - Casts are applied to all attribute values.
+     * - Columns listed in $hidden are removed.
+     * - Loaded relations are included recursively:
+     *     Collection → array of toArray() results
+     *     Model      → toArray() result
+     *     null       → null
      *
      * @return array<string, mixed>
      */
@@ -752,6 +783,20 @@ abstract class Model
         // Remove hidden columns.
         foreach ($this->hidden as $key) {
             unset($attrs[$key]);
+        }
+
+        // Append any loaded (eager or lazy cached) relations.
+        foreach ($this->relations as $name => $value) {
+            if ($value instanceof \Foxdb\Support\Collection) {
+                $attrs[$name] = array_map(
+                    fn(object $item) => $item instanceof self ? $item->toArray() : (array) $item,
+                    $value->all(),
+                );
+            } elseif ($value instanceof self) {
+                $attrs[$name] = $value->toArray();
+            } else {
+                $attrs[$name] = $value; // null or primitive
+            }
         }
 
         return $attrs;
@@ -842,16 +887,31 @@ abstract class Model
     // -----------------------------------------------------------------------
 
     /**
+     * Per-class cache for usesSoftDeletes() result.
+     * Keyed by class name — computed once per class, not per instance.
+     *
+     * @var array<class-string, bool>
+     */
+    private static array $softDeletesCache = [];
+
+    /**
      * Determine whether HasSoftDeletes is active on this model.
+     * Result is cached per class to avoid repeated Reflection calls.
      *
      * @return bool
      */
     protected function usesSoftDeletes(): bool
     {
-        return in_array(
-            HasSoftDeletes::class,
-            array_keys((new \ReflectionClass($this))->getTraits()),
-            strict: true,
-        );
+        $class = static::class;
+
+        if (! isset(self::$softDeletesCache[$class])) {
+            self::$softDeletesCache[$class] = in_array(
+                HasSoftDeletes::class,
+                array_keys((new \ReflectionClass($this))->getTraits()),
+                strict: true,
+            );
+        }
+
+        return self::$softDeletesCache[$class];
     }
 }

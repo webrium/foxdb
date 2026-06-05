@@ -90,7 +90,7 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate, JsonSeria
      * @param  callable(object): bool|null $filter
      * @return object|null
      */
-    public function first(?callable $filter = null): ?object
+    public function first(?callable $filter = null): mixed
     {
         if ($filter === null) {
             return $this->items[0] ?? null;
@@ -112,7 +112,7 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate, JsonSeria
      * @param  callable(object): bool|null $filter
      * @return object|null
      */
-    public function last(?callable $filter = null): ?object
+    public function last(?callable $filter = null): mixed
     {
         if ($filter === null) {
             return empty($this->items) ? null : end($this->items);
@@ -134,7 +134,7 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate, JsonSeria
      * @param  int $index
      * @return object|null
      */
-    public function get(int $index): ?object
+    public function get(int $index): mixed
     {
         return $this->items[$index] ?? null;
     }
@@ -167,7 +167,12 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate, JsonSeria
 
     /**
      * Apply a callback to each item. Returns a new Collection of the mapped values.
-     * If the callback returns a non-object, it is cast to stdClass.
+     *
+     * The callback may return any value:
+     *   - object    → stored as-is
+     *   - array     → cast to stdClass
+     *   - scalar    → stored as-is (Collection can hold mixed items after map)
+     *   - null      → stored as-is
      *
      * @param  callable(object): mixed $callback
      * @return static
@@ -177,7 +182,11 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate, JsonSeria
         $result = array_map($callback, $this->items);
 
         return new static(array_map(
-            fn(mixed $v) => is_object($v) ? $v : (object) ['value' => $v],
+            fn(mixed $v) => match (true) {
+                is_object($v) => $v,
+                is_array($v)  => (object) $v,
+                default       => $v,
+            },
             $result,
         ));
     }
@@ -633,7 +642,7 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate, JsonSeria
      * @param  int $offset
      * @return object|null
      */
-    public function offsetGet(mixed $offset): ?object
+    public function offsetGet(mixed $offset): mixed
     {
         return $this->items[$offset] ?? null;
     }
