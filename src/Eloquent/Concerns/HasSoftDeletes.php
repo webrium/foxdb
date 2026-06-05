@@ -138,7 +138,7 @@ trait HasSoftDeletes
      * @param  Builder $query
      * @return Builder
      */
-    protected function applySoftDeleteScope(Builder $query): Builder
+    public function applySoftDeleteScope(Builder $query): Builder
     {
         if (static::$onlyTrashed) {
             static::$onlyTrashed = false;

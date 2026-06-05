@@ -639,15 +639,17 @@ abstract class Model
      */
     public function newQuery(): Builder
     {
-        $model   = $this;
         $builder = DB::table($this->getTable(), $this->connection)
             ->setPrimaryKey($this->primaryKey)
             ->setHydrator(fn(object $row) => static::fromRow($row));
 
-        // Apply soft-delete scope if the trait is loaded.
+        // Apply soft-delete scope when HasSoftDeletes trait is in use.
+        // applySoftDeleteScope() is public on the trait so IDE and PHP
+        // can both resolve it without ambiguity.
         if ($this->usesSoftDeletes()) {
-            /** @var HasSoftDeletes $this */
-            $builder = $this->applySoftDeleteScope($builder);
+            $softDelete = $this; // $this implements HasSoftDeletes when trait is used
+            assert(method_exists($softDelete, 'applySoftDeleteScope'));
+            $builder = $softDelete->applySoftDeleteScope($builder);
         }
 
         return $builder;
