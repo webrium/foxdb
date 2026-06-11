@@ -1,22 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <phpunit
-        colors="true"
-        bootstrap="./tests/config.php"
-        convertErrorsToExceptions="true"
-        convertNoticesToExceptions="true"
-        convertWarningsToExceptions="true"
-        stopOnError="true"
-        stopOnFailure="false"
-        stopOnIncomplete="false"
-        stopOnSkipped="false"
-        stopOnRisky="false"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+    bootstrap="vendor/autoload.php"
+    colors="true"
+    stopOnFailure="false"
 >
     <testsuites>
-        <testsuite name="Your tests">
-            <file>./tests/SchemaTest.php</file> 
-            <file>./tests/InsertTest.php</file> 
-            <file>./tests/UpdateTest.php</file>
-            <file>./tests/SelectTest.php</file>
-            <file>./tests/TraitTest.php</file>
+        <!-- No DB needed — always runnable -->
+        <testsuite name="unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+
+        <!-- Requires a real DB — set DB_DRIVER env var -->
+        <testsuite name="integration">
+            <directory>tests/Integration</directory>
+        </testsuite>
+
+        <!-- Both together -->
+        <testsuite name="all">
+            <directory>tests/Unit</directory>
+            <directory>tests/Integration</directory>
         </testsuite>
     </testsuites>
+
+    <php>
+        <!-- Override any of these via env vars or CLI -d flags -->
+        <env name="DB_DRIVER"   value="mysql"/>   <!-- sqlite | mysql | pgsql -->
+        <env name="DB_HOST"     value="127.0.0.1"/>
+        <env name="DB_PORT"     value="3306"/>
+        <env name="DB_DATABASE" value="test"/>
+        <env name="DB_USERNAME" value="root"/>
+        <env name="DB_PASSWORD" value="123456"/>
+    </php>
 </phpunit>
