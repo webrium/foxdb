@@ -325,6 +325,41 @@ class GrammarTest extends TestCase
         $this->assertStringNotContainsString('ORDER BY', $sql);
     }
 
+    /**
+     * Regression: PostgresGrammar::compileUpdate() was using array_map on
+     * array_keys() which always produced "col = ?" — even for RawExpression
+     * values (used by increment/decrement). This caused a binding count
+     * mismatch: PostgreSQL received a ? placeholder with no bound value.
+     */
+    public function test_pgsql_update_embeds_raw_expression_without_placeholder(): void
+    {
+        $raw = new \Foxdb\Query\RawExpression('"score" + 10');
+        $sql = $this->pgsql->compileUpdate(
+            'users',
+            $this->state(['wheres' => [$this->where('id')]]),
+            ['score' => $raw],
+        );
+
+        // RawExpression must be embedded directly — no ? placeholder for it.
+        $this->assertSame(
+            'UPDATE "users" SET "score" = "score" + 10 WHERE "id" = ?',
+            $this->norm($sql),
+        );
+    }
+
+    public function test_pgsql_update_mixes_raw_and_normal_values(): void
+    {
+        $raw = new \Foxdb\Query\RawExpression('"score" + 5');
+        $sql = $this->pgsql->compileUpdate(
+            'users',
+            $this->state(['wheres' => [$this->where('id')]]),
+            ['score' => $raw, 'name' => 'Ali'],
+        );
+
+        $this->assertStringContainsString('"score" = "score" + 5', $sql);
+        $this->assertStringContainsString('"name" = ?', $sql);
+    }
+
     // -----------------------------------------------------------------------
     // PostgreSQL — RETURNING
     // -----------------------------------------------------------------------

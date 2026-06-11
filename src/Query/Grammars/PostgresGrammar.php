@@ -43,12 +43,20 @@ class PostgresGrammar extends Grammar
      */
     public function compileUpdate(string $table, array $state, array $values): string
     {
-        $table = $this->wrapTable($table);
-        $set   = implode(', ', array_map(
-            fn(string $col) => $this->wrapColumn($col) . ' = ?',
-            array_keys($values),
-        ));
+        $table    = $this->wrapTable($table);
+        $setParts = [];
 
+        foreach ($values as $col => $val) {
+            $wrapped = $this->wrapColumn((string) $col);
+            // RawExpression (e.g. increment/decrement) — embed directly, no placeholder.
+            if ($val instanceof \Foxdb\Query\RawExpression) {
+                $setParts[] = "{$wrapped} = {$val->value}";
+            } else {
+                $setParts[] = "{$wrapped} = ?";
+            }
+        }
+
+        $set = implode(', ', $setParts);
         $sql = "UPDATE {$table} SET {$set}";
 
         $where = $this->compileWheres($state);
