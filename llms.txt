@@ -1,0 +1,686 @@
+# FoxDB
+
+FoxDB is a standalone PHP 8.1+ database library for the Webrium framework.
+It provides an Eloquent-style ORM (Model), a fluent Query Builder, a Schema
+builder for DDL, and a Migrator — all with zero external dependencies beyond PDO.
+
+Namespace root : `Foxdb\`
+PHP requirement : ^8.1
+Supported drivers: mysql, pgsql, sqlite
+
+---
+
+## 1. Connection Setup
+
+```php
+use Foxdb\DB;
+
+// Single connection (named 'main' by default)
+DB::addConnection([
+    'driver'   => 'mysql',       // 'mysql' | 'pgsql' | 'sqlite'
+    'host'     => '127.0.0.1',
+    'port'     => '3306',
+    'database' => 'my_db',
+    'username' => 'root',
+    'password' => 'secret',
+    'charset'  => 'utf8mb4',
+]);
+
+// SQLite in-memory (useful for tests)
+DB::addConnection(['driver' => 'sqlite', 'database' => ':memory:']);
+
+// Multiple connections
+DB::addConnection([...], 'secondary');
+DB::use('secondary');            // switch default
+DB::connection('secondary');    // get Connection instance
+DB::reset();                     // clear all connections
+```
+
+---
+
+## 2. Query Builder — `DB::table()`
+
+`DB::table(string $table)` returns a `Foxdb\Query\Builder` instance.
+All chainable methods return `static`. Terminal methods execute the query.
+
+### SELECT
+
+```php
+DB::table('users')->get();                          // Collection of stdClass
+DB::table('users')->select('id', 'name')->get();
+DB::table('users')->selectRaw('COUNT(*) as total')->get();
+DB::table('users')->addSelect('email')->get();
+DB::table('users')->distinct()->pluck('email');
+```
+
+### WHERE
+
+```php
+->where('active', 1)                      // = shorthand
+->where('age', '>', 18)                   // explicit operator
+->where('role', '!=', 'banned')
+->orWhere('role', 'admin')
+->whereNot('status', 'deleted')
+->whereIn('id', [1, 2, 3])
+->whereNotIn('status', ['banned', 'pending'])
+->whereBetween('age', 18, 65)
+->whereNotBetween('score', 0, 10)
+->whereNull('deleted_at')
+->whereNotNull('email')
+->whereRaw('age > ? AND active = ?', [18, 1])
+->whereColumn('updated_at', '>', 'created_at')
+->whereExists(function ($q) { $q->table('orders')->whereColumn('user_id','users.id'); })
+->whereDate('created_at', '=', '2024-01-01')
+->whereMonth('created_at', '=', 1)
+->whereYear('created_at', '=', 2024)
+->whereDay('created_at', '=', 15)
+->whereTime('created_at', '>', '08:00:00')
+
+// Nested group: WHERE (a = ? OR b = ?) AND c = ?
+->where(function ($q) {
+    $q->where('role', 'admin')->orWhere('role', 'mod');
+})->where('active', 1)
+```
+
+### v1 shorthands (all equivalent to where variants)
+
+```php
+->is('col', $val)       // where col = val
+->true('col')           // where col = 1
+->false('col')          // where col = 0
+->null('col')           // whereNull
+->notNull('col')        // whereNotNull
+->in('col', [...])      // whereIn
+->notIn('col', [...])   // whereNotIn
+->like('col', '%val%')  // WHERE col LIKE ?
+```
+
+### JOIN
+
+```php
+->join('orders', 'orders.user_id', '=', 'users.id')
+->leftJoin('profiles', 'profiles.user_id', '=', 'users.id')
+->rightJoin('table', 'a', '=', 'b')
+->crossJoin('tags')
+->joinSub($subQuery, 'alias', 'a', '=', 'b')
+->joinRaw('INNER JOIN logs ON logs.user_id = users.id')
+```
+
+### ORDER / GROUP / HAVING / LIMIT
+
+```php
+->orderBy('name')                   // ASC default
+->orderBy('created_at', 'desc')
+->orderByDesc('score')
+->orderByRaw("FIELD(status, 'active', 'pending')")
+->latest()                          // orderBy created_at DESC
+->oldest()                          // orderBy created_at ASC
+->inRandomOrder()
+->reorder()                         // clear all orders
+->groupBy('role', 'status')
+->having('total', '>', 100)
+->havingRaw('COUNT(*) > 5')
+->limit(10)
+->offset(20)
+->take(10)                          // alias for limit
+->skip(20)                          // alias for offset
+```
+
+### Terminal — Fetch
+
+```php
+->get()                             // Collection<stdClass>
+->first()                           // stdClass|false
+->find(int|string $id)             // stdClass|false  (uses primaryKey)
+->value('column')                  // mixed — single column of first row
+->pluck('name')                    // array of values
+->pluck('name', 'id')             // array keyed by id
+->chunk(100, function ($rows) {})  // process in chunks
+->each(function ($row) {})        // iterate all rows
+->paginate(15, $page)             // object{total,per_page,current_page,last_page,from,to,data:Collection}
+```
+
+### Terminal — Aggregates
+
+```php
+->count()           // int
+->count('email')    // COUNT(email)
+->sum('amount')     // float|int
+->avg('score')      // float|int
+->min('age')        // float|int
+->max('age')        // float|int
+->exists()          // bool
+->doesntExist()     // bool
+```
+
+### Terminal — Write
+
+```php
+->insert(['name' => 'Ali', 'email' => 'a@b.com'])          // bool
+->insertGetId(['name' => 'Ali', 'email' => 'a@b.com'])      // int|string
+->insertBatch([['name' => 'Ali'], ['name' => 'Sara']])       // bool
+->update(['name' => 'Ali'])                                  // int (affected rows)
+->delete()                                                   // int (affected rows)
+->truncate()                                                 // bool
+->increment('score', 10)                                     // int
+->decrement('score', 5)                                      // int
+->increment('score', 1, ['updated_at' => now()])            // with extra columns
+->updateOrInsert(['email' => 'a@b.com'], ['name' => 'Ali']) // bool
+```
+
+### Raw expressions
+
+```php
+use Foxdb\Query\RawExpression;
+
+DB::raw('NOW()')                           // RawExpression — safe to use in select/where
+DB::table('orders')->select(DB::raw('SUM(total) as revenue'))->first()
+```
+
+### Debug
+
+```php
+->toSql()        // string — compiled SQL with ? placeholders
+->getBindings()  // array — binding values in order
+->dump()         // var_dump sql+bindings, continues execution
+->dd()           // var_dump sql+bindings, exits
+```
+
+---
+
+## 3. Raw SQL via DB facade
+
+```php
+DB::select('SELECT * FROM users WHERE active = ?', [1]);    // array<stdClass>
+DB::selectOne('SELECT * FROM users WHERE id = ?', [1]);     // stdClass|false
+DB::insert('INSERT INTO logs (msg) VALUES (?)', ['hi']);    // bool
+DB::insertGetId('INSERT INTO users (name) VALUES (?)', ['Ali']); // int|string
+DB::update('UPDATE users SET active = ? WHERE id = ?', [1, 5]); // int
+DB::delete('DELETE FROM users WHERE id = ?', [5]);          // int
+DB::statement('CREATE INDEX ...');                           // bool
+DB::affectingStatement('UPDATE ...', [...]);                 // int
+```
+
+---
+
+## 4. Transactions
+
+```php
+// Automatic (rolls back on exception)
+DB::transaction(function () {
+    DB::table('accounts')->where('id', 1)->decrement('balance', 100);
+    DB::table('accounts')->where('id', 2)->increment('balance', 100);
+});
+
+// Manual
+DB::beginTransaction();
+try {
+    // ...
+    DB::commit();
+} catch (\Throwable $e) {
+    DB::rollBack();
+}
+
+DB::inTransaction(); // bool
+```
+
+---
+
+## 5. Eloquent Model
+
+### Definition
+
+```php
+use Foxdb\Eloquent\Model;
+
+class User extends Model
+{
+    protected string $table      = 'users';       // optional — auto-derived if omitted
+    protected string $primaryKey = 'id';           // default 'id'
+    protected array  $fillable   = ['name', 'email', 'age'];
+    // OR:
+    protected array  $guarded    = [];             // [] = allow everything
+    protected array  $hidden     = ['password'];   // excluded from toArray()/toJson()
+    protected bool   $timestamps = true;           // manages created_at / updated_at
+    protected ?string $connection = null;          // null = default connection
+
+    protected array $casts = [
+        'is_active' => 'bool',      // aliases: 'boolean'
+        'age'       => 'int',       // aliases: 'integer'
+        'score'     => 'float',     // aliases: 'double', 'real'
+        'settings'  => 'array',     // aliases: 'json'  — JSON encode/decode
+        'meta'      => 'object',    // JSON decode as stdClass
+        'born_at'   => 'datetime',  // aliases: 'date'  — DateTime object
+        'expires'   => 'immutable_datetime',       // DateTimeImmutable object
+    ];
+}
+```
+
+Table name auto-derivation: `UserProfile` → `user_profiles` (snake_case + plural s).
+
+### CRUD
+
+```php
+// Create
+$user = User::create(['name' => 'Ali', 'email' => 'a@b.com']);
+$user = new User(['name' => 'Ali']);
+$user->save();                  // INSERT
+
+// Read
+User::all()                     // Collection<User>
+User::find(1)                   // User|null
+User::findOrFail(1)             // User  (throws ModelNotFoundException)
+User::first()                   // User|false
+User::where('active', 1)->get() // Collection<User>
+User::firstWhere('email', 'a@b.com') // User|null
+User::exists(['role' => 'admin'])    // bool
+
+// Update
+$user->name = 'New Name';
+$user->save();                  // UPDATE (only dirty columns)
+User::where('active', 0)->update(['score' => 0]);
+
+// Delete
+$user->delete();                // removes row (or sets deleted_at with soft deletes)
+User::where('age', '<', 18)->delete();
+
+// Reload
+$user->fresh()                  // new instance re-fetched from DB
+$user->refresh()                // update current instance in place
+```
+
+### Dirty tracking
+
+```php
+$user->isDirty()            // bool — any attribute changed
+$user->isDirty('name')      // bool — specific attribute
+$user->getDirty()           // array — only changed key=>value pairs
+$user->syncOriginal()       // reset dirty state to current attributes
+```
+
+### Mass assignment rules
+
+`$fillable` is a whitelist. `$guarded` is a blacklist. `$guarded = ['*']` (default) blocks everything unless the key is in `$fillable`. `$guarded = []` allows everything. `forceFill()` bypasses both.
+
+### Conversion
+
+```php
+$user->toArray()    // assoc array — casts applied, hidden removed, relations included
+$user->toJson()     // JSON string
+(string) $user      // same as toJson()
+json_encode($user)  // works — Model implements JsonSerializable via toArray()
+```
+
+### Collection serialization (important)
+
+```php
+$users = User::all();
+
+// CORRECT — calls Model::toArray() on each item
+$users->toArray()
+json_encode($users)
+['users' => $users->toArray()]
+
+// WRONG — returns null-byte keys (\u0000*\u0000table ...)
+(array) $userModel
+```
+
+---
+
+## 6. Local Scopes
+
+```php
+class User extends Model
+{
+    public function scopeActive(Builder $q): Builder
+    {
+        return $q->where('is_active', 1);
+    }
+
+    public function scopeRole(Builder $q, string $role): Builder
+    {
+        return $q->where('role', $role);
+    }
+}
+
+// Usage — camelCase, drop 'scope' prefix
+User::active()->get()
+User::role('admin')->orderBy('name')->get()
+User::active()->role('mod')->paginate(20, $page)
+```
+
+---
+
+## 7. Relations
+
+### Definition patterns
+
+```php
+use Foxdb\Eloquent\Relations\{HasOne, HasMany, BelongsTo, BelongsToMany, HasManyThrough};
+
+class User extends Model
+{
+    public function posts(): HasMany
+    {
+        return $this->hasMany(Post::class, 'user_id', 'id');
+        // hasMany(related, foreignKey, localKey)
+    }
+
+    public function profile(): HasOne
+    {
+        return $this->hasOne(Profile::class, 'user_id', 'id');
+    }
+
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class, 'user_role', 'user_id', 'role_id');
+        // belongsToMany(related, pivotTable, foreignPivotKey, relatedPivotKey)
+    }
+
+    public function country(): BelongsTo
+    {
+        return $this->belongsTo(Country::class, 'country_id', 'id');
+    }
+
+    public function comments(): HasManyThrough
+    {
+        return $this->hasManyThrough(Comment::class, Post::class, 'user_id', 'post_id', 'id', 'id');
+        // hasManyThrough(final, through, firstKey, secondKey, localKey, throughKey)
+    }
+}
+
+class Post extends Model
+{
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
+    }
+}
+```
+
+### Lazy loading
+
+```php
+$user->posts        // Collection<Post>  — loaded on first access, cached
+$post->author       // User|null
+$user->profile      // Profile|null
+isset($user->posts) // bool — checks both attributes and loaded relations
+```
+
+### Eager loading
+
+```php
+User::with('posts')->get()
+User::with('posts', 'profile')->get()
+User::with(['posts' => fn($q) => $q->where('published', 1)])->get()
+
+// toArray() includes eager-loaded relations
+$arr = User::with('posts')->get()->toArray();
+// $arr[0]['posts'] is an array of post arrays
+```
+
+### BelongsToMany pivot methods
+
+```php
+$user->roles()->attach(1)
+$user->roles()->attach([1, 2, 3])
+$user->roles()->attach(1, ['expires_at' => '2025-01-01'])   // with pivot data
+$user->roles()->detach(1)
+$user->roles()->detach()    // detach all
+$user->roles()->sync([1, 2])
+$user->roles()->withPivot('expires_at', 'created_by')
+```
+
+### BelongsTo helpers
+
+```php
+$post->author()->associate($user)   // sets FK on post, does not save
+$post->author()->dissociate()       // sets FK to null, does not save
+$post->save()
+```
+
+---
+
+## 8. Soft Deletes
+
+Add `use HasSoftDeletes;` to the model. The table must have a nullable `deleted_at DATETIME` column.
+
+```php
+use Foxdb\Eloquent\Concerns\HasSoftDeletes;
+
+class Post extends Model
+{
+    use HasSoftDeletes;
+    // Optionally override column name:
+    // protected string $deletedAt = 'deleted_at';
+}
+```
+
+```php
+$post->delete()                         // sets deleted_at — row NOT removed
+$post->trashed()                        // bool
+$post->restore()                        // clears deleted_at
+
+Post::find(1)                           // null if soft-deleted
+Post::withTrashed()->find(1)           // includes soft-deleted
+Post::onlyTrashed()->get()             // only soft-deleted rows
+Post::withTrashed()->where('id',1)->first()->restore()
+```
+
+Soft deletes work correctly when `HasSoftDeletes` is inherited from a parent model:
+
+```php
+class BaseModel extends Model { use HasSoftDeletes; }
+class Post extends BaseModel {}   // ← scope applied correctly
+```
+
+---
+
+## 9. Schema Builder
+
+```php
+use Foxdb\Schema;
+use Foxdb\Schema\Blueprint;
+
+Schema::create('users', function (Blueprint $table) {
+    $table->id();                              // BIGINT AUTO_INCREMENT PRIMARY KEY
+    $table->string('name', 255);
+    $table->string('email')->unique();
+    $table->integer('age')->default(0);
+    $table->boolean('is_active')->default(true);
+    $table->float('score', 8, 2)->nullable();
+    $table->decimal('price', 10, 2);
+    $table->text('bio')->nullable();
+    $table->json('settings')->nullable();
+    $table->enum('role', ['admin','user','mod'])->default('user');
+    $table->uuid('uuid');
+    $table->date('born_at')->nullable();
+    $table->dateTime('published_at')->nullable();
+    $table->timestamp('last_login')->nullable();
+    $table->timestamps();                      // created_at + updated_at
+    $table->softDeletes();                     // deleted_at
+    $table->foreignId('user_id');             // BIGINT UNSIGNED
+    $table->foreignIdFor(User::class);        // derives column from model table name
+    $table->index('role');
+    $table->index(['first_name', 'last_name'], 'idx_full_name');
+    $table->primary(['tenant_id', 'user_id']);
+    $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
+});
+
+// Modify existing table
+Schema::table('users', function (Blueprint $table) {
+    $table->integer('score')->after('email')->nullable()->change();
+    $table->dropColumn('old_field');
+    $table->dropColumn(['field_a', 'field_b']);
+    $table->renameColumn('old', 'new');
+    $table->dropIndex('idx_name');
+    $table->dropForeign('fk_name');
+});
+
+Schema::drop('users');
+Schema::dropIfExists('users');
+Schema::rename('old_name', 'new_name');
+Schema::hasTable('users');               // bool
+Schema::hasColumn('users', 'email');     // bool
+Schema::getColumnNames('users');         // array<string>
+```
+
+---
+
+## 10. Migrations
+
+```php
+use Foxdb\Migrations\Migration;
+use Foxdb\Schema;
+use Foxdb\Schema\Blueprint;
+
+class CreateUsersTable extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('users');
+    }
+}
+
+// Run via Migrator
+use Foxdb\Migrations\Migrator;
+
+$migrator = new Migrator('/path/to/migrations');
+$migrator->run();               // run all pending
+$migrator->run(3);              // run up to 3 steps
+$migrator->rollback();          // roll back last batch
+$migrator->rollback(2);         // roll back 2 steps
+$migrator->reset();             // roll back everything
+$migrator->refresh();           // reset + run all
+$migrator->status();            // array of migration status
+$migrator->hasPendingMigrations(); // bool
+```
+
+---
+
+## 11. Collection
+
+`Foxdb\Support\Collection` is returned by `Builder::get()` and Model query methods.
+Implements `ArrayAccess`, `Countable`, `IteratorAggregate`, `JsonSerializable`.
+All transformation methods return a **new** Collection (immutable pipeline).
+
+```php
+// Construction
+Collection::make([['id'=>1,'name'=>'Ali'], ...])  // from array of arrays/objects
+new Collection($arrayOfObjects)
+
+// Access
+$c->all()                       // array
+$c->get(2)                      // item at index, null if missing
+$c->first()                     // first item or null
+$c->first(fn($u) => $u->role === 'admin')
+$c->last()
+$c->count()
+$c->isEmpty()
+$c->isNotEmpty()
+$c->contains('role', 'admin')
+$c->contains(fn($u) => $u->age > 18)
+
+// Transform (return new Collection)
+$c->filter(fn($u) => $u->active)
+$c->reject(fn($u) => $u->active)
+$c->map(fn($u) => (object)['id'=>$u->id, 'name'=>strtoupper($u->name)])
+$c->flatMap(fn($u) => $u->tags)
+$c->each(fn($u,$i) => ...)      // return false to stop; returns $this
+$c->reduce(fn($carry,$u) => $carry + $u->score, 0)
+$c->sortBy('name')
+$c->sortBy('score', 'desc')
+$c->sortByDesc('score')
+$c->sortWith(fn($a,$b) => $a->score <=> $b->score)
+$c->unique('email')
+$c->take(5)
+$c->skip(10)
+$c->reverse()
+$c->merge($otherCollection)
+$c->chunk(100)                  // array of Collections
+$c->only(0, 1, 2)              // by numeric index
+
+// Extract
+$c->pluck('name')               // array of values
+$c->pluck('name', 'id')        // array keyed by id
+$c->keyBy('id')                 // plain array keyed by column
+$c->groupBy('role')             // plain array of arrays
+
+// Aggregates
+$c->sum('score')
+$c->avg('score')
+$c->min('score')
+$c->max('score')
+
+// Serialization
+$c->toArray()                   // array<array> — calls toArray() on Model items
+$c->toJson()                    // JSON string
+json_encode($c)                 // same as toJson()
+(string) $c                     // pretty-printed JSON
+foreach ($c as $item) {}
+$c[0]                           // ArrayAccess read
+```
+
+---
+
+## 12. Query Log & Debug
+
+```php
+DB::enableQueryLog();
+
+// ... run queries ...
+
+DB::getQueryLog();          // array<QueryLogEntry>
+DB::getLastQuery();         // QueryLogEntry|null
+DB::getQueryCount();        // int
+DB::getTotalQueryTime();    // float (ms)
+DB::getSlowQueries(100.0); // array — queries slower than 100ms
+DB::flushQueryLog();
+DB::disableQueryLog();
+
+// Hooks
+DB::beforeQuery(function (string $sql, array $bindings) { });
+DB::afterQuery(function (string $sql, array $bindings, float $timeMs) { });
+```
+
+---
+
+## 13. Multiple Connections
+
+```php
+DB::addConnection([...], 'main');
+DB::addConnection([...], 'replica');
+
+DB::table('users')                          // uses current default
+DB::table('users', 'replica')              // explicit connection
+DB::use('replica')                          // switch default for subsequent calls
+
+// In a Model
+class Log extends Model {
+    protected ?string $connection = 'replica';
+}
+```
+
+---
+
+## 14. Key Behaviors & Gotchas
+
+- `Builder::first()` returns `false` (not `null`) when no row matches.
+- `Model::find()` returns `null` when no row matches.
+- `Model::all()` / `Model::where(...)` are forwarded via `__callStatic` — return type is `mixed` to support all Builder terminal methods.
+- `(array) $modelInstance` exposes protected properties with null-byte keys — always use `$model->toArray()` or `$collection->toArray()`.
+- Timestamps (`created_at`, `updated_at`) are set automatically in UTC via `gmdate()`. Set `$timestamps = false` to disable.
+- `$guarded = ['*']` is the default — nothing is mass-assignable unless listed in `$fillable`.
+- Casts are applied **on read** (`getAttribute`, `toArray`). Raw values in `$attributes` are always the original DB values.
+- `save()` on an existing model only UPDATEs dirty (changed) attributes.
+- Soft deletes scope (`WHERE deleted_at IS NULL`) is applied automatically when `HasSoftDeletes` is used — including when inherited from a parent model.
+- `isset($model->relation)` works correctly for both attributes and loaded relations.
