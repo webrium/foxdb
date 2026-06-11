@@ -308,6 +308,92 @@ class ModelCrudTest extends IntegrationTestCase
     }
 
     // -----------------------------------------------------------------------
+    // json_encode / return model directly — regression tests
+    //
+    // Before the fix:
+    //   $user = User::where(...)->first() returned object|false (Builder type)
+    //   json_encode($user) produced {} because Model did not implement
+    //   JsonSerializable and PHP only serializes public properties.
+    // -----------------------------------------------------------------------
+
+    public function test_json_encode_on_model_from_where_first_is_not_empty(): void
+    {
+        TestUser::create(['name' => 'Alice', 'email' => 'a@test.com', 'age' => 25]);
+
+        $user = TestUser::where('name', 'Alice')->first();
+
+        // Must be a model instance, not false or null
+        $this->assertInstanceOf(TestUser::class, $user);
+
+        // json_encode($model) must produce valid, non-empty JSON
+        $json = json_encode($user);
+        $this->assertJson($json);
+
+        $decoded = json_decode($json, true);
+        $this->assertNotEmpty($decoded, 'json_encode($user) returned {} — JsonSerializable not implemented');
+        $this->assertSame('Alice', $decoded['name']);
+        $this->assertSame(25, $decoded['age']);
+    }
+
+    public function test_return_model_from_where_first_in_api_response(): void
+    {
+        TestUser::create(['name' => 'Alice', 'email' => 'a@test.com', 'age' => 25]);
+
+        $user = TestUser::where('name', 'Alice')->first();
+
+        // Simulate what a controller does: return the model inside an array
+        $response = ['ok' => true, 'user' => $user];
+        $json     = json_encode($response);
+
+        $this->assertJson($json);
+        $decoded = json_decode($json, true);
+
+        $this->assertTrue($decoded['ok']);
+        $this->assertIsArray($decoded['user']);
+        $this->assertSame('Alice', $decoded['user']['name']);
+        $this->assertArrayNotHasKey('settings', $decoded['user']); // hidden field excluded
+    }
+
+    public function test_json_encode_respects_hidden_fields(): void
+    {
+        TestUser::create(['name' => 'Alice', 'email' => 'a@test.com', 'age' => 25, 'settings' => ['x' => 1]]);
+
+        $user = TestUser::where('name', 'Alice')->first();
+        $json = json_encode($user);
+        $decoded = json_decode($json, true);
+
+        // 'settings' is in $hidden — must not appear in json_encode output
+        $this->assertArrayNotHasKey('settings', $decoded);
+        // 'name' is not hidden — must appear
+        $this->assertArrayHasKey('name', $decoded);
+    }
+
+    public function test_json_encode_on_model_from_find(): void
+    {
+        $created = TestUser::create(['name' => 'Alice', 'email' => 'a@test.com', 'age' => 25]);
+
+        $user    = TestUser::find($created->getKey());
+        $json    = json_encode($user);
+        $decoded = json_decode($json, true);
+
+        $this->assertNotEmpty($decoded);
+        $this->assertSame('Alice', $decoded['name']);
+    }
+
+    public function test_where_first_returns_model_instance_not_false(): void
+    {
+        TestUser::create(['name' => 'Alice', 'email' => 'a@test.com', 'age' => 25]);
+
+        // Must return the model, not the Builder's false
+        $user = TestUser::where('name', 'Alice')->first();
+        $this->assertInstanceOf(TestUser::class, $user);
+
+        // Must return null (not false) when nothing matches
+        $nobody = TestUser::where('name', 'Nobody')->first();
+        $this->assertNull($nobody);
+    }
+
+    // -----------------------------------------------------------------------
     // Local scope
     // -----------------------------------------------------------------------
 
