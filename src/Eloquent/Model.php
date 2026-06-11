@@ -1005,6 +1005,13 @@ abstract class Model
 
     /**
      * Determine whether HasSoftDeletes is active on this model.
+     *
+     * Walks the full class hierarchy (class + all parents) and collects
+     * every trait used at any level, so inherited soft-delete works:
+     *
+     *   class BaseModel extends Model { use HasSoftDeletes; }
+     *   class Post extends BaseModel {}   // <- Post correctly detected
+     *
      * Result is cached per class to avoid repeated Reflection calls.
      *
      * @return bool
@@ -1016,11 +1023,34 @@ abstract class Model
         if (! isset(self::$softDeletesCache[$class])) {
             self::$softDeletesCache[$class] = in_array(
                 HasSoftDeletes::class,
-                array_keys((new \ReflectionClass($this))->getTraits()),
+                self::classUsesRecursive($class),
                 strict: true,
             );
         }
 
         return self::$softDeletesCache[$class];
+    }
+
+    /**
+     * Collect all traits used by a class and its entire parent chain.
+     *
+     * Unlike ReflectionClass::getTraits(), which only returns traits declared
+     * directly on the given class, this method walks every ancestor so that a
+     * trait applied on a parent (or grandparent) is always visible.
+     *
+     * @param  class-string $class
+     * @return array<int, class-string>
+     */
+    private static function classUsesRecursive(string $class): array
+    {
+        $traits = [];
+
+        foreach (class_parents($class) + [$class => $class] as $c) {
+            foreach (array_keys((new \ReflectionClass($c))->getTraits()) as $trait) {
+                $traits[] = $trait;
+            }
+        }
+
+        return array_values(array_unique($traits));
     }
 }

@@ -115,10 +115,49 @@ class SoftDeleteTest extends IntegrationTestCase
         $this->assertSame(2, SoftPost::query()->count());
         $this->assertSame(3, SoftPost::withTrashed()->count());
     }
+
+    // -----------------------------------------------------------------------
+    // Inherited soft delete
+    // -----------------------------------------------------------------------
+
+    /**
+     * Regression test: usesSoftDeletes() used ReflectionClass::getTraits() which
+     * only returns traits declared directly on the class, missing any trait
+     * applied on a parent. classUsesRecursive() fixes this by walking the full
+     * hierarchy.
+     */
+    public function test_soft_delete_works_when_trait_is_inherited_from_parent(): void
+    {
+        // InheritedSoftPost does NOT declare HasSoftDeletes directly —
+        // it inherits it through SoftPostBase.
+        $a = InheritedSoftPost::create(['title' => 'A']);
+        $b = InheritedSoftPost::create(['title' => 'B']);
+        $c = InheritedSoftPost::create(['title' => 'C']);
+
+        $a->delete();
+
+        // Scope must be applied even though trait is inherited.
+        $this->assertSame(2, InheritedSoftPost::query()->count());
+        $this->assertSame(3, InheritedSoftPost::withTrashed()->count());
+        $this->assertSame(1, InheritedSoftPost::onlyTrashed()->count());
+    }
+
+    public function test_restore_works_when_trait_is_inherited(): void
+    {
+        $post = InheritedSoftPost::create(['title' => 'A']);
+        $id   = $post->getKey();
+        $post->delete();
+
+        $this->assertNull(InheritedSoftPost::find($id));
+
+        InheritedSoftPost::withTrashed()->where('id', $id)->first()->restore();
+
+        $this->assertNotNull(InheritedSoftPost::find($id));
+    }
 }
 
 // -----------------------------------------------------------------------
-// Model
+// Models
 // -----------------------------------------------------------------------
 class SoftPost extends Model
 {
@@ -127,4 +166,18 @@ class SoftPost extends Model
     protected string $table    = 'soft_posts';
     protected array  $fillable = ['title'];
     protected bool   $timestamps = false;
+}
+
+/** Trait declared on parent — not directly on this class. */
+class SoftPostBase extends Model
+{
+    use HasSoftDeletes;
+
+    protected string $table    = 'soft_posts';
+    protected bool   $timestamps = false;
+}
+
+class InheritedSoftPost extends SoftPostBase
+{
+    protected array $fillable = ['title'];
 }
