@@ -161,6 +161,38 @@ class CollectionTest extends TestCase
     }
 
     // -----------------------------------------------------------------------
+    // contains
+    // -----------------------------------------------------------------------
+
+    public function test_contains_with_closure(): void
+    {
+        $this->assertTrue($this->makeItems()->contains(fn($u) => $u->role === 'admin'));
+        $this->assertFalse($this->makeItems()->contains(fn($u) => $u->role === 'ghost'));
+    }
+
+    public function test_contains_with_column_and_value(): void
+    {
+        $this->assertTrue($this->makeItems()->contains('name', 'Alice'));
+        $this->assertFalse($this->makeItems()->contains('name', 'Nobody'));
+    }
+
+    /**
+     * Regression: contains('key', ...) must compare against the 'key' column,
+     * not treat 'key' as a callable. is_callable('key') returns true because
+     * key() is a built-in PHP function.
+     */
+    public function test_contains_with_php_function_named_column(): void
+    {
+        $items = Collection::make([
+            ['id' => 1, 'key' => 'footer'],
+            ['id' => 2, 'key' => 'header'],
+        ]);
+
+        $this->assertTrue($items->contains('key', 'footer'));
+        $this->assertFalse($items->contains('key', 'sidebar'));
+    }
+
+    // -----------------------------------------------------------------------
     // Pluck / keyBy / groupBy
     // -----------------------------------------------------------------------
 

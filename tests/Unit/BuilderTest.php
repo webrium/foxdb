@@ -119,6 +119,24 @@ class BuilderTest extends TestCase
         $this->assertSql('SELECT * FROM `users` WHERE `status` NOT IN (?, ?)', $b);
     }
 
+    /**
+     * Regression: an empty IN list produces invalid SQL (`IN ()`) on
+     * MySQL/PostgreSQL. `x IN (nothing)` is always false, so it must
+     * compile to `1 = 0` (and NOT IN to `1 = 1`).
+     */
+    public function test_where_in_empty_array(): void
+    {
+        $b = $this->builder()->whereIn('id', []);
+        $this->assertSql('SELECT * FROM `users` WHERE 1 = 0', $b);
+        $this->assertSame([], $b->getBindings());
+    }
+
+    public function test_where_not_in_empty_array(): void
+    {
+        $b = $this->builder()->whereNotIn('id', []);
+        $this->assertSql('SELECT * FROM `users` WHERE 1 = 1', $b);
+    }
+
     public function test_where_null(): void
     {
         $this->assertSql(
@@ -158,6 +176,33 @@ class BuilderTest extends TestCase
             'SELECT * FROM `users` WHERE (`role` = ? OR `role` = ?) AND `active` = ?',
             $b,
         );
+    }
+
+    /**
+     * Regression: column names that collide with built-in PHP function names
+     * (key, list, count, current, ...) were wrongly detected as callables by
+     * is_callable(), routing them into whereNested() and triggering
+     * "Calling key() on an object is deprecated". Only Closures are nested
+     * groups now — a plain string is always a column name.
+     */
+    public function test_where_with_php_function_named_column(): void
+    {
+        $b = $this->builder()->where('key', 'footer_settings');
+        $this->assertSql('SELECT * FROM `users` WHERE `key` = ?', $b);
+        $this->assertSame(['footer_settings'], $b->getBindings());
+    }
+
+    public function test_where_with_count_column(): void
+    {
+        $b = $this->builder()->where('count', '>', 5);
+        $this->assertSql('SELECT * FROM `users` WHERE `count` > ?', $b);
+    }
+
+    public function test_nested_group_still_works_with_closure(): void
+    {
+        // A real Closure must still produce a nested group
+        $b = $this->builder()->where(fn($q) => $q->where('a', 1)->orWhere('b', 2));
+        $this->assertSql('SELECT * FROM `users` WHERE (`a` = ? OR `b` = ?)', $b);
     }
 
     public function test_where_raw(): void

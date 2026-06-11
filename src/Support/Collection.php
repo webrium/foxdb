@@ -347,7 +347,10 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate, JsonSeria
      */
     public function contains(callable|string $callbackOrColumn, mixed $value = null): bool
     {
-        if (is_callable($callbackOrColumn)) {
+        // Only a Closure is the callback form. A plain string is always a column
+        // name — is_callable() would wrongly match column names like 'key' or
+        // 'count' that collide with built-in PHP function names.
+        if ($callbackOrColumn instanceof \Closure) {
             foreach ($this->items as $item) {
                 if ($callbackOrColumn($item)) {
                     return true;
