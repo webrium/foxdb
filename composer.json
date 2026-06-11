@@ -15,6 +15,11 @@
       "Foxdb\\": "src/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "Foxdb\\Tests\\": "tests/"
+    }
+  },
   "require": {
     "php": "^8"
   },

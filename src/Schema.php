@@ -1,737 +1,313 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Foxdb;
 
-use Foxdb\DB;
+use Foxdb\Connection\Connection;
+use Foxdb\Schema\Blueprint;
+use Foxdb\Schema\Grammars\MySqlSchemaGrammar;
+use Foxdb\Schema\Grammars\PostgresSchemaGrammar;
+use Foxdb\Schema\Grammars\SchemaGrammar;
+use Foxdb\Schema\Grammars\SqliteSchemaGrammar;
 
-class Schema
+/**
+ * Schema — static facade for DDL (Data Definition Language) operations.
+ *
+ * Uses the active DB connection to determine the correct grammar,
+ * then compiles and executes DDL statements.
+ *
+ * Quick start:
+ *
+ *   Schema::create('users', function (Blueprint $table) {
+ *       $table->id();
+ *       $table->string('name');
+ *       $table->string('email')->unique();
+ *       $table->timestamps();
+ *   });
+ *
+ *   Schema::table('users', function (Blueprint $table) {
+ *       $table->integer('age')->after('name')->nullable()->change();
+ *       $table->dropColumn('old_field');
+ *   });
+ *
+ *   Schema::drop('users');
+ *   Schema::hasTable('users');   // bool
+ */
+final class Schema
 {
-    private string $table;
-    private array $fields = [];
-    private array $field_query = [
-        'Action' => '',
-        'Field' => '',
-        'Type' => '',
-        'Collation' => '',
-        'Null' => false,
-        'Default' => '',
-        'Extra' => '',
-        'Position' => ''
-    ];
+    /**
+     * Grammar instances cached per driver name.
+     *
+     * @var array<string, SchemaGrammar>
+     */
+    private static array $grammars = [];
 
-    private string $change_action = '';
+    // Prevent instantiation.
+    private function __construct() {}
 
-    private bool $init_field_query = false;
-
-    const INDEX_UNIQUE = 'UNIQUE';
-    const INDEX_PRIMARY = 'PRIMARY';
-    const INDEX = 'INDEX';
+    // -----------------------------------------------------------------------
+    // Table operations
+    // -----------------------------------------------------------------------
 
     /**
-     * Constructor method to set the table name.
+     * Create a new table using the given Blueprint callback.
      *
-     * @param string $table
+     * @param  string   $table
+     * @param  callable(Blueprint): void $callback
+     * @param  string|null $connection  Named connection (null = default)
+     * @return void
      */
-    public function __construct($table)
+    public static function create(string $table, callable $callback, ?string $connection = null): void
     {
-        $this->table = $table;
-    }
+        $conn     = DB::connection($connection);
+        $grammar  = static::grammarFor($conn);
+        $blueprint = new Blueprint($table);
 
+        $callback($blueprint);
 
-    private function addExistsQueryToFieldsAndRest()
-    {
+        $sql = $grammar->compileCreate($blueprint);
+        $conn->statement($sql);
 
-        if ($this->init_field_query) {
-            $this->fields[] = $this->field_query;
-
-            $this->resetFieldQuery();
-        }
-    }
-
-    private function resetFieldQuery(bool $force = false)
-    {
-
-        $this->field_query = [
-            'Action' => '',
-            'Field' => '',
-            'Type' => '',
-            'Collation' => '',
-            'Null' => false,
-            'Default' => '',
-            'Extra' => '',
-            'Position' => ''
-        ];
-
-
-        $this->init_field_query = false;
-    }
-
-    private function setFieldQuery(string $attribute, $value)
-    {
-        if (in_array(
-            $attribute,
-            [
-                'Action',
-                'Field',
-                'Type',
-                'Collation',
-                'Null',
-                'Default',
-                'Extra',
-                'Position'
-            ]
-        ) == false) {
-            throw new \Exception("The field attribute name is not valid", 1);
+        // Standalone indexes (CREATE INDEX …)
+        foreach ($grammar->compileIndexes($blueprint) as $idx) {
+            $conn->statement($idx);
         }
 
-        $this->field_query[$attribute] = $value;
-        $this->init_field_query = true;
-    }
-
-
-    private function reset()
-    {
-        $this->fields = [];
-        $this->change_action = '';
-        $this->resetFieldQuery();
-    }
-
-    /**
-     * Add an auto-incrementing primary key column to the table.
-     *
-     * @param string $name
-     * @return $this
-     */
-    public function id($name = 'id')
-    {
-        $this->increments($name);
-        return $this;
-    }
-
-    /**
-     * Add an auto-incrementing primary key column to the table.
-     *
-     * @param string $name
-     * @return $this
-     */
-    public function bigID($name = 'id')
-    {
-        return $this->increments($name, 'BIGINT(20)');
-    }
-
-    /**
-     * Add an auto-incrementing primary key column to the table.
-     *
-     * @param string $name
-     * @return $this
-     */
-    public function increments($name = 'id', $type = 'INT(11)')
-    {
-        $this->addExistsQueryToFieldsAndRest();
-        $this->setFieldQuery('Field', "`$name`");
-        $this->setFieldQuery('Type', "$type UNSIGNED");
-        $this->setFieldQuery('Extra', 'AUTO_INCREMENT PRIMARY KEY');
-
-        return $this;
-    }
-
-
-    /**
-     * Adds a boolean field to the table.
-     *
-     * @param  string  $name
-     * @return $this
-     */
-    public function boolean($name)
-    {
-        $this->tinyInt($name, 1);
-        $this->default(0);
-
-        return $this;
-    }
-
-
-    /**
-     * Adds a tiny int field to the table.
-     *
-     * @param  string  $name
-     * @return $this
-     */
-    public function tinyInt($name, $length = 4)
-    {
-        $this->addExistsQueryToFieldsAndRest();
-        $this->setFieldQuery('Field', "`$name`");
-        $this->setFieldQuery('Type', "TINYINT($length)");
-
-        return $this;
-    }
-
-    /**
-     * Adds a medium int field to the table.
-     *
-     * @param  string  $name
-     * @return $this
-     */
-    public function mediumInt($name, $length = 9)
-    {
-        $this->addExistsQueryToFieldsAndRest();
-        $this->setFieldQuery('Field', "`$name`");
-        $this->setFieldQuery('Type', "MEDIUMINT($length)");
-
-        return $this;
-    }
-
-
-    /**
-     * Adds a small int field to the table.
-     *
-     * @param  string  $name
-     * @return $this
-     */
-    public function smallInt($name, $length = 6)
-    {
-        $this->addExistsQueryToFieldsAndRest();
-        $this->setFieldQuery('Field', "`$name`");
-        $this->setFieldQuery('Type', "SMALLINT($length)");
-
-        return $this;
-    }
-
-
-    /**
-     * Add an integer column to the table.
-     *
-     * @param string $name
-     * @return $this
-     */
-    public function integer($name, $length = 11)
-    {
-        $this->addExistsQueryToFieldsAndRest();
-        $this->setFieldQuery('Field', "`$name`");
-        $this->setFieldQuery('Type', "INT($length)");
-        return $this;
-    }
-
-    /**
-     * Add an big integer column to the table.
-     *
-     * @param string $name
-     * @return $this
-     */
-    public function bigInt($name, $length = 20)
-    {
-        $this->addExistsQueryToFieldsAndRest();
-        $this->setFieldQuery('Field', "`$name`");
-        $this->setFieldQuery('Type', "BIGINT($length)");
-
-        return $this;
-    }
-
-    /**
-     * Add a string column to the table.
-     *
-     * @param string $name
-     * @param int $length
-     * @return $this
-     */
-    public function string($name, $length = 255)
-    {
-        $this->addExistsQueryToFieldsAndRest();
-        $this->setFieldQuery('Field', "`$name`");
-        $this->setFieldQuery('Type', "VARCHAR($length)");
-
-        return $this;
-    }
-
-
-    /**
-     * Add a tiny text column to the table.
-     *
-     * @param string $name
-     * @return $this
-     */
-    public function tinyText($name)
-    {
-
-        $this->addExistsQueryToFieldsAndRest();
-        $this->setFieldQuery('Field', "`$name`");
-        $this->setFieldQuery('Type', "TINYTEXT");
-
-        return $this;
-    }
-
-    /**
-     * Add a text column to the table.
-     *
-     * @param string $name
-     * @return $this
-     */
-    public function text($name)
-    {
-
-        $this->addExistsQueryToFieldsAndRest();
-        $this->setFieldQuery('Field', "`$name`");
-        $this->setFieldQuery('Type', "TEXT");
-
-        return $this;
-    }
-
-
-    /**
-     * Add a medium text column to the table.
-     *
-     * @param string $name
-     * @return $this
-     */
-    public function mediumText($name)
-    {
-
-        $this->addExistsQueryToFieldsAndRest();
-        $this->setFieldQuery('Field', "`$name`");
-        $this->setFieldQuery('Type', "MEDIUMTEXT");
-
-        return $this;
-    }
-
-
-    /**
-     * Add a long text column to the table.
-     *
-     * @param string $name
-     * @return $this
-     */
-    public function longText($name)
-    {
-        $this->addExistsQueryToFieldsAndRest();
-        $this->setFieldQuery('Field', "`$name`");
-        $this->setFieldQuery('Type', "LONGTEXT");
-
-        return $this;
-    }
-
-    /**
-     * Add a JSON column to the table.
-     *
-     * @param string $name
-     * @return $this
-     */
-    public function json($name)
-    {
-        $this->addExistsQueryToFieldsAndRest();
-        $this->setFieldQuery('Field', "`$name`");
-        $this->setFieldQuery('Type', "JSON");
-
-        return $this;
-    }
-
-    /**
-     * Add created_at and updated_at timestamp columns to the table.
-     *
-     * @return $this
-     */
-    public function timestamps()
-    {
-        $this->dateTime('created_at')->default('CURRENT_TIMESTAMP', true);
-        $this->timestamp('updated_at')->default('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', true);
-        return $this;
-    }
-
-
-    /**
-     * Add a dateTime column to the table.
-     *
-     * @param string $name
-     * @return $this
-     */
-    public function dateTime($name)
-    {
-        $this->addExistsQueryToFieldsAndRest();
-        $this->setFieldQuery('Field', "`$name`");
-        $this->setFieldQuery('Type', "DATETIME");
-
-        return $this;
-    }
-
-
-    /**
-     * Add a dateTime column to the table.
-     *
-     * @param string $name
-     * @return $this
-     */
-    private function timestamp($name)
-    {
-        $this->addExistsQueryToFieldsAndRest();
-        $this->setFieldQuery('Field', "`$name`");
-        $this->setFieldQuery('Type', "TIMESTAMP");
-
-        return $this;
-    }
-
-
-    /**
-     * Add a time column to the table.
-     *
-     * @param string $name
-     * @return $this
-     */
-    public function time($name)
-    {
-        $this->addExistsQueryToFieldsAndRest();
-        $this->setFieldQuery('Field', "`$name`");
-        $this->setFieldQuery('Type', "TIME");
-
-        return $this;
-    }
-
-    /**
-     * Add a date column to the table.
-     *
-     * @param string $name
-     * @return $this
-     */
-    public function date($name)
-    {
-        $this->addExistsQueryToFieldsAndRest();
-        $this->setFieldQuery('Field', "`$name`");
-        $this->setFieldQuery('Type', "DATE");
-
-        return $this;
-    }
-
-    /**
-     * Add a float column to the table.
-     *
-     * @param string $name
-     * @param string $length
-     * @return $this
-     */
-    public function float($name)
-    {
-        $this->addExistsQueryToFieldsAndRest();
-        $this->setFieldQuery('Field', "`$name`");
-        $this->setFieldQuery('Type', "FLOAT");
-
-        return $this;
-    }
-
-    /**
-     * Add a year column to the table.
-     *
-     * @param string $name
-     * @return $this
-     */
-    public function year($name)
-    {
-        $this->addExistsQueryToFieldsAndRest();
-        $this->setFieldQuery('Field', "`$name`");
-        $this->setFieldQuery('Type', 'YEAR(4)');
-
-        return $this;
-    }
-
-
-    /**
-     * Add a double column to the table.
-     *
-     * @param string $name
-     * @param string $length
-     * @return $this
-     */
-    public function double($name)
-    {
-        $this->addExistsQueryToFieldsAndRest();
-        $this->setFieldQuery('Field', "`$name`");
-        $this->setFieldQuery('Type', 'DOUBLE');
-
-        return $this;
-    }
-
-    /**
-     * Add an enum column to the table.
-     *
-     * @param string $name
-     * @param array $values
-     * @return $this
-     */
-    public function enum($name, array $values)
-    {
-        $this->addExistsQueryToFieldsAndRest();
-        $this->setFieldQuery('Field', "`$name`");
-        $this->setFieldQuery('Type', "ENUM('" . implode("','", $values) . "')");
-
-        return $this;
-    }
-
-
-
-
-    /**
-     * Set a default value for the last column added to the table.
-     *
-     * @param string $value
-     * @return $this
-     */
-    public function default($value, $directly = false)
-    {
-        if ($directly) {
-            $this->setFieldQuery('Default', "DEFAULT $value");
-        } else {
-            $this->setFieldQuery('Default', "DEFAULT '$value'");
-        }
-        return $this;
-    }
-
-    /**
-     * Set the last column added to the table as nullable.
-     *
-     * @return $this
-     */
-    public function nullable()
-    {
-        $this->setFieldQuery('Null', "NULL");
-        return $this;
-    }
-
-
-
-
-
-    private function generateFieldQueryString(): string
-    {
-        if (empty($this->change_action) == false) {
-            $this->setActionToAllFieldQuerys($this->change_action);
+        // Foreign keys already inlined in CREATE TABLE for MySQL.
+        // For PostgreSQL emit separately if any.
+        foreach ($grammar->compileForeignKeys($blueprint) as $fk) {
+            $conn->statement($fk);
         }
 
-        foreach ($this->fields as &$field) {
-            if ($field['Null'] === false) {
-                $field['Null'] = 'NOT NULL';
+        // PostgreSQL column comments (separate COMMENT ON COLUMN statements)
+        if ($grammar instanceof PostgresSchemaGrammar) {
+            foreach ($grammar->compileColumnComments($blueprint) as $cmt) {
+                $conn->statement($cmt);
             }
-
-            $field = implode(' ', $field);
-        }
-
-        return implode(',', $this->fields);
-    }
-
-
-    private function setActionToAllFieldQuerys(string $action): void
-    {
-
-        foreach ($this->fields as &$field) {
-            $field['Action'] = $action;
         }
     }
 
     /**
-     * Generate a DROP TABLE query for the current table.
+     * Modify an existing table using the given Blueprint callback.
      *
-     * @return string
-     */
-    public function drop()
-    {
-        // Disable foreign key checks to allow dropping tables referenced by FKs
-        DB::query("SET FOREIGN_KEY_CHECKS=0;");
-        $result = DB::query("DROP TABLE IF EXISTS `{$this->table}`;");
-        DB::query("SET FOREIGN_KEY_CHECKS=1;");
-        return $result;
-    }
-
-
-
-    /**
-     * Add a new column to the table.
+     * Supports: add columns, change columns, drop columns,
+     *           rename columns, add/drop indexes, add/drop foreign keys.
      *
-     * @param string $name
-     * @param string $type
-     * @param string|null $after
-     * @return $this
+     * @param  string   $table
+     * @param  callable(Blueprint): void $callback
+     * @param  string|null $connection
+     * @return void
      */
-    public function addColumn()
+    public static function table(string $table, callable $callback, ?string $connection = null): void
     {
-        $this->addExistsQueryToFieldsAndRest();
-        $this->change_action = 'ADD COLUMN';
-        return $this;
-    }
+        $conn      = DB::connection($connection);
+        $grammar   = static::grammarFor($conn);
+        $blueprint = new Blueprint($table);
 
+        $callback($blueprint);
 
-    /**
-     * Drop a column from the table.
-     *
-     * @param string $name
-     * @return $this
-     */
-    public function dropColumn($name)
-    {
-        $this->addExistsQueryToFieldsAndRest();
-        $this->setFieldQuery('Action', "DROP COLUMN `$name`");
-        $this->setFieldQuery('Null', '');
-        return $this;
-    }
+        // ADD COLUMN
+        foreach ($grammar->compileAdd($blueprint) as $sql) {
+            $conn->statement($sql);
+        }
 
-    /**
-     * Rename a column in the table.
-     *
-     * @param string $name
-     * @param string $new_name
-     * @param string $type
-     * @return $this
-     */
-    public function renameColumn($current_name)
-    {
-        $this->addExistsQueryToFieldsAndRest();
-        $this->change_action = "CHANGE COLUMN `$current_name`";
-        return $this;
-    }
+        // MODIFY / ALTER COLUMN
+        foreach ($grammar->compileChange($blueprint) as $sql) {
+            $conn->statement($sql);
+        }
 
+        // DROP COLUMN
+        foreach ($grammar->compileDrop($blueprint) as $sql) {
+            $conn->statement($sql);
+        }
 
-    public function after($column_name)
-    {
-        $this->setFieldQuery('Position', "AFTER `$column_name`");
-        return $this;
-    }
+        // RENAME COLUMN
+        foreach ($grammar->compileRenameColumn($blueprint) as $sql) {
+            $conn->statement($sql);
+        }
 
+        // DROP INDEX
+        foreach ($grammar->compileDropIndexes($blueprint) as $sql) {
+            $conn->statement($sql);
+        }
 
-    /**
-     * Drop an index from the table.
-     *
-     * @param string $name
-     * @return $this
-     */
-    public function dropIndex($name)
-    {
-        $this->addExistsQueryToFieldsAndRest();
-        $this->setFieldQuery('Action', 'DROP INDEX');
-        $this->setFieldQuery('Field', "`$name`");
-        $this->setFieldQuery('Null', '');
+        // ADD INDEX (standalone)
+        foreach ($grammar->compileIndexes($blueprint) as $sql) {
+            $conn->statement($sql);
+        }
 
-        return $this;
-    }
+        // DROP FOREIGN KEY
+        foreach ($grammar->compileDropForeignKeys($blueprint) as $sql) {
+            $conn->statement($sql);
+        }
 
-
-    // for later
-    // /**
-    //  * Add a foreign key constraint to the table.
-    //  *
-    //  * @param string $name
-    //  * @param string $column
-    //  * @param string $table
-    //  * @param string $references
-    //  * @param string $onDelete
-    //  * @param string $onUpdate
-    //  * @return $this
-    //  */
-    // public function addForeign($name, $column, $table, $references, $onDelete = 'CASCADE', $onUpdate = 'CASCADE')
-    // {
-    //     $this->setFieldQuery('Action', "CONSTRAINT `$name` FOREIGN KEY (`$column`) REFERENCES `$table` (`$references`) ON DELETE $onDelete ON UPDATE $onUpdate");
-    //     // $this->fields[] = ;
-    //     return $this;
-    // }
-
-    // /**
-    //  * Drop a foreign key constraint from the table.
-    //  *
-    //  * @param string $name
-    //  * @return $this
-    //  */
-    // public function dropForeign($name)
-    // {
-    //     $this->fields[] = "DROP FOREIGN KEY `$name`";
-    //     return $this;
-    // }
-
-
-    /**
-     * Set the character set and collation of the last added column in the $fields array to utf8mb4.
-     *
-     * @param string $collation The collation to use. Default value is utf8mb4_unicode_ci.
-     * @return Schema The current instance of the Schema class.
-     */
-    public function utf8mb4($collation = 'utf8mb4_unicode_ci')
-    {
-        $this->setFieldQuery('Collation', "CHARACTER SET utf8mb4 COLLATE $collation");
-        return $this;
-    }
-
-
-    /**
-     * Set the character set and collation of the last added column in the $fields array to utf8.
-     *
-     * @param string $collation The collation to use. Default value is utf8_unicode_ci.
-     * @return Schema The current instance of the Schema class.
-     */
-    public function utf8($collation = 'utf8_unicode_ci')
-    {
-        $this->setFieldQuery('Collation', "CHARACTER SET utf8 COLLATE $collation");
-        return $this;
+        // ADD FOREIGN KEY
+        foreach ($grammar->compileForeignKeys($blueprint) as $sql) {
+            $conn->statement($sql);
+        }
     }
 
     /**
-     * Modify a column in the table.
+     * Drop a table.
      *
-     * @param string $name
-     * @param string $type
-     * @return $this
+     * @param  string      $table
+     * @param  string|null $connection
+     * @return void
      */
-    public function modifyColumn()
+    public static function drop(string $table, ?string $connection = null): void
     {
-        $this->addExistsQueryToFieldsAndRest();
-        $this->change_action = 'MODIFY COLUMN';
-        $this->setFieldQuery('Null', '');
-        $this->init_field_query = false;
-        return $this;
+        $conn    = DB::connection($connection);
+        $grammar = static::grammarFor($conn);
+
+        $conn->statement($grammar->compileDropTable($table));
     }
 
     /**
-     * Add an index to the table.
+     * Drop a table if it exists.
      *
-     * @param string $name
-     * @param array $columns
-     * @param string $type @return $this
+     * @param  string      $table
+     * @param  string|null $connection
+     * @return void
      */
-    public function addIndex($name, array $columns, $type = 'INDEX')
+    public static function dropIfExists(string $table, ?string $connection = null): void
     {
-        $this->addExistsQueryToFieldsAndRest();
-        $this->setFieldQuery('Action', "ADD $type");
-        $this->setFieldQuery('Field', "`$name`");
-        $this->setFieldQuery('Extra', "(" . implode(', ', $columns) . ")");
-        $this->setFieldQuery('Null', '');
+        $conn    = DB::connection($connection);
+        $grammar = static::grammarFor($conn);
 
-        return $this;
-    }
-
-
-
-
-    /**
-     * Generate a CREATE TABLE query for the current table and fields.
-     *
-     * @return string
-     */
-    public function create($engine = 'InnoDB', $charset = 'utf8mb4', $collate = 'utf8mb4_unicode_ci')
-    {
-        $this->addExistsQueryToFieldsAndRest();
-
-        $sql = "CREATE TABLE IF NOT EXISTS `{$this->table}` (";
-        $sql .= $this->generateFieldQueryString();
-        $sql .= ") ENGINE={$engine} DEFAULT CHARSET={$charset} COLLATE={$collate};";
-
-        $this->reset();
-        return DB::query($sql);
+        $conn->statement($grammar->compileDropTableIfExists($table));
     }
 
     /**
-     * Generate an ALTER TABLE query for the current table and fields.
+     * Rename a table.
      *
-     * @return string
+     * @param  string      $from
+     * @param  string      $to
+     * @param  string|null $connection
+     * @return void
      */
-    public function change()
+    public static function rename(string $from, string $to, ?string $connection = null): void
     {
-        $this->addExistsQueryToFieldsAndRest();
-        $sql = "ALTER TABLE `{$this->table}` ";
-        $sql .= $this->generateFieldQueryString();
+        $conn    = DB::connection($connection);
+        $grammar = static::grammarFor($conn);
 
-        $this->reset();
-        return DB::query($sql);
+        $conn->statement($grammar->compileRenameTable($from, $to));
+    }
+
+    // -----------------------------------------------------------------------
+    // Introspection
+    // -----------------------------------------------------------------------
+
+    /**
+     * Determine whether a table exists.
+     *
+     * @param  string      $table
+     * @param  string|null $connection
+     * @return bool
+     */
+    public static function hasTable(string $table, ?string $connection = null): bool
+    {
+        $conn     = DB::connection($connection);
+        $grammar  = static::grammarFor($conn);
+        $database = $conn->getDatabaseName();
+
+        $sql = $grammar->compileTableExists($table, $database);
+        $row = $conn->selectOne($sql);
+
+        if ($row === false) {
+            return false;
+        }
+
+        // SQLite PRAGMA returns rows for existing table; others return count
+        $row = (array) $row;
+        $val = array_values($row)[0] ?? 0;
+
+        return (int) $val > 0;
+    }
+
+    /**
+     * Determine whether a column exists on a table.
+     *
+     * @param  string      $table
+     * @param  string      $column
+     * @param  string|null $connection
+     * @return bool
+     */
+    public static function hasColumn(string $table, string $column, ?string $connection = null): bool
+    {
+        $columns = static::getColumnNames($table, $connection);
+
+        return in_array(strtolower($column), array_map('strtolower', $columns), strict: true);
+    }
+
+    /**
+     * Get all column names for a table.
+     *
+     * @param  string      $table
+     * @param  string|null $connection
+     * @return array<int, string>
+     */
+    public static function getColumnNames(string $table, ?string $connection = null): array
+    {
+        $rows = static::getColumns($table, $connection);
+
+        return array_column(
+            array_map(fn(object $r) => (array) $r, $rows),
+            'name',
+        );
+    }
+
+    /**
+     * Get full column information for a table.
+     * Returns an array of objects with at minimum a 'name' property.
+     *
+     * @param  string      $table
+     * @param  string|null $connection
+     * @return array<int, object>
+     */
+    public static function getColumns(string $table, ?string $connection = null): array
+    {
+        $conn     = DB::connection($connection);
+        $grammar  = static::grammarFor($conn);
+        $database = $conn->getDatabaseName();
+
+        $sql = $grammar->compileColumnListing($table, $database);
+
+        return $conn->select($sql);
+    }
+
+    // -----------------------------------------------------------------------
+    // Grammar resolution
+    // -----------------------------------------------------------------------
+
+    /**
+     * Resolve (and cache) the correct SchemaGrammar for the given connection.
+     *
+     * @param  Connection $connection
+     * @return SchemaGrammar
+     */
+    private static function grammarFor(Connection $connection): SchemaGrammar
+    {
+        $driver = $connection->getDriverName();
+
+        if (! isset(static::$grammars[$driver])) {
+            static::$grammars[$driver] = match ($driver) {
+                Config::PGSQL   => new PostgresSchemaGrammar(),
+                Config::SQLITE  => new SqliteSchemaGrammar(),
+                default         => new MySqlSchemaGrammar(),
+            };
+        }
+
+        return static::$grammars[$driver];
+    }
+
+    /**
+     * Reset the cached grammar instances (useful for testing).
+     *
+     * @return void
+     */
+    public static function reset(): void
+    {
+        static::$grammars = [];
     }
 }

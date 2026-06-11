@@ -1,64 +1,64 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Foxdb\Exceptions;
 
-use Exception;
+use RuntimeException;
+use Throwable;
 
-class DatabaseException extends Exception
+class DatabaseException extends RuntimeException
 {
-    protected $sql;
-    protected $params;
-    protected $errorCode;
-    protected $errorInfo;
-
-    public function __construct($message = "", $code = 0, ?Exception $previous = null, $sql = null, $params = [], $errorCode = null, $errorInfo = null)
+    /**
+     * @param string         $message
+     * @param Throwable|null $previous
+     */
+    public function __construct(string $message, ?Throwable $previous = null)
     {
-        // Ensure code is always an integer
-        $code = is_numeric($code) ? (int)$code : 0;
-        
-        parent::__construct($message, $code, $previous);
-        $this->sql = $sql;
-        $this->params = $params;
-        $this->errorCode = $errorCode;
-        $this->errorInfo = $errorInfo;
+        parent::__construct($message, 0, $previous);
     }
 
-    public function getSql()
+    /**
+     * Create exception for failed connection attempts.
+     *
+     * @param  string         $connectionName
+     * @param  Throwable|null $previous
+     * @return static
+     */
+    public static function connectionFailed(string $connectionName, ?Throwable $previous = null): static
     {
-        return $this->sql;
+        return new static(
+            "Failed to connect to database using connection [{$connectionName}].",
+            $previous,
+        );
     }
 
-    public function getParams()
+    /**
+     * Create exception for missing connection config.
+     *
+     * @param  string $connectionName
+     * @return static
+     */
+    public static function connectionNotFound(string $connectionName): static
     {
-        return $this->params;
+        return new static(
+            "Connection [{$connectionName}] is not defined. "
+            . "Make sure to call DB::addConnection() before using it."
+        );
     }
 
-    public function getErrorCode()
+    /**
+     * Create exception for transaction failures.
+     *
+     * @param  string         $operation  'begin' | 'commit' | 'rollback'
+     * @param  Throwable|null $previous
+     * @return static
+     */
+    public static function transactionFailed(string $operation, ?Throwable $previous = null): static
     {
-        return $this->errorCode;
+        return new static(
+            "Database transaction [{$operation}] failed.",
+            $previous,
+        );
     }
-
-    public function getErrorInfo()
-    {
-        return $this->errorInfo;
-    }
-
-    public function getFormattedMessage()
-    {
-        $message = $this->getMessage();
-        
-        if ($this->sql) {
-            $message .= "\nSQL: " . $this->sql;
-        }
-        
-        if ($this->params) {
-            $message .= "\nParameters: " . json_encode($this->params);
-        }
-        
-        if ($this->errorCode) {
-            $message .= "\nError Code: " . $this->errorCode;
-        }
-        
-        return $message;
-    }
-} 
+}
