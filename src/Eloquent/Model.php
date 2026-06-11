@@ -43,6 +43,115 @@ use Foxdb\Support\Collection;
  *   User::withTrashed()->find(1);
  *   User::onlyTrashed()->get();
  *   $user->restore();
+ *
+ * ---------------------------------------------------------------------------
+ * IDE method completion — forwarded via __callStatic to Builder
+ * ---------------------------------------------------------------------------
+ *
+ * SELECT
+ * @method static Builder select(string|RawExpression ...$columns)
+ * @method static Builder addSelect(string|RawExpression ...$columns)
+ * @method static Builder selectRaw(string $expression, array $bindings = [])
+ * @method static Builder distinct()
+ *
+ * WHERE
+ * @method static Builder where(string|callable $column, mixed $operatorOrValue = null, mixed $value = null)
+ * @method static Builder orWhere(string|callable $column, mixed $operatorOrValue = null, mixed $value = null)
+ * @method static Builder whereNot(string $column, mixed $operatorOrValue, mixed $value = null)
+ * @method static Builder whereRaw(string $expression, array $bindings = [])
+ * @method static Builder orWhereRaw(string $expression, array $bindings = [])
+ * @method static Builder whereIn(string $column, array $values)
+ * @method static Builder whereNotIn(string $column, array $values)
+ * @method static Builder orWhereIn(string $column, array $values)
+ * @method static Builder orWhereNotIn(string $column, array $values)
+ * @method static Builder whereBetween(string $column, mixed $min, mixed $max)
+ * @method static Builder whereNotBetween(string $column, mixed $min, mixed $max)
+ * @method static Builder whereNull(string $column)
+ * @method static Builder whereNotNull(string $column)
+ * @method static Builder orWhereNull(string $column)
+ * @method static Builder orWhereNotNull(string $column)
+ * @method static Builder whereColumn(string $first, string $operator, string $second)
+ * @method static Builder whereExists(callable|Builder $subquery)
+ * @method static Builder whereNotExists(callable|Builder $subquery)
+ * @method static Builder whereDate(string $column, string $operator, mixed $value)
+ * @method static Builder whereMonth(string $column, string $operator, mixed $value)
+ * @method static Builder whereDay(string $column, string $operator, mixed $value)
+ * @method static Builder whereYear(string $column, string $operator, mixed $value)
+ * @method static Builder whereTime(string $column, string $operator, mixed $value)
+ *
+ * WHERE shorthands (v1 compatibility)
+ * @method static Builder is(string $column, mixed $value)
+ * @method static Builder true(string $column)
+ * @method static Builder false(string $column)
+ * @method static Builder like(string $column, string $value)
+ * @method static Builder orLike(string $column, string $value)
+ * @method static Builder null(string $column)
+ * @method static Builder notNull(string $column)
+ * @method static Builder in(string $column, array $values)
+ * @method static Builder notIn(string $column, array $values)
+ *
+ * JOIN
+ * @method static Builder join(string $table, string $first, string $operator, string $second)
+ * @method static Builder leftJoin(string $table, string $first, string $operator, string $second)
+ * @method static Builder rightJoin(string $table, string $first, string $operator, string $second)
+ * @method static Builder crossJoin(string $table)
+ * @method static Builder joinSub(Builder $query, string $alias, string $first, string $operator, string $second)
+ * @method static Builder joinRaw(string $expression)
+ *
+ * GROUP BY / HAVING
+ * @method static Builder groupBy(string ...$columns)
+ * @method static Builder having(string $column, string $operator, mixed $value)
+ * @method static Builder orHaving(string $column, string $operator, mixed $value)
+ * @method static Builder havingRaw(string $expression, array $bindings = [])
+ *
+ * ORDER / LIMIT / OFFSET
+ * @method static Builder orderBy(string $column, string $direction = 'asc')
+ * @method static Builder orderByDesc(string $column)
+ * @method static Builder orderByRaw(string $expression)
+ * @method static Builder latest(string $column = 'created_at')
+ * @method static Builder oldest(string $column = 'created_at')
+ * @method static Builder inRandomOrder()
+ * @method static Builder reorder()
+ * @method static Builder limit(int $value)
+ * @method static Builder take(int $value)
+ * @method static Builder offset(int $value)
+ * @method static Builder skip(int $value)
+ *
+ * EXECUTE / FETCH
+ * @method static Collection          get()
+ * @method static object|false        first()
+ * @method static object|false        find(int|string $id)
+ * @method static mixed               value(string $column)
+ * @method static array               pluck(string $column, string|null $keyColumn = null)
+ * @method static void                chunk(int $size, callable $callback)
+ * @method static void                each(callable $callback)
+ * @method static object              paginate(int $perPage = 15, int $page = 1)
+ *
+ * AGGREGATES
+ * @method static int                 count(string $column = '*')
+ * @method static float|int           sum(string $column)
+ * @method static float|int           avg(string $column)
+ * @method static float|int           min(string $column)
+ * @method static float|int           max(string $column)
+ * @method static bool                exists()
+ * @method static bool                doesntExist()
+ *
+ * WRITE
+ * @method static bool                insert(array $values)
+ * @method static int|string          insertGetId(array $values)
+ * @method static bool                insertBatch(array $rows)
+ * @method static int                 update(array $values)
+ * @method static int                 delete()
+ * @method static bool                truncate()
+ * @method static int                 increment(string $column, int|float $amount = 1, array $extra = [])
+ * @method static int                 decrement(string $column, int|float $amount = 1, array $extra = [])
+ * @method static bool                updateOrInsert(array $conditions, array $values = [])
+ *
+ * DEBUG
+ * @method static Builder             dump()
+ * @method static never               dd()
+ * @method static string              toSql()
+ * @method static array               getBindings()
  */
 abstract class Model
 {
