@@ -160,6 +160,33 @@ class BuilderTest extends TestCase
         );
     }
 
+    /**
+     * Regression: column names that collide with built-in PHP function names
+     * (key, list, count, current, ...) were wrongly detected as callables by
+     * is_callable(), routing them into whereNested() and triggering
+     * "Calling key() on an object is deprecated". Only Closures are nested
+     * groups now — a plain string is always a column name.
+     */
+    public function test_where_with_php_function_named_column(): void
+    {
+        $b = $this->builder()->where('key', 'footer_settings');
+        $this->assertSql('SELECT * FROM `users` WHERE `key` = ?', $b);
+        $this->assertSame(['footer_settings'], $b->getBindings());
+    }
+
+    public function test_where_with_count_column(): void
+    {
+        $b = $this->builder()->where('count', '>', 5);
+        $this->assertSql('SELECT * FROM `users` WHERE `count` > ?', $b);
+    }
+
+    public function test_nested_group_still_works_with_closure(): void
+    {
+        // A real Closure must still produce a nested group
+        $b = $this->builder()->where(fn($q) => $q->where('a', 1)->orWhere('b', 2));
+        $this->assertSql('SELECT * FROM `users` WHERE (`a` = ? OR `b` = ?)', $b);
+    }
+
     public function test_where_raw(): void
     {
         $b = $this->builder()->whereRaw('age > 18 AND active = 1');

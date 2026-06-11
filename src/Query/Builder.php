@@ -201,7 +201,11 @@ class Builder
         string $boolean = 'AND',
     ): static {
         // Nested group: ->where(function($q) { $q->where(...)->orWhere(...); })
-        if (is_callable($column)) {
+        // Only Closures count as nested groups. A plain string column name must
+        // NEVER be treated as callable — column names like 'key', 'list', or
+        // 'count' collide with built-in PHP function names and is_callable()
+        // would wrongly return true for them.
+        if ($column instanceof \Closure) {
             return $this->whereNested($column, $boolean);
         }
 
@@ -1190,17 +1194,17 @@ class Builder
     }
 
     /**
-     * Execute the query and return the first row, or false if none.
+     * Execute the query and return the first row, or null if none.
      * When a hydrator is set, the row is transformed into a model instance.
      *
-     * @return object|false
+     * @return object|null
      */
-    public function first(): object|false
+    public function first(): ?object
     {
         $row = $this->limit(1)->connection->selectOne($this->toSql(), $this->getBindings());
 
-        if ($row === false) {
-            return false;
+        if ($row === false || $row === null) {
+            return null;
         }
 
         if ($this->hydrator !== null) {
@@ -1216,7 +1220,7 @@ class Builder
      * @param  int|string $id
      * @return object|false
      */
-    public function find(int|string $id): object|false
+    public function find(int|string $id): ?object
     {
         return $this->where($this->primaryKey, '=', $id)->first();
     }

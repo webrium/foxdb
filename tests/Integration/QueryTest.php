@@ -164,7 +164,7 @@ class QueryTest extends IntegrationTestCase
 
     public function test_first_returns_null_when_empty(): void
     {
-        $this->assertFalse($this->table()->first());
+        $this->assertNull($this->table()->first());
     }
 
     public function test_value_returns_single_column(): void
