@@ -102,6 +102,31 @@ abstract class IntegrationTestCase extends TestCase
     }
 
     /**
+     * Returns a boolean default value appropriate for the active driver.
+     * PostgreSQL requires TRUE/FALSE for BOOLEAN columns, not 1/0.
+     */
+    protected static function boolDefault(bool $value): string
+    {
+        $driver = strtolower((string) (getenv('DB_DRIVER') ?: 'sqlite'));
+        if ($driver === 'pgsql') {
+            return $value ? 'TRUE' : 'FALSE';
+        }
+        return $value ? '1' : '0';
+    }
+
+    /**
+     * Returns a datetime column type appropriate for the active driver.
+     * PostgreSQL uses TIMESTAMP, MySQL/SQLite use DATETIME.
+     */
+    protected static function datetimeType(): string
+    {
+        return match (strtolower((string) (getenv('DB_DRIVER') ?: 'sqlite'))) {
+            'pgsql'  => 'TIMESTAMP',
+            default  => 'DATETIME',
+        };
+    }
+
+    /**
      * Quote an identifier for the active driver.
      */
     protected static function q(string $identifier): string
