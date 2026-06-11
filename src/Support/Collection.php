@@ -597,11 +597,18 @@ class Collection implements ArrayAccess, Countable, IteratorAggregate, JsonSeria
     /**
      * Convert each item to an associative array. Returns a plain array of arrays.
      *
+     * If an item implements toArray() (e.g. a Model), that method is called so
+     * that casts, hidden fields, and relations are handled correctly.
+     * Plain stdClass objects are cast with (array) as before.
+     *
      * @return array<int, array<string, mixed>>
      */
     public function toArray(): array
     {
-        return array_map(fn(object $item) => (array) $item, $this->items);
+        return array_map(
+            fn(object $item) => method_exists($item, 'toArray') ? $item->toArray() : (array) $item,
+            $this->items,
+        );
     }
 
     /**
