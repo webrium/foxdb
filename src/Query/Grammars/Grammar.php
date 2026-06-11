@@ -328,7 +328,13 @@ abstract class Grammar
      */
     protected function compileWhereIn(array $where): string
     {
-        $col         = $this->wrapColumn($where['column']);
+        // An empty IN list is invalid SQL in MySQL/PostgreSQL (`IN ()`).
+        // Semantically `x IN (nothing)` is always false, so emit `1 = 0`.
+        if (count($where['values']) === 0) {
+            return '1 = 0';
+        }
+
+        $col          = $this->wrapColumn($where['column']);
         $placeholders = implode(', ', array_fill(0, count($where['values']), '?'));
 
         return "{$col} IN ({$placeholders})";
@@ -340,6 +346,11 @@ abstract class Grammar
      */
     protected function compileWhereNotIn(array $where): string
     {
+        // An empty NOT IN list means "exclude nothing" → always true → `1 = 1`.
+        if (count($where['values']) === 0) {
+            return '1 = 1';
+        }
+
         $col          = $this->wrapColumn($where['column']);
         $placeholders = implode(', ', array_fill(0, count($where['values']), '?'));
 

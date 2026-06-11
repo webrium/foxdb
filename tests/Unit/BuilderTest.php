@@ -119,6 +119,24 @@ class BuilderTest extends TestCase
         $this->assertSql('SELECT * FROM `users` WHERE `status` NOT IN (?, ?)', $b);
     }
 
+    /**
+     * Regression: an empty IN list produces invalid SQL (`IN ()`) on
+     * MySQL/PostgreSQL. `x IN (nothing)` is always false, so it must
+     * compile to `1 = 0` (and NOT IN to `1 = 1`).
+     */
+    public function test_where_in_empty_array(): void
+    {
+        $b = $this->builder()->whereIn('id', []);
+        $this->assertSql('SELECT * FROM `users` WHERE 1 = 0', $b);
+        $this->assertSame([], $b->getBindings());
+    }
+
+    public function test_where_not_in_empty_array(): void
+    {
+        $b = $this->builder()->whereNotIn('id', []);
+        $this->assertSql('SELECT * FROM `users` WHERE 1 = 1', $b);
+    }
+
     public function test_where_null(): void
     {
         $this->assertSql(

@@ -539,7 +539,7 @@ class Builder
      */
     public function whereExists(callable|Builder $subquery, string $boolean = 'AND', bool $not = false): static
     {
-        if (is_callable($subquery)) {
+        if ($subquery instanceof \Closure) {
             $sub = $this->newQuery();
             $subquery($sub);
         } else {
@@ -943,7 +943,10 @@ class Builder
     ): static {
         $join = new JoinClause($type, $table);
 
-        if (is_callable($firstOrCallback)) {
+        // Only a Closure is the advanced callback form. A plain string is the
+        // first join column — is_callable() would wrongly match column names
+        // like 'key' that collide with built-in PHP function names.
+        if ($firstOrCallback instanceof \Closure) {
             $firstOrCallback($join);
         } else {
             $join->on($firstOrCallback, $operator ?? '=', $second ?? '');
