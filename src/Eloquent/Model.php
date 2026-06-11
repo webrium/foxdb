@@ -746,7 +746,7 @@ abstract class Model
      * @param  mixed[] $parameters Extra arguments passed to the scope method
      * @return Builder
      */
-    public static function __callStatic(string $name, array $parameters): Builder
+    public static function __callStatic(string $name, array $parameters): mixed
     {
         $instance = new static();
         $scope    = 'scope' . ucfirst($name);
@@ -862,7 +862,7 @@ abstract class Model
      */
     public function __isset(string $key): bool
     {
-        return isset($this->attributes[$key]);
+        return isset($this->attributes[$key]) || array_key_exists($key, $this->relations);
     }
 
     /**
