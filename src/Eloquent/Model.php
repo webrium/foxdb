@@ -119,8 +119,8 @@ use Foxdb\Support\Collection;
  *
  * EXECUTE / FETCH
  * @method static Collection          get()
- * @method static object|false        first()
- * @method static object|false        find(int|string $id)
+ * @method static static|null         first()
+ * @method static static|null         find(int|string $id)
  * @method static mixed               value(string $column)
  * @method static array               pluck(string $column, string|null $keyColumn = null)
  * @method static void                chunk(int $size, callable $callback)
@@ -153,7 +153,7 @@ use Foxdb\Support\Collection;
  * @method static string              toSql()
  * @method static array               getBindings()
  */
-abstract class Model
+abstract class Model implements \JsonSerializable
 {
     use HasTimestamps;
     use HasCasts;
@@ -609,13 +609,14 @@ abstract class Model
     // -----------------------------------------------------------------------
 
     /**
-     * Get a new Builder for this model's table, with the soft-delete scope applied.
+     * Get a new ModelBuilder for this model's table, with the soft-delete scope applied.
+     * ModelBuilder wraps the raw Builder and exposes correct return types for IDE support.
      *
-     * @return Builder
+     * @return ModelBuilder<static>
      */
-    public static function query(): Builder
+    public static function query(): ModelBuilder
     {
-        return (new static())->newQuery();
+        return new ModelBuilder((new static())->newQuery(), static::class);
     }
 
     /**
@@ -646,7 +647,7 @@ abstract class Model
             }
         }
 
-        return new \Foxdb\Eloquent\EagerBuilder(static::query(), static::class, $withs);
+        return new \Foxdb\Eloquent\EagerBuilder((new static())->newQuery(), static::class, $withs);
     }
 
     /**
@@ -715,13 +716,13 @@ abstract class Model
      * @param  string|callable $column
      * @param  mixed           $operatorOrValue
      * @param  mixed           $value
-     * @return Builder
+     * @return ModelBuilder<static>
      */
     public static function where(
         string|callable $column,
         mixed $operatorOrValue = null,
         mixed $value = null,
-    ): Builder {
+    ): ModelBuilder {
         return static::query()->where($column, $operatorOrValue, $value);
     }
 
@@ -920,6 +921,20 @@ abstract class Model
     public function toJson(int $flags = JSON_UNESCAPED_UNICODE): string
     {
         return (string) json_encode($this->toArray(), $flags);
+    }
+
+    /**
+     * Implement JsonSerializable so json_encode($model) works correctly.
+     *
+     * Without this, json_encode() on a Model produces {} because PHP
+     * serializes only public properties — and Model has none.
+     * With this, json_encode($model) is identical to $model->toJson().
+     *
+     * @return array<string, mixed>
+     */
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
     }
 
     // -----------------------------------------------------------------------
