@@ -1,0 +1,161 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+
+  # -------------------------------------------------------------------------
+  # Unit tests — no DB needed, always run
+  # -------------------------------------------------------------------------
+  unit:
+    name: Unit Tests (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php: [ "8.1", "8.2", "8.3" ]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Run unit tests
+        run: vendor/bin/phpunit --testsuite=unit
+
+  # -------------------------------------------------------------------------
+  # Integration — SQLite (no server needed)
+  # -------------------------------------------------------------------------
+  integration-sqlite:
+    name: Integration / SQLite (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php: [ "8.1", "8.2", "8.3" ]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: pdo_sqlite
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Run integration tests (SQLite)
+        env:
+          DB_DRIVER: sqlite
+        run: vendor/bin/phpunit --testsuite=integration
+
+  # -------------------------------------------------------------------------
+  # Integration — MySQL 8
+  # -------------------------------------------------------------------------
+  integration-mysql:
+    name: Integration / MySQL ${{ matrix.mysql }} (PHP 8.2)
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        mysql: [ "8.0", "8.4" ]
+
+    services:
+      mysql:
+        image: mysql:${{ matrix.mysql }}
+        env:
+          MYSQL_ROOT_PASSWORD: secret
+          MYSQL_DATABASE: foxdb_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -psecret"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: pdo_mysql
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Run integration tests (MySQL)
+        env:
+          DB_DRIVER:   mysql
+          DB_HOST:     127.0.0.1
+          DB_PORT:     3306
+          DB_DATABASE: foxdb_test
+          DB_USERNAME: root
+          DB_PASSWORD: secret
+        run: vendor/bin/phpunit --testsuite=integration
+
+  # -------------------------------------------------------------------------
+  # Integration — PostgreSQL 15 / 16
+  # -------------------------------------------------------------------------
+  integration-pgsql:
+    name: Integration / PostgreSQL ${{ matrix.pgsql }} (PHP 8.2)
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        pgsql: [ "15", "16" ]
+
+    services:
+      postgres:
+        image: postgres:${{ matrix.pgsql }}
+        env:
+          POSTGRES_USER:     foxdb
+          POSTGRES_PASSWORD: secret
+          POSTGRES_DB:       foxdb_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U foxdb"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: pdo_pgsql
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Run integration tests (PostgreSQL)
+        env:
+          DB_DRIVER:   pgsql
+          DB_HOST:     127.0.0.1
+          DB_PORT:     5432
+          DB_DATABASE: foxdb_test
+          DB_USERNAME: foxdb
+          DB_PASSWORD: secret
+        run: vendor/bin/phpunit --testsuite=integration
