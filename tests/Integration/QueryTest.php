@@ -17,8 +17,9 @@ class QueryTest extends IntegrationTestCase
 
     protected static function createSchema(): void
     {
-        $ai   = static::autoIncrement();
-        $bool = static::boolType();
+        $ai          = static::autoIncrement();
+        $bool        = static::boolType();
+        $boolDefault = static::boolDefault(true);
 
         DB::statement("DROP TABLE IF EXISTS " . static::q('orders'));
         DB::statement("DROP TABLE IF EXISTS " . static::q('query_users'));
@@ -29,7 +30,7 @@ class QueryTest extends IntegrationTestCase
                 " . static::q('name')       . " VARCHAR(255),
                 " . static::q('email')      . " VARCHAR(255),
                 " . static::q('age')        . " INTEGER DEFAULT 0,
-                " . static::q('active')     . " {$bool} DEFAULT 1,
+                " . static::q('active')     . " {$bool} DEFAULT {$boolDefault},
                 " . static::q('score')      . " DOUBLE PRECISION DEFAULT 0,
                 " . static::q('role')       . " VARCHAR(50) DEFAULT 'user'
             )

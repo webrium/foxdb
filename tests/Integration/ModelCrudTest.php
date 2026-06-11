@@ -23,6 +23,8 @@ class ModelCrudTest extends IntegrationTestCase
     {
         $ai   = static::autoIncrement();
         $bool = static::boolType();
+        $dt   = static::datetimeType();
+        $boolDefault = static::boolDefault(true);
 
         DB::statement("DROP TABLE IF EXISTS " . static::q('users'));
         DB::statement("
@@ -31,11 +33,11 @@ class ModelCrudTest extends IntegrationTestCase
                 " . static::q('name')       . " VARCHAR(255) NOT NULL,
                 " . static::q('email')      . " VARCHAR(255) NOT NULL,
                 " . static::q('age')        . " INTEGER DEFAULT 0,
-                " . static::q('is_active')  . " {$bool} DEFAULT 1,
+                " . static::q('is_active')  . " {$bool} DEFAULT {$boolDefault},
                 " . static::q('score')      . " DOUBLE PRECISION DEFAULT 0,
                 " . static::q('settings')   . " TEXT DEFAULT NULL,
-                " . static::q('created_at') . " DATETIME DEFAULT NULL,
-                " . static::q('updated_at') . " DATETIME DEFAULT NULL
+                " . static::q('created_at') . " {$dt} DEFAULT NULL,
+                " . static::q('updated_at') . " {$dt} DEFAULT NULL
             )
         ");
     }

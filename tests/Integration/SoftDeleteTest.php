@@ -20,13 +20,14 @@ class SoftDeleteTest extends IntegrationTestCase
     protected static function createSchema(): void
     {
         $ai = static::autoIncrement();
+        $dt = static::datetimeType();
 
         DB::statement("DROP TABLE IF EXISTS " . static::q('soft_posts'));
         DB::statement("
             CREATE TABLE " . static::q('soft_posts') . " (
                 " . static::q('id')         . " {$ai},
                 " . static::q('title')      . " VARCHAR(255),
-                " . static::q('deleted_at') . " DATETIME DEFAULT NULL
+                " . static::q('deleted_at') . " {$dt} DEFAULT NULL
             )
         ");
     }

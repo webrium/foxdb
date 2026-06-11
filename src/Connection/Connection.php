@@ -575,7 +575,7 @@ class Connection implements ConnectionInterface
      *
      * @throws QueryException
      */
-    protected function handleException(PDOException $e, string $sql, array $bindings): false
+    protected function handleException(PDOException $e, string $sql, array $bindings): bool
     {
         if ($this->throwExceptions) {
             throw new QueryException(
