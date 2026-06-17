@@ -188,14 +188,14 @@ class Builder
     /**
      * Add a basic WHERE condition.
      *
-     * @param  string|RawExpression|callable $column
+     * @param  string|RawExpression|\Closure $column
      * @param  mixed                         $operatorOrValue
      * @param  mixed                         $value
      * @param  string                        $boolean
      * @return static
      */
     public function where(
-        string|RawExpression|callable $column,
+        string|RawExpression|\Closure $column,
         mixed $operatorOrValue = null,
         mixed $value = null,
         string $boolean = 'AND',
@@ -234,13 +234,13 @@ class Builder
     /**
      * Add an OR WHERE condition.
      *
-     * @param  string|RawExpression|callable $column
+     * @param  string|RawExpression|\Closure $column
      * @param  mixed                         $operatorOrValue
      * @param  mixed                         $value
      * @return static
      */
     public function orWhere(
-        string|RawExpression|callable $column,
+        string|RawExpression|\Closure $column,
         mixed $operatorOrValue = null,
         mixed $value = null,
     ): static {
@@ -802,14 +802,14 @@ class Builder
      *   })
      *
      * @param  string                   $table
-     * @param  string|callable          $firstOrCallback
+     * @param  string|\Closure          $firstOrCallback
      * @param  string|null              $operator
      * @param  string|null              $second
      * @return static
      */
     public function join(
         string $table,
-        string|callable $firstOrCallback,
+        string|\Closure $firstOrCallback,
         ?string $operator = null,
         ?string $second = null,
     ): static {
@@ -820,14 +820,14 @@ class Builder
      * Add a LEFT JOIN.
      *
      * @param  string          $table
-     * @param  string|callable $firstOrCallback
+     * @param  string|\Closure $firstOrCallback
      * @param  string|null     $operator
      * @param  string|null     $second
      * @return static
      */
     public function leftJoin(
         string $table,
-        string|callable $firstOrCallback,
+        string|\Closure $firstOrCallback,
         ?string $operator = null,
         ?string $second = null,
     ): static {
@@ -838,14 +838,14 @@ class Builder
      * Add a RIGHT JOIN.
      *
      * @param  string          $table
-     * @param  string|callable $firstOrCallback
+     * @param  string|\Closure $firstOrCallback
      * @param  string|null     $operator
      * @param  string|null     $second
      * @return static
      */
     public function rightJoin(
         string $table,
-        string|callable $firstOrCallback,
+        string|\Closure $firstOrCallback,
         ?string $operator = null,
         ?string $second = null,
     ): static {
@@ -871,7 +871,7 @@ class Builder
      *
      * @param  Builder         $query
      * @param  string          $alias
-     * @param  string|callable $firstOrCallback
+     * @param  string|\Closure $firstOrCallback
      * @param  string|null     $operator
      * @param  string|null     $second
      * @param  string          $type
@@ -880,7 +880,7 @@ class Builder
     public function joinSub(
         Builder $query,
         string $alias,
-        string|callable $firstOrCallback,
+        string|\Closure $firstOrCallback,
         ?string $operator = null,
         ?string $second = null,
         string $type = 'INNER',
@@ -896,7 +896,7 @@ class Builder
      *
      * @param  Builder         $query
      * @param  string          $alias
-     * @param  string|callable $firstOrCallback
+     * @param  string|\Closure $firstOrCallback
      * @param  string|null     $operator
      * @param  string|null     $second
      * @return static
@@ -904,7 +904,7 @@ class Builder
     public function leftJoinSub(
         Builder $query,
         string $alias,
-        string|callable $firstOrCallback,
+        string|\Closure $firstOrCallback,
         ?string $operator = null,
         ?string $second = null,
     ): static {
@@ -929,7 +929,7 @@ class Builder
      *
      * @param  string          $type
      * @param  string          $table
-     * @param  string|callable $firstOrCallback
+     * @param  string|\Closure $firstOrCallback
      * @param  string|null     $operator
      * @param  string|null     $second
      * @return static
@@ -937,7 +937,7 @@ class Builder
     protected function addJoin(
         string $type,
         string $table,
-        string|callable $firstOrCallback,
+        string|\Closure $firstOrCallback,
         ?string $operator,
         ?string $second,
     ): static {

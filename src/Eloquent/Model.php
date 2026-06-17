@@ -55,8 +55,8 @@ use Foxdb\Support\Collection;
  * @method static Builder distinct()
  *
  * WHERE
- * @method static Builder where(string|callable $column, mixed $operatorOrValue = null, mixed $value = null)
- * @method static Builder orWhere(string|callable $column, mixed $operatorOrValue = null, mixed $value = null)
+ * @method static Builder where(string|\Closure $column, mixed $operatorOrValue = null, mixed $value = null)
+ * @method static Builder orWhere(string|\Closure $column, mixed $operatorOrValue = null, mixed $value = null)
  * @method static Builder whereNot(string $column, mixed $operatorOrValue, mixed $value = null)
  * @method static Builder whereRaw(string $expression, array $bindings = [])
  * @method static Builder orWhereRaw(string $expression, array $bindings = [])
@@ -713,13 +713,13 @@ abstract class Model implements \JsonSerializable
     /**
      * Begin a fluent WHERE query on the model's table.
      *
-     * @param  string|callable $column
+     * @param  string|\Closure $column
      * @param  mixed           $operatorOrValue
      * @param  mixed           $value
      * @return ModelBuilder<static>
      */
     public static function where(
-        string|callable $column,
+        string|\Closure $column,
         mixed $operatorOrValue = null,
         mixed $value = null,
     ): ModelBuilder {
