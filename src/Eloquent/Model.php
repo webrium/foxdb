@@ -894,7 +894,7 @@ abstract class Model implements \JsonSerializable
 
         // Append any loaded (eager or lazy cached) relations.
         foreach ($this->relations as $name => $value) {
-            if ($value instanceof \Foxdb\Support\Collection) {
+            if ($value instanceof Collection) {
                 $attrs[$name] = array_map(
                     fn(object $item) => $item instanceof self ? $item->toArray() : (array) $item,
                     $value->all(),
