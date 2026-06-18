@@ -55,7 +55,6 @@ use Foxdb\Support\Collection;
  * @method static Builder distinct()
  *
  * WHERE
- * @method static Builder where(string|\Closure $column, mixed $operatorOrValue = null, mixed $value = null)
  * @method static Builder orWhere(string|\Closure $column, mixed $operatorOrValue = null, mixed $value = null)
  * @method static Builder whereNot(string $column, mixed $operatorOrValue, mixed $value = null)
  * @method static Builder whereRaw(string $expression, array $bindings = [])
@@ -120,7 +119,6 @@ use Foxdb\Support\Collection;
  * EXECUTE / FETCH
  * @method static Collection          get()
  * @method static static|null         first()
- * @method static static|null         find(int|string $id)
  * @method static mixed               value(string $column)
  * @method static array               pluck(string $column, string|null $keyColumn = null)
  * @method static void                chunk(int $size, callable $callback)
@@ -133,7 +131,6 @@ use Foxdb\Support\Collection;
  * @method static float|int           avg(string $column)
  * @method static float|int           min(string $column)
  * @method static float|int           max(string $column)
- * @method static bool                exists()
  * @method static bool                doesntExist()
  *
  * WRITE
