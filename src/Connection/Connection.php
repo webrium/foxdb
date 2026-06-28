@@ -239,13 +239,31 @@ class Connection implements ConnectionInterface
         $this->transactionDepth--;
 
         if ($this->transactionDepth === 0) {
+            // A DDL statement (CREATE TABLE, ALTER TABLE, DROP TABLE, ...) may
+            // have already triggered an implicit commit on platforms such as
+            // MySQL. In that case there is nothing left to commit — the data
+            // is already durable — so we simply acknowledge it instead of
+            // calling PDO::commit() again, which would throw "There is no
+            // active transaction" on PHP 8+.
+            if (! $this->pdo->inTransaction()) {
+                return;
+            }
+
             try {
                 $this->pdo->commit();
             } catch (PDOException $e) {
                 throw DatabaseException::transactionFailed('commit', $e);
             }
         } else {
-            $this->pdo->exec("RELEASE SAVEPOINT trans{$this->transactionDepth}");
+            if (! $this->pdo->inTransaction()) {
+                return;
+            }
+
+            try {
+                $this->pdo->exec("RELEASE SAVEPOINT trans{$this->transactionDepth}");
+            } catch (PDOException $e) {
+                throw DatabaseException::transactionFailed('commit', $e);
+            }
         }
     }
 
@@ -256,6 +274,16 @@ class Connection implements ConnectionInterface
     {
         if ($this->transactionDepth === 1) {
             $this->transactionDepth = 0;
+
+            // If a DDL statement already committed the transaction implicitly,
+            // there is nothing left for PDO to roll back. Anything written
+            // before that statement is already permanent, so we surface this
+            // clearly instead of letting PDO throw a generic "no active
+            // transaction" error.
+            if (! $this->pdo->inTransaction()) {
+                throw DatabaseException::transactionImplicitlyCommitted();
+            }
+
             try {
                 $this->pdo->rollBack();
             } catch (PDOException $e) {
@@ -263,18 +291,32 @@ class Connection implements ConnectionInterface
             }
         } elseif ($this->transactionDepth > 1) {
             $this->transactionDepth--;
-            $this->pdo->exec("ROLLBACK TO SAVEPOINT trans{$this->transactionDepth}");
+
+            if (! $this->pdo->inTransaction()) {
+                throw DatabaseException::transactionImplicitlyCommitted();
+            }
+
+            try {
+                $this->pdo->exec("ROLLBACK TO SAVEPOINT trans{$this->transactionDepth}");
+            } catch (PDOException $e) {
+                throw DatabaseException::transactionFailed('rollback', $e);
+            }
         }
     }
 
     /**
      * Check whether a transaction is currently active.
      *
+     * Reflects the real PDO/driver state rather than only the internal
+     * nesting counter, since DDL statements (CREATE TABLE, ALTER TABLE, ...)
+     * can implicitly commit and close the transaction on platforms such as
+     * MySQL without going through this class.
+     *
      * @return bool
      */
     public function inTransaction(): bool
     {
-        return $this->transactionDepth > 0;
+        return $this->transactionDepth > 0 && $this->pdo->inTransaction();
     }
 
     // -----------------------------------------------------------------------
