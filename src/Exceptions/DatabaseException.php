@@ -61,4 +61,23 @@ class DatabaseException extends RuntimeException
             $previous,
         );
     }
+
+    /**
+     * Create exception for a rollback that can no longer be honored because
+     * the underlying transaction was already implicitly committed (e.g. by a
+     * DDL statement such as CREATE TABLE / ALTER TABLE on MySQL).
+     *
+     * @param  Throwable|null $previous
+     * @return static
+     */
+    public static function transactionImplicitlyCommitted(?Throwable $previous = null): static
+    {
+        return new static(
+            'Cannot roll back: the transaction was already implicitly committed by a '
+            . 'DDL statement (e.g. CREATE TABLE / ALTER TABLE / DROP TABLE). Changes made '
+            . 'before that statement cannot be undone. Consider avoiding mixed DDL and DML '
+            . 'inside the same transaction.',
+            $previous,
+        );
+    }
 }
