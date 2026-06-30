@@ -216,6 +216,93 @@ class RelationsTest extends IntegrationTestCase
         $this->assertIsArray($alice['posts']);
         $this->assertCount(2, $alice['posts']);
     }
+
+    // -----------------------------------------------------------------------
+    // with() is order-independent when chained after select() / where()
+    //
+    // Regression coverage for: Model::select(...)->with(...) throwing
+    // "Call to unknown method: Foxdb\Query\Builder::with()".
+    //
+    // Root cause: Model::__callStatic() forwarded unmatched static calls
+    // (select, orderBy, limit, ...) straight to the raw Query\Builder
+    // instead of through ModelBuilder, so the result of select() had no
+    // knowledge of with() at all — only Model::with() (the entry point)
+    // returned something that understood eager loading. These tests pin
+    // down that with() now works no matter where it appears in the chain,
+    // matching the order-independent behaviour Eloquent users expect from
+    // frameworks like Laravel.
+    // -----------------------------------------------------------------------
+
+    public function test_with_after_select_eager_loads_relation(): void
+    {
+        $this->seedAll();
+
+        // This exact chain — select() first, with() second — is what
+        // originally raised "Call to unknown method: Builder::with()".
+        $users = RelUser::select('id', 'name')->with('posts')->get();
+
+        $alice = $users->first(fn($u) => $u->name === 'Alice');
+        $this->assertInstanceOf(Collection::class, $alice->posts);
+        $this->assertCount(2, $alice->posts);
+    }
+
+    public function test_with_after_select_and_where_returns_single_model(): void
+    {
+        $this->seedAll();
+
+        // Mirrors the real-world case: select(...)->with([...])->where(...)->first()
+        $user = RelUser::select('id', 'name')
+            ->with('posts')
+            ->where('name', 'Alice')
+            ->first();
+
+        $this->assertInstanceOf(RelUser::class, $user);
+        $this->assertSame('Alice', $user->name);
+        $this->assertInstanceOf(Collection::class, $user->posts);
+        $this->assertCount(2, $user->posts);
+    }
+
+    public function test_with_after_where_before_select_still_works(): void
+    {
+        $this->seedAll();
+
+        $user = RelUser::where('name', 'Alice')
+            ->with('posts')
+            ->select('id', 'name')
+            ->first();
+
+        $this->assertInstanceOf(RelUser::class, $user);
+        $this->assertCount(2, $user->posts);
+    }
+
+    public function test_with_constraint_closure_applies_after_select(): void
+    {
+        $this->seedAll();
+
+        // The reported scenario also relied on a constraint closure
+        // (filtering the eager-loaded relation), not just a bare relation
+        // name — make sure that keeps working through select() too.
+        $alice = RelUser::select('id', 'name')
+            ->with(['posts' => fn($q) => $q->where('title', 'Post 1')])
+            ->where('name', 'Alice')
+            ->first();
+
+        $this->assertCount(1, $alice->posts);
+        $this->assertSame('Post 1', $alice->posts->first()->title);
+    }
+
+    public function test_select_without_with_is_unaffected(): void
+    {
+        // Regression guard: plain select() with no with() in the chain
+        // must keep returning normal model instances, not break or
+        // silently turn into an EagerBuilder/Collection of relations.
+        $this->seedAll();
+
+        $user = RelUser::select('id', 'name')->where('name', 'Alice')->first();
+
+        $this->assertInstanceOf(RelUser::class, $user);
+        $this->assertSame('Alice', $user->name);
+    }
 }
 
 // -----------------------------------------------------------------------
