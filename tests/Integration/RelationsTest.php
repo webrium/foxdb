@@ -303,6 +303,114 @@ class RelationsTest extends IntegrationTestCase
         $this->assertInstanceOf(RelUser::class, $user);
         $this->assertSame('Alice', $user->name);
     }
+
+    // -----------------------------------------------------------------------
+    // N+1 verification — proves eager loading runs a constant number of
+    // queries (2: one for parents, one whereIn() for the relation) no
+    // matter how many parent rows are involved, instead of one extra
+    // query per row (the classic N+1 problem).
+    // -----------------------------------------------------------------------
+
+    /**
+     * Seed many users (more than the small fixture in seedAll()) so a
+     * per-row query difference is unambiguous and not a fluke of a
+     * tiny dataset.
+     *
+     * @return int Number of users seeded
+     */
+    private function seedManyUsersWithPosts(int $userCount = 10, int $postsPerUser = 3): int
+    {
+        for ($i = 1; $i <= $userCount; $i++) {
+            $user = RelUser::create(['name' => "Bulk User {$i}"]);
+            for ($j = 1; $j <= $postsPerUser; $j++) {
+                RelPost::create(['user_id' => $user->getKey(), 'title' => "Bulk Post {$j}"]);
+            }
+        }
+
+        return $userCount;
+    }
+
+    public function test_lazy_loading_issues_one_query_per_row(): void
+    {
+        $userCount = $this->seedManyUsersWithPosts(userCount: 10);
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $users = RelUser::all();
+        foreach ($users as $user) {
+            $user->posts->count(); // lazy: one query per iteration
+        }
+
+        $queryCount = count(DB::getQueryLog());
+
+        // 1 query to fetch the users + 1 query per user for posts.
+        $this->assertSame(
+            1 + $userCount,
+            $queryCount,
+            'Lazy loading should issue exactly one query per parent row (the N+1 pattern), confirming the baseline this test contrasts eager loading against.',
+        );
+    }
+
+    public function test_eager_loading_issues_constant_query_count_regardless_of_row_count(): void
+    {
+        $userCount = $this->seedManyUsersWithPosts(userCount: 10);
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $users = RelUser::with('posts')->get();
+        foreach ($users as $user) {
+            $user->posts->count(); // already eager-loaded — must not query again
+        }
+
+        $queryCount = count(DB::getQueryLog());
+
+        // Exactly 2 queries total: 1 for users, 1 whereIn(...) for all posts —
+        // independent of how many users were fetched. This is the N+1 fix.
+        $this->assertSame(
+            2,
+            $queryCount,
+            'Eager loading via with() must use a constant 2 queries (parents + one whereIn for the relation), not one query per row.',
+        );
+
+        $log = DB::getQueryLog();
+        $this->assertStringContainsString('IN (', $log[1]->sql, 'The eager relation query should batch all parent keys into a single whereIn(...) clause.');
+    }
+
+    public function test_eager_loading_after_select_also_avoids_n_plus_1(): void
+    {
+        // Same as above, but through the select()->with() chain that was
+        // previously broken — confirms the fix didn't just make the call
+        // succeed, but that it still avoids N+1 once it does.
+        $userCount = $this->seedManyUsersWithPosts(userCount: 10);
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $users = RelUser::select('id', 'name')->with('posts')->get();
+        foreach ($users as $user) {
+            $user->posts->count();
+        }
+
+        $this->assertSame(2, count(DB::getQueryLog()));
+    }
+
+    public function test_eager_loading_belongs_to_avoids_n_plus_1(): void
+    {
+        // Inverse direction: many posts eager-loading their single author.
+        $this->seedManyUsersWithPosts(userCount: 10, postsPerUser: 2);
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $posts = RelPost::with('author')->get();
+        foreach ($posts as $post) {
+            $post->author->name;
+        }
+
+        $this->assertSame(2, count(DB::getQueryLog()));
+    }
 }
 
 // -----------------------------------------------------------------------
