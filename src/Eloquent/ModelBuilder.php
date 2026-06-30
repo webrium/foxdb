@@ -196,6 +196,29 @@ class ModelBuilder
         return $this->builder->getBindings();
     }
 
+    /**
+     * Eager-load the given relations on this query.
+     *
+     * Unlike Model::with(), which must be the first call in a chain,
+     * this allows with() to be added at any point after select(),
+     * where(), or any other Builder method — matching the behaviour
+     * Eloquent users expect from frameworks like Laravel, where with()
+     * is order-independent:
+     *
+     *   Page::select('id', 'slug')->with('translations')->where(...)->first();
+     *   Page::where(...)->with('translations')->select('id', 'slug')->first();
+     *
+     * Returns an EagerBuilder seeded with the current underlying Builder,
+     * so all constraints already applied (select, where, etc.) are kept.
+     *
+     * @param  string|array<string|int, string|callable> ...$relations
+     * @return EagerBuilder
+     */
+    public function with(string|array ...$relations): EagerBuilder
+    {
+        return (new EagerBuilder($this->builder, $this->modelClass, []))->with(...$relations);
+    }
+
     // -----------------------------------------------------------------------
     // Forward all other Builder methods transparently
     // -----------------------------------------------------------------------
