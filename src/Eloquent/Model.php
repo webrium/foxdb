@@ -12,6 +12,7 @@ use Foxdb\Eloquent\Concerns\HasTimestamps;
 use Foxdb\Exceptions\ModelNotFoundException;
 use Foxdb\Query\Builder;
 use Foxdb\Support\Collection;
+use Foxdb\Eloquent\EagerBuilder;
 
 /**
  * Base Model — Eloquent-style Active Record for FoxDB.
@@ -49,72 +50,75 @@ use Foxdb\Support\Collection;
  * ---------------------------------------------------------------------------
  *
  * SELECT
- * @method static Builder select(string|RawExpression ...$columns)
- * @method static Builder addSelect(string|RawExpression ...$columns)
- * @method static Builder selectRaw(string $expression, array $bindings = [])
- * @method static Builder distinct()
+ * @method static ModelBuilder select(string|RawExpression ...$columns)
+ * @method static ModelBuilder addSelect(string|RawExpression ...$columns)
+ * @method static ModelBuilder selectRaw(string $expression, array $bindings = [])
+ * @method static ModelBuilder distinct()
+ *
+ * EAGER LOADING
+ * @method static EagerBuilder with(string|array ...$relations)
  *
  * WHERE
- * @method static Builder orWhere(string|\Closure $column, mixed $operatorOrValue = null, mixed $value = null)
- * @method static Builder whereNot(string $column, mixed $operatorOrValue, mixed $value = null)
- * @method static Builder whereRaw(string $expression, array $bindings = [])
- * @method static Builder orWhereRaw(string $expression, array $bindings = [])
- * @method static Builder whereIn(string $column, array $values)
- * @method static Builder whereNotIn(string $column, array $values)
- * @method static Builder orWhereIn(string $column, array $values)
- * @method static Builder orWhereNotIn(string $column, array $values)
- * @method static Builder whereBetween(string $column, mixed $min, mixed $max)
- * @method static Builder whereNotBetween(string $column, mixed $min, mixed $max)
- * @method static Builder whereNull(string $column)
- * @method static Builder whereNotNull(string $column)
- * @method static Builder orWhereNull(string $column)
- * @method static Builder orWhereNotNull(string $column)
- * @method static Builder whereColumn(string $first, string $operator, string $second)
- * @method static Builder whereExists(callable|Builder $subquery)
- * @method static Builder whereNotExists(callable|Builder $subquery)
- * @method static Builder whereDate(string $column, string $operator, mixed $value)
- * @method static Builder whereMonth(string $column, string $operator, mixed $value)
- * @method static Builder whereDay(string $column, string $operator, mixed $value)
- * @method static Builder whereYear(string $column, string $operator, mixed $value)
- * @method static Builder whereTime(string $column, string $operator, mixed $value)
+ * @method static ModelBuilder orWhere(string|\Closure $column, mixed $operatorOrValue = null, mixed $value = null)
+ * @method static ModelBuilder whereNot(string $column, mixed $operatorOrValue, mixed $value = null)
+ * @method static ModelBuilder whereRaw(string $expression, array $bindings = [])
+ * @method static ModelBuilder orWhereRaw(string $expression, array $bindings = [])
+ * @method static ModelBuilder whereIn(string $column, array $values)
+ * @method static ModelBuilder whereNotIn(string $column, array $values)
+ * @method static ModelBuilder orWhereIn(string $column, array $values)
+ * @method static ModelBuilder orWhereNotIn(string $column, array $values)
+ * @method static ModelBuilder whereBetween(string $column, mixed $min, mixed $max)
+ * @method static ModelBuilder whereNotBetween(string $column, mixed $min, mixed $max)
+ * @method static ModelBuilder whereNull(string $column)
+ * @method static ModelBuilder whereNotNull(string $column)
+ * @method static ModelBuilder orWhereNull(string $column)
+ * @method static ModelBuilder orWhereNotNull(string $column)
+ * @method static ModelBuilder whereColumn(string $first, string $operator, string $second)
+ * @method static ModelBuilder whereExists(callable|Builder $subquery)
+ * @method static ModelBuilder whereNotExists(callable|Builder $subquery)
+ * @method static ModelBuilder whereDate(string $column, string $operator, mixed $value)
+ * @method static ModelBuilder whereMonth(string $column, string $operator, mixed $value)
+ * @method static ModelBuilder whereDay(string $column, string $operator, mixed $value)
+ * @method static ModelBuilder whereYear(string $column, string $operator, mixed $value)
+ * @method static ModelBuilder whereTime(string $column, string $operator, mixed $value)
  *
  * WHERE shorthands (v1 compatibility)
- * @method static Builder is(string $column, mixed $value)
- * @method static Builder true(string $column)
- * @method static Builder false(string $column)
- * @method static Builder like(string $column, string $value)
- * @method static Builder orLike(string $column, string $value)
- * @method static Builder null(string $column)
- * @method static Builder notNull(string $column)
- * @method static Builder in(string $column, array $values)
- * @method static Builder notIn(string $column, array $values)
+ * @method static ModelBuilder is(string $column, mixed $value)
+ * @method static ModelBuilder true(string $column)
+ * @method static ModelBuilder false(string $column)
+ * @method static ModelBuilder like(string $column, string $value)
+ * @method static ModelBuilder orLike(string $column, string $value)
+ * @method static ModelBuilder null(string $column)
+ * @method static ModelBuilder notNull(string $column)
+ * @method static ModelBuilder in(string $column, array $values)
+ * @method static ModelBuilder notIn(string $column, array $values)
  *
  * JOIN
- * @method static Builder join(string $table, string $first, string $operator, string $second)
- * @method static Builder leftJoin(string $table, string $first, string $operator, string $second)
- * @method static Builder rightJoin(string $table, string $first, string $operator, string $second)
- * @method static Builder crossJoin(string $table)
- * @method static Builder joinSub(Builder $query, string $alias, string $first, string $operator, string $second)
- * @method static Builder joinRaw(string $expression)
+ * @method static ModelBuilder join(string $table, string $first, string $operator, string $second)
+ * @method static ModelBuilder leftJoin(string $table, string $first, string $operator, string $second)
+ * @method static ModelBuilder rightJoin(string $table, string $first, string $operator, string $second)
+ * @method static ModelBuilder crossJoin(string $table)
+ * @method static ModelBuilder joinSub(Builder $query, string $alias, string $first, string $operator, string $second)
+ * @method static ModelBuilder joinRaw(string $expression)
  *
  * GROUP BY / HAVING
- * @method static Builder groupBy(string ...$columns)
- * @method static Builder having(string $column, string $operator, mixed $value)
- * @method static Builder orHaving(string $column, string $operator, mixed $value)
- * @method static Builder havingRaw(string $expression, array $bindings = [])
+ * @method static ModelBuilder groupBy(string ...$columns)
+ * @method static ModelBuilder having(string $column, string $operator, mixed $value)
+ * @method static ModelBuilder orHaving(string $column, string $operator, mixed $value)
+ * @method static ModelBuilder havingRaw(string $expression, array $bindings = [])
  *
  * ORDER / LIMIT / OFFSET
- * @method static Builder orderBy(string $column, string $direction = 'asc')
- * @method static Builder orderByDesc(string $column)
- * @method static Builder orderByRaw(string $expression)
- * @method static Builder latest(string $column = 'created_at')
- * @method static Builder oldest(string $column = 'created_at')
- * @method static Builder inRandomOrder()
- * @method static Builder reorder()
- * @method static Builder limit(int $value)
- * @method static Builder take(int $value)
- * @method static Builder offset(int $value)
- * @method static Builder skip(int $value)
+ * @method static ModelBuilder orderBy(string $column, string $direction = 'asc')
+ * @method static ModelBuilder orderByDesc(string $column)
+ * @method static ModelBuilder orderByRaw(string $expression)
+ * @method static ModelBuilder latest(string $column = 'created_at')
+ * @method static ModelBuilder oldest(string $column = 'created_at')
+ * @method static ModelBuilder inRandomOrder()
+ * @method static ModelBuilder reorder()
+ * @method static ModelBuilder limit(int $value)
+ * @method static ModelBuilder take(int $value)
+ * @method static ModelBuilder offset(int $value)
+ * @method static ModelBuilder skip(int $value)
  *
  * EXECUTE / FETCH
  * @method static Collection          get()
@@ -145,7 +149,7 @@ use Foxdb\Support\Collection;
  * @method static bool                updateOrInsert(array $conditions, array $values = [])
  *
  * DEBUG
- * @method static Builder             dump()
+ * @method static ModelBuilder        dump()
  * @method static never               dd()
  * @method static string              toSql()
  * @method static array               getBindings()
@@ -624,9 +628,9 @@ abstract class Model implements \JsonSerializable
      *   User::with(['posts' => fn($q) => $q->where('published', 1)])->get()
      *
      * @param  string|array<string|int, string|callable> ...$relations
-     * @return \Foxdb\Eloquent\EagerBuilder
+     * @return EagerBuilder
      */
-    public static function with(string|array ...$relations): \Foxdb\Eloquent\EagerBuilder
+    public static function with(string|array ...$relations): EagerBuilder
     {
         // Normalise: accept both with('a','b') and with(['a','b']) and with(['a'=>fn])
         $withs = [];
@@ -644,7 +648,7 @@ abstract class Model implements \JsonSerializable
             }
         }
 
-        return new \Foxdb\Eloquent\EagerBuilder((new static())->newQuery(), static::class, $withs);
+        return new EagerBuilder((new static())->newQuery(), static::class, $withs);
     }
 
     /**
