@@ -72,6 +72,31 @@ class EagerBuilder
     }
 
     /**
+     * Paginate the results and eager-load all specified relations on
+     * the current page.
+     *
+     * Without this override, paginate() would fall through __call() to
+     * Query\Builder::paginate(), which calls the raw builder's get()
+     * internally and never runs eager loading — silently dropping any
+     * with() that was chained before it, and reintroducing N+1 the
+     * moment the relation is accessed on the paginated page.
+     *
+     * @param  int $perPage
+     * @param  int $page
+     * @return object{total:int,per_page:int,current_page:int,last_page:int,from:int,to:int,data:Collection}
+     */
+    public function paginate(int $perPage = 15, int $page = 1): object
+    {
+        $page = $this->builder->paginate($perPage, $page);
+
+        $page->data = $page->data->isEmpty()
+            ? $page->data
+            : $this->modelClass::eagerLoad($page->data, $this->withs);
+
+        return $page;
+    }
+
+    /**
      * Add more relations to eager-load.
      *
      * @param  string|array<string|int, string|callable> ...$relations
