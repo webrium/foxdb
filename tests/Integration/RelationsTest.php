@@ -411,6 +411,80 @@ class RelationsTest extends IntegrationTestCase
 
         $this->assertSame(2, count(DB::getQueryLog()));
     }
+
+    // -----------------------------------------------------------------------
+    // paginate() honours with()
+    //
+    // EagerBuilder previously only implemented get() and first() as
+    // terminal methods that trigger Model::eagerLoad(). paginate() was
+    // not declared on EagerBuilder, so it fell through __call() straight
+    // to the underlying Query\Builder::paginate(), which calls its own
+    // get() internally — never touching eager loading at all.
+    //
+    // The practical effect was: with() silently did nothing when
+    // paginate() was used. Accessing the relation afterwards fell back
+    // to lazy loading per row, reproducing the exact N+1 problem with()
+    // exists to prevent — with no error or warning to signal it.
+    //
+    // EagerBuilder::paginate() now overrides the forwarded call, runs the
+    // page query, then eager-loads relations on $page->data before
+    // returning. These tests verify that fix.
+    // -----------------------------------------------------------------------
+
+    public function test_paginate_after_with_eager_loads_relation(): void
+    {
+        $this->seedManyUsersWithPosts(userCount: 5);
+
+        $result = RelUser::with('posts')->paginate(5, 1);
+        $first  = $result->data->first();
+
+        $this->assertTrue(
+            $first->relationLoaded('posts'),
+            'paginate() must honour with() and eager-load relations on the current page.',
+        );
+        $this->assertInstanceOf(Collection::class, $first->posts);
+    }
+
+    public function test_paginate_after_select_with_eager_loads_relation(): void
+    {
+        // Same fix verified via the select()->with()->paginate() chain.
+        $this->seedManyUsersWithPosts(userCount: 5);
+
+        $result = RelUser::select('id', 'name')->with('posts')->paginate(5, 1);
+        $first  = $result->data->first();
+
+        $this->assertTrue(
+            $first->relationLoaded('posts'),
+            'paginate() must honour with() through the select()->with()->paginate() chain too.',
+        );
+    }
+
+    public function test_paginate_after_with_avoids_n_plus_1_on_access(): void
+    {
+        // The real-world payoff: a paginated list view that does
+        // Model::with('relation')->paginate(...) and then iterates the
+        // page printing the relation must NOT trigger N+1 — the relation
+        // should already be loaded from the single whereIn() query.
+        $userCount = $this->seedManyUsersWithPosts(userCount: 10, postsPerUser: 1);
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $result = RelUser::with('posts')->paginate($userCount, 1);
+        foreach ($result->data as $user) {
+            $user->posts->count(); // must be a no-op — already eager-loaded
+        }
+
+        $queryCount = count(DB::getQueryLog());
+
+        // 1 count() + 1 page select + 1 whereIn() for posts = 3, regardless
+        // of how many users are on the page.
+        $this->assertSame(
+            3,
+            $queryCount,
+            'paginate() + with() must use a constant 3 queries, not one extra query per row.',
+        );
+    }
 }
 
 // -----------------------------------------------------------------------
