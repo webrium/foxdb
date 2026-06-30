@@ -863,8 +863,12 @@ abstract class Model implements \JsonSerializable
             return $instance->$scope($query, ...$parameters);
         }
 
-        // Forward to Builder (where, orderBy, limit, etc.)
-        return $instance->newQuery()->$name(...$parameters);
+        // Forward to ModelBuilder (select, where, orderBy, limit, etc.) so
+        // every static entry point — not just the hand-written where() —
+        // returns a model-aware builder. Without this, calls like
+        // Model::select(...) leaked the raw Query\Builder, which knows
+        // nothing about relations and breaks with() being chained after it.
+        return static::query()->$name(...$parameters);
     }
 
     // -----------------------------------------------------------------------
