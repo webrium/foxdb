@@ -229,12 +229,28 @@ class ModelBuilder
      * (the ModelBuilder) so the chain stays intact and the IDE continues
      * to see the correct type.
      *
+     * Local scopes (scopeXxx on the model) are resolved here too, so a
+     * scope stays chainable after another scope — e.g.
+     * Model::active()->adult()->get() — and not just after plain Builder
+     * methods. Without this, $name is forwarded straight to the raw
+     * Builder, which knows nothing about scopes and throws "Call to
+     * undefined method".
+     *
      * @param  string       $name
      * @param  array<mixed> $arguments
      * @return static|mixed
      */
     public function __call(string $name, array $arguments): mixed
     {
+        $modelInstance = new $this->modelClass();
+        $scope         = 'scope' . ucfirst($name);
+
+        if (method_exists($modelInstance, $scope)) {
+            $result = $modelInstance->$scope($this->builder, ...$arguments);
+
+            return $result === $this->builder ? $this : $result;
+        }
+
         $result = $this->builder->$name(...$arguments);
 
         // If Builder returned itself, keep the chain on ModelBuilder

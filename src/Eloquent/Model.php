@@ -863,8 +863,18 @@ abstract class Model implements \JsonSerializable
         $scope    = 'scope' . ucfirst($name);
 
         if (method_exists($instance, $scope)) {
-            $query = $instance->newQuery();
-            return $instance->$scope($query, ...$parameters);
+            $query  = $instance->newQuery();
+            $result = $instance->$scope($query, ...$parameters);
+
+            // Keep the chain model-aware (wrap back into ModelBuilder) so
+            // further calls — another scope, with(), etc. — can still be
+            // chained after this one. Without this, a second scope call
+            // like Model::active()->adult() fails with "Call to undefined
+            // method Query\Builder::adult()", because the raw Builder
+            // returned here has no idea what a "scope" is.
+            return $result instanceof Builder
+                ? new ModelBuilder($result, static::class)
+                : $result;
         }
 
         // Forward to ModelBuilder (select, where, orderBy, limit, etc.) so

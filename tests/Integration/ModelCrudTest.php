@@ -407,6 +407,41 @@ class ModelCrudTest extends IntegrationTestCase
         $this->assertSame('Alice', $active->first()->name);
     }
 
+    /**
+     * Regression: chaining a second local scope after the first one used
+     * to fail with "Call to undefined method Foxdb\Query\Builder::adult()"
+     * because the first scope call returned a raw Query\Builder instead of
+     * a model-aware ModelBuilder, so nothing could resolve scopeAdult()
+     * as a scope anymore.
+     */
+    public function test_chained_local_scopes(): void
+    {
+        TestUser::create(['name' => 'Alice', 'email' => 'a@test.com', 'age' => 25, 'is_active' => 1]); // active adult
+        TestUser::create(['name' => 'Bob',   'email' => 'b@test.com', 'age' => 15, 'is_active' => 1]); // active minor
+        TestUser::create(['name' => 'Carol', 'email' => 'c@test.com', 'age' => 30, 'is_active' => 0]); // inactive adult
+
+        $result = TestUser::active()->adult()->get();
+
+        $this->assertCount(1, $result);
+        $this->assertSame('Alice', $result->first()->name);
+    }
+
+    /**
+     * Regression: a scope must also stay chainable with ordinary Builder
+     * methods that come after it (where, orderBy, ...), not just other
+     * scopes.
+     */
+    public function test_local_scope_chained_with_builder_methods(): void
+    {
+        TestUser::create(['name' => 'Alice', 'email' => 'a@test.com', 'age' => 25, 'is_active' => 1]);
+        TestUser::create(['name' => 'Bob',   'email' => 'b@test.com', 'age' => 30, 'is_active' => 1]);
+
+        $result = TestUser::active()->where('age', 30)->orderByDesc('age')->get();
+
+        $this->assertCount(1, $result);
+        $this->assertSame('Bob', $result->first()->name);
+    }
+
     // -----------------------------------------------------------------------
     // Pagination
     // -----------------------------------------------------------------------
@@ -487,5 +522,10 @@ class TestUser extends Model
     public function scopeActive(Builder $q): Builder
     {
         return $q->where('is_active', 1);
+    }
+
+    public function scopeAdult(Builder $q): Builder
+    {
+        return $q->where('age', '>=', 18);
     }
 }
