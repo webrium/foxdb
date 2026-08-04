@@ -9,24 +9,8 @@ use Foxdb\Schema\Blueprint;
 
 /**
  * Regression coverage for Schema::create() double-emitting foreign key
- * constraints.
- *
- * Schema::create() compiles the CREATE TABLE statement (which already
- * inlines every `$table->foreign()` as a column-level CONSTRAINT, see
- * SchemaGrammar::compileCreate()) and then, unconditionally, ALSO runs
- * SchemaGrammar::compileForeignKeys() — which re-emits the very same
- * constraints as separate `ALTER TABLE ... ADD CONSTRAINT` statements.
- * No grammar overrides compileForeignKeys() to suppress this for the
- * "already inlined at CREATE TABLE time" case, so every driver executes
- * a duplicate constraint statement:
- *
- *  - MySQL:  rejects the duplicate constraint name (errno 121,
- *            "Duplicate key on write or update").
- *  - SQLite: has no `ALTER TABLE ... ADD CONSTRAINT` syntax at all, so
- *            the statement is a hard syntax error.
- *
- * A table defined with `$table->foreign()` therefore cannot be created
- * via Schema::create() on any driver.
+ * constraints (once inlined in CREATE TABLE, once more via a redundant
+ * ALTER TABLE ADD CONSTRAINT).
  */
 class SchemaForeignKeyTest extends IntegrationTestCase
 {
@@ -54,19 +38,8 @@ class SchemaForeignKeyTest extends IntegrationTestCase
         }
     }
 
-    /**
-     * SQLite never enforces foreign keys unless the connection issues
-     * `PRAGMA foreign_keys = ON` — this library does not do so, which is a
-     * separate, pre-existing gap unrelated to the double-emission bug this
-     * file targets. Skipped here rather than silently asserting something
-     * false for that driver.
-     */
     public function testCreateWithForeignKeyActuallyEnforcesTheConstraint(): void
     {
-        if (strtolower((string) (getenv('DB_DRIVER') ?: 'sqlite')) === 'sqlite') {
-            $this->markTestSkipped('SQLite FK enforcement requires PRAGMA foreign_keys=ON, which this library does not set (separate gap).');
-        }
-
         $parent = 'sfk_test_parents2';
         $child  = 'sfk_test_children2';
 
@@ -81,9 +54,6 @@ class SchemaForeignKeyTest extends IntegrationTestCase
                 $t->foreign('parent_id')->references('id')->on($parent);
             });
 
-            // A reference to a non-existent parent row must be rejected —
-            // proof the constraint is really enforced by the DB, not just
-            // that CREATE TABLE happened to succeed some other way.
             $threw = false;
             try {
                 \Foxdb\DB::table($child)->insert(['parent_id' => 999999]);
