@@ -683,6 +683,10 @@ class Connection implements ConnectionInterface
             $this->setMysqlCharset($pdo, $config);
         }
 
+        if ($driver === Config::SQLITE) {
+            $this->enableSqliteForeignKeys($pdo);
+        }
+
         return $pdo;
     }
 
@@ -736,5 +740,19 @@ class Connection implements ConnectionInterface
         $collation = $config['collation'] ?? Config::UTF8MB4_UNICODE_CI;
 
         $pdo->exec("SET NAMES '{$charset}' COLLATE '{$collation}'");
+    }
+
+    /**
+     * Enable foreign key constraint enforcement for SQLite.
+     *
+     * SQLite ignores FOREIGN KEY constraints by default; each connection
+     * must opt in explicitly.
+     *
+     * @param  PDO $pdo
+     * @return void
+     */
+    protected function enableSqliteForeignKeys(PDO $pdo): void
+    {
+        $pdo->exec('PRAGMA foreign_keys = ON');
     }
 }
