@@ -74,11 +74,15 @@ final class Schema
             $conn->statement($idx);
         }
 
-        // Foreign keys already inlined in CREATE TABLE for MySQL.
-        // For PostgreSQL emit separately if any.
-        foreach ($grammar->compileForeignKeys($blueprint) as $fk) {
-            $conn->statement($fk);
-        }
+        // Foreign keys are already inlined as column-level CONSTRAINTs by
+        // compileCreate() above (see SchemaGrammar::compileCreate()), so
+        // they must NOT be re-emitted here via compileForeignKeys() — doing
+        // so duplicates every constraint as a separate ALTER TABLE ADD
+        // CONSTRAINT statement, which MySQL rejects (errno 121, duplicate
+        // constraint) and SQLite rejects outright (ALTER TABLE ADD
+        // CONSTRAINT isn't valid SQLite DDL). compileForeignKeys() is still
+        // used correctly by Schema::table() below, where the table (and
+        // its inline constraints) already exist.
 
         // PostgreSQL column comments (separate COMMENT ON COLUMN statements)
         if ($grammar instanceof PostgresSchemaGrammar) {
