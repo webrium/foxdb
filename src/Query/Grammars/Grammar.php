@@ -843,10 +843,24 @@ abstract class Grammar
 
         if (stripos($table, ' as ') !== false) {
             [$tbl, $alias] = preg_split('/\s+as\s+/i', $table, 2);
-            return $this->quoteSingle(trim($tbl)) . ' AS ' . $this->quoteSingle(trim($alias));
+            return $this->wrapTablePath(trim($tbl)) . ' AS ' . $this->quoteSingle(trim($alias));
         }
 
-        return $this->quoteSingle($table);
+        return $this->wrapTablePath($table);
+    }
+
+    /**
+     * Quote a possibly schema-qualified table name: 'schema.table' → `schema`.`table`
+     *
+     * @param  string $table
+     * @return string
+     */
+    protected function wrapTablePath(string $table): string
+    {
+        return implode('.', array_map(
+            fn(string $part) => $this->quoteSingle($part),
+            explode('.', $table),
+        ));
     }
 
     /**
