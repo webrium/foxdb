@@ -1310,7 +1310,7 @@ class Builder
      */
     public function paginate(int $perPage = 15, int $page = 1): object
     {
-        $total   = (clone $this)->count();
+        $total   = $this->countForPagination();
         $results = (clone $this)->limit($perPage)->offset(($page - 1) * $perPage)->get();
 
         return (object) [
@@ -1322,6 +1322,25 @@ class Builder
             'to'           => min($page * $perPage, $total),
             'data'         => $results,   // Collection
         ];
+    }
+
+    /**
+     * Count the rows a paginated query spans.
+     *
+     * A plain COUNT(*) with GROUP BY returns one row per group, so the total
+     * is taken from a wrapping subquery when the query is grouped.
+     *
+     * @return int
+     */
+    protected function countForPagination(): int
+    {
+        if (empty($this->groups)) {
+            return (clone $this)->count();
+        }
+
+        $grouped = (clone $this)->reorder();
+
+        return $this->newQuery()->fromSub($grouped, 'aggregate_table')->count();
     }
 
     // -----------------------------------------------------------------------
