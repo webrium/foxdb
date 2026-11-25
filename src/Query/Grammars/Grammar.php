@@ -167,6 +167,12 @@ abstract class Grammar
         $parts = [];
 
         foreach ($state['joins'] as $join) {
+            // Raw join from Builder::joinRaw() — embed as-is.
+            if (is_array($join) && isset($join['raw'])) {
+                $parts[] = $join['raw'];
+                continue;
+            }
+
             // Accepts both plain arrays (from tests) and JoinClause objects.
             if ($join instanceof \Foxdb\Query\JoinClause) {
                 $table    = $this->wrapTable($join->table);

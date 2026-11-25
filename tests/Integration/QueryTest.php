@@ -337,6 +337,21 @@ class QueryTest extends IntegrationTestCase
         $this->assertEquals(100.0, $row->order_total);
     }
 
+    public function test_join_raw_executes(): void
+    {
+        $this->seedUsers();
+        $aliceId = $this->table()->where('name', 'Alice')->value('id');
+        DB::table('orders')->insert(['user_id' => $aliceId, 'total' => 100.0, 'status' => 'paid']);
+
+        $rows = $this->table()
+            ->select('query_users.name', 'orders.total')
+            ->joinRaw('INNER JOIN orders ON orders.user_id = query_users.id')
+            ->get();
+
+        $this->assertCount(1, $rows);
+        $this->assertSame('Alice', $rows->first()->name);
+    }
+
     // -----------------------------------------------------------------------
     // Paginate
     // -----------------------------------------------------------------------

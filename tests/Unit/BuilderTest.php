@@ -279,6 +279,27 @@ class BuilderTest extends TestCase
         );
     }
 
+    public function test_join_raw_is_compiled_verbatim(): void
+    {
+        $b = $this->builder()->joinRaw('INNER JOIN orders o ON o.user_id = users.id');
+        $this->assertSql(
+            'SELECT * FROM `users` INNER JOIN orders o ON o.user_id = users.id',
+            $b,
+        );
+    }
+
+    public function test_join_raw_can_be_mixed_with_regular_join(): void
+    {
+        $b = $this->builder()
+            ->join('profiles', 'profiles.user_id', '=', 'users.id')
+            ->joinRaw('LEFT JOIN orders o ON o.user_id = users.id AND o.total > 10');
+        $this->assertSql(
+            'SELECT * FROM `users` INNER JOIN `profiles` ON `profiles`.`user_id` = `users`.`id` '
+            . 'LEFT JOIN orders o ON o.user_id = users.id AND o.total > 10',
+            $b,
+        );
+    }
+
     // -----------------------------------------------------------------------
     // GROUP BY / HAVING
     // -----------------------------------------------------------------------
