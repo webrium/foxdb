@@ -342,4 +342,61 @@ class BuilderTest extends TestCase
             $this->builder()->false('active'),
         );
     }
+
+    // -----------------------------------------------------------------------
+    // paginate() + GROUP BY
+    // -----------------------------------------------------------------------
+
+    public function test_paginate_with_group_by_counts_groups_via_subquery(): void
+    {
+        $countSql      = null;
+        $countBindings = null;
+
+        $conn = $this->createMock(\Foxdb\Contracts\ConnectionInterface::class);
+        $conn->method('selectOne')->willReturnCallback(
+            function (string $sql, array $bindings = []) use (&$countSql, &$countBindings) {
+                $countSql      = $sql;
+                $countBindings = $bindings;
+                return (object) ['aggregate' => 3];
+            },
+        );
+        $conn->method('select')->willReturn([]);
+
+        $page = (new Builder($conn, new MySqlGrammar()))
+            ->table('users')
+            ->select('role')
+            ->where('active', 1)
+            ->groupBy('role')
+            ->having('role', '<>', 'banned')
+            ->orderBy('role')
+            ->paginate(perPage: 2, page: 1);
+
+        // total must be the number of groups, not the rows of the first group.
+        $this->assertSame(3, $page->total);
+        $this->assertSame(2, $page->last_page);
+
+        $this->assertStringStartsWith('SELECT COUNT(*) FROM (SELECT `role` FROM `users`', $countSql);
+        $this->assertStringContainsString('GROUP BY `role`', $countSql);
+        $this->assertStringNotContainsString('ORDER BY', $countSql);
+        $this->assertStringNotContainsString('LIMIT', $countSql);
+        $this->assertSame([1, 'banned'], $countBindings);
+    }
+
+    public function test_paginate_without_group_by_keeps_plain_count(): void
+    {
+        $countSql = null;
+
+        $conn = $this->createMock(\Foxdb\Contracts\ConnectionInterface::class);
+        $conn->method('selectOne')->willReturnCallback(
+            function (string $sql) use (&$countSql) {
+                $countSql = $sql;
+                return (object) ['aggregate' => 5];
+            },
+        );
+        $conn->method('select')->willReturn([]);
+
+        (new Builder($conn, new MySqlGrammar()))->table('users')->paginate(perPage: 2, page: 1);
+
+        $this->assertSame('SELECT COUNT(*) FROM `users`', $countSql);
+    }
 }
