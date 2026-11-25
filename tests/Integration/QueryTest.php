@@ -376,4 +376,22 @@ class QueryTest extends IntegrationTestCase
         $this->assertSame(2, $page->last_page);
         $this->assertCount(2, $page->data);
     }
+
+    public function test_schema_qualified_table_with_alias(): void
+    {
+        $this->seedUsers();
+
+        $schema = match (strtolower((string) (getenv('DB_DRIVER') ?: 'sqlite'))) {
+            'pgsql' => 'public',
+            'mysql' => getenv('DB_DATABASE') ?: 'foxdb_test',
+            default => 'main',
+        };
+
+        $row = DB::table($schema . '.query_users as u')
+            ->select('u.name')
+            ->where('u.name', 'Alice')
+            ->first();
+
+        $this->assertSame('Alice', $row->name);
+    }
 }
