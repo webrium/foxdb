@@ -346,4 +346,19 @@ class QueryTest extends IntegrationTestCase
         $this->assertSame(0, $page->from);
         $this->assertCount(0, $page->data);
     }
+
+    public function test_paginate_with_group_by_counts_groups_not_rows(): void
+    {
+        $this->seedUsers(); // roles: admin x1, user x2, mod x1 -> 3 groups
+
+        $page = $this->table()
+            ->select('role')
+            ->groupBy('role')
+            ->orderBy('role')
+            ->paginate(perPage: 2, page: 1);
+
+        $this->assertSame(3, $page->total);
+        $this->assertSame(2, $page->last_page);
+        $this->assertCount(2, $page->data);
+    }
 }
