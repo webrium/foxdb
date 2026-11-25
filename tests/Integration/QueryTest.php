@@ -322,6 +322,21 @@ class QueryTest extends IntegrationTestCase
         $this->assertCount(4, $rows);
     }
 
+    public function test_select_dot_notation_column_with_alias(): void
+    {
+        $this->seedUsers();
+        $aliceId = $this->table()->where('name', 'Alice')->value('id');
+        DB::table('orders')->insert(['user_id' => $aliceId, 'total' => 100.0, 'status' => 'paid']);
+
+        $row = $this->table()
+            ->select('query_users.email as mail', 'orders.total as order_total')
+            ->join('orders', 'orders.user_id', '=', 'query_users.id')
+            ->first();
+
+        $this->assertSame('alice@t.com', $row->mail);
+        $this->assertEquals(100.0, $row->order_total);
+    }
+
     // -----------------------------------------------------------------------
     // Paginate
     // -----------------------------------------------------------------------
