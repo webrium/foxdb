@@ -800,7 +800,7 @@ abstract class Grammar
         if (stripos($column, ' as ') !== false) {
             [$col, $alias] = preg_split('/\s+as\s+/i', $column, 2);
 
-            return $this->quoteSingle(trim($col)) . ' AS ' . $this->quoteSingle(trim($alias));
+            return $this->wrapColumn(trim($col)) . ' AS ' . $this->quoteSingle(trim($alias));
         }
 
         // Dot-notation: "table.column"
