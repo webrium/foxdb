@@ -94,6 +94,45 @@ class GrammarTest extends TestCase
         $this->assertSame('SELECT * FROM `users` AS `u`', $this->norm($sql));
     }
 
+    public function test_mysql_handles_schema_qualified_table(): void
+    {
+        $sql = $this->mysql->compileSelect($this->state(['table' => 'shop.users']));
+        $this->assertSame('SELECT * FROM `shop`.`users`', $this->norm($sql));
+    }
+
+    public function test_mysql_handles_schema_qualified_table_with_alias(): void
+    {
+        $sql = $this->mysql->compileSelect($this->state(['table' => 'shop.users as u']));
+        $this->assertSame('SELECT * FROM `shop`.`users` AS `u`', $this->norm($sql));
+    }
+
+    public function test_pgsql_handles_schema_qualified_table(): void
+    {
+        $sql = $this->pgsql->compileSelect($this->state(['table' => 'public.users']));
+        $this->assertSame('SELECT * FROM "public"."users"', $this->norm($sql));
+    }
+
+    public function test_pgsql_handles_schema_qualified_table_with_alias(): void
+    {
+        $sql = $this->pgsql->compileSelect($this->state(['table' => 'public.users AS u']));
+        $this->assertSame('SELECT * FROM "public"."users" AS "u"', $this->norm($sql));
+    }
+
+    public function test_mysql_handles_schema_qualified_join_table(): void
+    {
+        $sql = $this->mysql->compileSelect($this->state([
+            'joins' => [[
+                'type'    => 'inner',
+                'table'   => 'shop.orders as o',
+                'clauses' => [['type' => 'ON', 'first' => 'o.user_id', 'operator' => '=', 'second' => 'users.id']],
+            ]],
+        ]));
+        $this->assertSame(
+            'SELECT * FROM `users` INNER JOIN `shop`.`orders` AS `o` ON `o`.`user_id` = `users`.`id`',
+            $this->norm($sql),
+        );
+    }
+
     // -----------------------------------------------------------------------
     // MySQL — SELECT variants
     // -----------------------------------------------------------------------
