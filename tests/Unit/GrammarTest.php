@@ -76,6 +76,18 @@ class GrammarTest extends TestCase
         $this->assertSame('SELECT `name` AS `full_name` FROM `users`', $this->norm($sql));
     }
 
+    public function test_mysql_handles_dot_notation_with_column_alias(): void
+    {
+        $sql = $this->mysql->compileSelect($this->state(['columns' => ['users.email as mail']]));
+        $this->assertSame('SELECT `users`.`email` AS `mail` FROM `users`', $this->norm($sql));
+    }
+
+    public function test_pgsql_handles_dot_notation_with_column_alias(): void
+    {
+        $sql = $this->pgsql->compileSelect($this->state(['columns' => ['users.email AS mail']]));
+        $this->assertSame('SELECT "users"."email" AS "mail" FROM "users"', $this->norm($sql));
+    }
+
     public function test_mysql_handles_table_alias(): void
     {
         $sql = $this->mysql->compileSelect($this->state(['table' => 'users as u']));
